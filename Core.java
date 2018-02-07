@@ -18,6 +18,7 @@ public class Core extends Application {
 
   public static void main(String[] args) {
     INaturalLanguageProcessor p = new NLPCore();
+    launch(args);
     while(true){
       ParseResult result = p.parse(readEntry("Enter a query:\n"));
       if(result == null){
@@ -27,7 +28,7 @@ public class Core extends Application {
     }
 
     //Initialise user interface
-    launch(args);
+
 
     //connect();
 
