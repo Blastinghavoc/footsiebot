@@ -14,6 +14,7 @@ import java.io.*;
 
 
 public class Core extends Application {
+  private GUIcore ui;
 
   public static void main(String[] args) {
     INaturalLanguageProcessor p = new NLPCore();
@@ -45,12 +46,12 @@ public class Core extends Application {
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)
-              ui = new UI(primaryStage, tmp);
+              ui = new GUIcore(primaryStage, tmp);
           else
-              ui = new UI(primaryStage);
+              ui = new GUIcore(primaryStage);
       } catch (Exception e) { //if any exceptions, create with default styling
           // Alert err = new Alert()
-          ui = new UI(primaryStage);
+          ui = new GUIcore(primaryStage);
       }
   }
 
