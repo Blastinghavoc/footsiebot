@@ -7,6 +7,6 @@ public class WebScraper {
   }
 
   public ScrapeResult scrape() {
-
+	return null;
   }
 }
