@@ -5,9 +5,6 @@ import footsiebot.intelligencecore.*;
 import footsiebot.datagatheringcore.*;
 import footsiebot.guicore.*;
 import footsiebot.databasecore.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import java.io.*;
@@ -15,8 +12,10 @@ import java.io.*;
 
 public class Core extends Application {
   private GUIcore ui;
+  private static INaturalLanguageProcessor nlp;
 
   public static void main(String[] args) {
+<<<<<<< HEAD
     INaturalLanguageProcessor p = new NLPCore();
     launch(args);
     while(true){
@@ -29,9 +28,28 @@ public class Core extends Application {
 
     //Initialise user interface
 
+=======
+     nlp = new NLPCore();
+    
 
-    //connect();
+    //Initialise user interface
+    launch(args);
+	
+	debugNLP();
+	
+    
+>>>>>>> refs/remotes/origin/master
 
+  }
+  
+  private static void debugNLP(){
+	  while(true){
+      ParseResult result = nlp.parse(readEntry("Enter a query:\n"));
+      if(result == null){
+		System.out.println("Sorry, I did not understand the query.");
+      }
+      System.out.println(result);
+    }
   }
 
   /**

@@ -5,24 +5,24 @@ import footsiebot.nlpcore.Intent;
 public class IntentData {
 
   private Intent intent;
-  private double[] values;
-  private float priority;
-  private float getIrrelevantSuggestionWeight;
+  private Double[] values;
+  private Float priority;
+  private Float getIrrelevantSuggestionWeight;
 
 
   public Intent getIntent() {
+	return null;
+  }
+
+  public Float getPriority() {
+	return null;
+  }
+
+  public void incrementPriority(Float p) {
 
   }
 
-  public float getPriority() {
-
-  }
-
-  public void incrementPriority(float p) {
-
-  }
-
-  public void decrementPriority(float p) {
+  public void decrementPriority(Float p) {
 
   }
 
