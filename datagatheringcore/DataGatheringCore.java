@@ -1,6 +1,6 @@
+package footsiebot.datagatheringcore;
 
-
-public class DataGatheringCore implements DataGathering {
+public class DataGatheringCore implements IDataGathering {
   private WebScraper webScraper;
   private NewsScraper newsScraper;
 

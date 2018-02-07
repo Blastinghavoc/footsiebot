@@ -1,9 +1,10 @@
 package footsiebot.intelligencecore;
 
+import java.util.ArrayList;
 
 public class Group {
   private ArrayList<Company> companies;
-  private  String code;
+  private String code;
   private float priority;
   private float irrelevantSuggestionWeight;
 

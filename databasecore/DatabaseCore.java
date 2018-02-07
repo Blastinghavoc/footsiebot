@@ -1,12 +1,17 @@
 package footsiebot.databasecore;
 
-public class DatabaseCore implements Database {
+import footsiebot.nlpcore.ParseResult;
+import footsiebot.datagatheringcore.ScrapeResult;
+import footsiebot.intelligencecore.*;
+import java.time.LocalDateTime;
+
+public class DatabaseCore implements IDatabaseManager {
 
   public boolean storeScraperResults(ScrapeResult sr) {
 
   }
 
-  public boolean storeQuery(ParseResult pr, DateTime date) {
+  public boolean storeQuery(ParseResult pr, LocalDateTime date) {
 
   }
 
@@ -18,7 +23,7 @@ public class DatabaseCore implements Database {
 
   }
 
-  private String convertQuery(ParseResult pr, DateTime date) {
+  private String convertQuery(ParseResult pr, LocalDateTime date) {
 
   }
 
@@ -43,7 +48,7 @@ public class DatabaseCore implements Database {
   }
 
   private void storeAIGroups(Group[] groups) {
-    
+
   }
 
 

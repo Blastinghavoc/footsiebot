@@ -1,5 +1,6 @@
 package footsiebot.intelligencecore;
 
+import footsiebot.nlpcore.Intent;
 
 public class Company {
 
@@ -32,7 +33,7 @@ public class Company {
   }
 
   public void incrementPriority(double d) {
-    pri
+
   }
 
   public void decrementPriority(double d) {
