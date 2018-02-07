@@ -8,13 +8,14 @@ import footsiebot.databasecore.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import javafx.application.Application;
+import javafx.stage.Stage;
+import java.io.*;
 
-import java.io.*;//May not be needed
 
+public class Core extends Application {
 
-public class Core{
-
-  public static void main(String[] args){
+  public static void main(String[] args) {
     INaturalLanguageProcessor p = new NLPCore();
     while(true){
       ParseResult result = p.parse(readEntry("Enter a query:\n"));
@@ -23,15 +24,39 @@ public class Core{
       }
       System.out.println(result);
     }
-    
-    
+
+    //Initialise user interface
+    launch(args);
+
     //connect();
 
   }
-  
+
+  /**
+  * Starts the application
+  *
+  * @param primaryStage the inital stage of the application
+  */
+  @Override
+  public void start(Stage primaryStage) {
+      //construct UI
+      try { //attempt to use custom styling
+          FileReader fRead = new FileReader("./config/settings.txt");
+          BufferedReader buffRead = new BufferedReader(fRead);
+          String tmp = buffRead.readLine();
+          if (tmp != null)
+              ui = new UI(primaryStage, tmp);
+          else
+              ui = new UI(primaryStage);
+      } catch (Exception e) { //if any exceptions, create with default styling
+          // Alert err = new Alert()
+          ui = new UI(primaryStage);
+      }
+  }
+
   private static String readEntry(String prompt) //Nicked from Databases worksheets, can't be included in final submission DEBUG
 	{
-		try 
+		try
 		{
 			StringBuffer buffer = new StringBuffer();
 			System.out.print(prompt);
@@ -42,12 +67,12 @@ public class Core{
 				c = System.in.read();
 			}
 			return buffer.toString().trim();
-		} 
-		catch (IOException e) 
+		}
+		catch (IOException e)
 		{
 			return "";
 		}
- 	} 
+ 	}
 
 
 }
