@@ -23,13 +23,14 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch operand and intent and increment intent priority
 
      // increment news counter if asked for news
+	 return null;
 
    }
 
 
 
    public String onUpdatedDatabase() {
-
+	return null;
    }
 
    public void onShutdown() {
@@ -44,36 +45,37 @@ public class IntelligenceCore implements IIntelligenceUnit {
    public String onSuggestionIrrelevant(String companyOrGroup) {
      // check if it is a company or a group
 
-     String desc;
+     String desc = "For compilation only";
      for(Company c: companies) {
        if(c.getCode().equals(desc)) {
          c.decrementPriority(c.getIrrelevantSuggestionWeight());
        }
      }
+	 return null;
    }
 
    public String onNewsTime() {
-
+	return null;
    }
 
    private boolean detectedImportantChange() {
-
+	return false;
    }
 
    private Company[] getTopCompanies() {
-
+	return null;
    }
 
    private String suggestIntent(Company company) {
-
+	return null;
    }
 
    private String suggestNews(Company company) {
-
+	return null;
    }
 
    private String suggestNews(Group group) {
-
+	return null;
    }
 
    private void createSuggestions(Company company) {
@@ -85,7 +87,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private String createStartupReport() {
-
+	return null;
    }
 
    private void updateLastSuggestion() {

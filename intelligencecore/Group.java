@@ -5,8 +5,8 @@ import java.util.ArrayList;
 public class Group {
   private ArrayList<Company> companies;
   private String code;
-  private float priority;
-  private float irrelevantSuggestionWeight;
+  private Float priority;
+  private Float irrelevantSuggestionWeight;
 
 
   public Group() {
@@ -14,11 +14,11 @@ public class Group {
   }
 
   public String getGroupCode() {
-
+	return null;
   }
 
-  public float getPriority() {
-
+  public Float getPriority() {
+	return null;
   }
 
   public void incrementPriority() {

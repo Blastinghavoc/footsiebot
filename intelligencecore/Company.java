@@ -7,36 +7,36 @@ public class Company {
   private String code;
   private IntentData[] intents;
   private Intent topIntent;
-  private float newsCounter;
-  private float priority;
-  private double irrelevantSuggestionWeight;
+  private Float newsCounter;
+  private Float priority;
+  private Double irrelevantSuggestionWeight;
 
 
-  public double getIrrelevantSuggestionWeight() {
-
+  public Double getIrrelevantSuggestionWeight() {
+	return null;
   }
 
   public String getCode() {
-
+	return null;
   }
 
   public IntentData getTopIntentData() {
-
+	return null;
   }
 
-  public float getNewsCount() {
-
+  public Float getNewsCount() {
+	return null;
   }
 
-  public float getPriority() {
-
+  public Float getPriority() {
+	return null;
   }
 
-  public void incrementPriority(double d) {
-
+  public void incrementPriority(Double d) {
+	
   }
 
-  public void decrementPriority(double d) {
+  public void decrementPriority(Double d) {
   }
 
 

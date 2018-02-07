@@ -18,19 +18,19 @@ public class Suggestion {
 
 
   public Company getCompany() {
-
+	return null;
   }
 
   public boolean isNews() {
-
+	return false;
   }
 
   public String getSuggestion() {
-
+	return null;
   }
 
   public String getReason() {
-
+	return null;
   }
 
 
