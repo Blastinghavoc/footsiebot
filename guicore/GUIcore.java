@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.shape.Rectangle;
 
 
-public class GUIcore implements GraphicalUserInterface {
+public class GUIcore implements IGraphicalUserInterface {
 
 
   private String style;
@@ -41,7 +41,7 @@ public class GUIcore implements GraphicalUserInterface {
 
   }
 
-  public setStyle(String style) {
+  public void setStyle(String style) {
 
   }
 
@@ -50,7 +50,7 @@ public class GUIcore implements GraphicalUserInterface {
   }
 
   private void setup() {
-    
+
   }
 
 

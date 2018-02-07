@@ -1,9 +1,11 @@
 package footsiebot.guicore;
 
+import java.time.LocalDateTime;
+
 public class Message implements StackPane {
 
   private Label message;
-  private DateTime timeStamp;
+  private LocalDateTime timeStamp;
   private boolean sent;
   private Rectangle visual;
 
@@ -19,7 +21,7 @@ public class Message implements StackPane {
 
   }
 
-  public DateTime getTimeStamp() {
+  public LocalDateTime getTimeStamp() {
 
   }
 
