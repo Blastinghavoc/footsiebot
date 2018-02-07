@@ -1,4 +1,4 @@
-package footsiebot.GUIcore;
+package footsiebot.guicore;
 
 public class Message implements StackPane {
 
