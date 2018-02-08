@@ -1,3 +1,4 @@
 #!/bin/sh
 
-java -cp ../ footsiebot.Core 
+javac -d ./classes -cp ./sqlite-jdbc-3.21.0.jar ./src/*.java ./src/nlpcore/*.java ./src/databasecore/*.java ./src/datagatheringcore/*.java ./src/guicore/*.java ./src/intelligencecore/*.java
+java -cp ./classes footsiebot.Core

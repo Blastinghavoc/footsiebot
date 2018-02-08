@@ -1,3 +1,3 @@
 #!/bin/sh
 
-javac -cp ./sqlite-jdbc-3.21.0.jar ./*.java ./nlpcore/*.java ./databasecore/*.java ./datagatheringcore/*.java ./guicore/*.java ./intelligencecore/*.java
+javac -d ./classes -cp ./sqlite-jdbc-3.21.0.jar ./src/*.java ./src/nlpcore/*.java ./src/databasecore/*.java ./src/datagatheringcore/*.java ./src/guicore/*.java ./src/intelligencecore/*.java
