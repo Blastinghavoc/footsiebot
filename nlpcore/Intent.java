@@ -1,6 +1,6 @@
 package footsiebot.nlpcore;
 
-public enum Intent{
+public enum Intent {
   SPOT_PRICE,
   TRADING_VOLUME,
   OPENING_PRICE,

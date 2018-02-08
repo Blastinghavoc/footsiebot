@@ -3,6 +3,8 @@ package footsiebot.intelligencecore;
 import footsiebot.nlpcore.ParseResult;
 import footsiebot.nlpcore.Intent;
 import java.util.ArrayList;
+import footsiebot.databasecore.*;
+
 
 
 public class IntelligenceCore implements IIntelligenceUnit {
@@ -16,7 +18,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
    private Company[] topCompanies = new Company[TOP];
    private double startupHour;
    private Suggestion lastSuggestion;
+   private DatabaseCore db;
 
+   public IntelligenceCore(double startupHour, DatabaseCore db) {
+     this.startupHour = startupHour;
+     this.db = db;
+   }
 
 
    public String getSuggestion(ParseResult pr) {
@@ -26,8 +33,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
    }
 
-
-
    public String onUpdatedDatabase() {
 
    }
@@ -35,6 +40,14 @@ public class IntelligenceCore implements IIntelligenceUnit {
    public void onShutdown() {
 
    }
+
+   public void onStartUp() {
+     // Fetch from database
+     for(Company c: companies) {
+       c =
+     }
+   }
+
    /**
     * User has reported that a suggestion has not been relevant
     * ajust weights accordingly
@@ -42,13 +55,18 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @return
     */
    public String onSuggestionIrrelevant(String companyOrGroup) {
+     String alert = "";
      // check if it is a company or a group
-
-     String desc;
      for(Company c: companies) {
-       if(c.getCode().equals(desc)) {
+       if(c.getCode().equals(companyOrGroup)) {
          c.decrementPriority(c.getIrrelevantSuggestionWeight());
+         alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
+         return alert;
        }
+     }
+     // is a group
+     for(Group g: group) {
+
      }
    }
 

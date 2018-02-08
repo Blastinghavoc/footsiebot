@@ -35,7 +35,7 @@ public class DatabaseCore implements IDatabaseManager {
 
   }
 
-  private Company[] getAIGroup() {
+  private Group[] getAIGroup() {
 
   }
 
