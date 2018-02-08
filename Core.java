@@ -21,7 +21,7 @@ public class Core extends Application {
     if(args.length > 0){
         if(args[0].equals("nlp")){
             debugNLP();
-            return;
+            System.exit(0);
         }
     }
 
@@ -35,19 +35,21 @@ public class Core extends Application {
   }
 
   private static void debugNLP(){
-    while(true){
-        String input = readEntry("Enter a query:\n");
+        Boolean cont = true;
+        while(cont){
+            String input = readEntry("Enter a query:\n");
 
-        if (input.equals("exit")){
-            break;
-        }
+            if (input.equals("exit")){
+                cont = false;
+                continue;
+            }
 
-        ParseResult result = nlp.parse(input);
-        if(result == null){
-            System.out.println("Sorry, I did not understand the query.");
+            ParseResult result = nlp.parse(input);
+            if(result == null){
+                System.out.println("Sorry, I did not understand the query.");
+            }
+            System.out.println(result);
         }
-        System.out.println(result);
-    }
   }
 
   /**
