@@ -1,0 +1,100 @@
+3i,III
+Admiral Group,ADM
+Anglo American plc,AAL
+Antofagasta,ANTO
+Ashtead Group,AHT
+Associated British Foods,ABF
+AstraZeneca,AZN
+Aviva,AV.
+BAE Systems,BA.
+Barclays,BARC
+Barratt Developments,BDEV
+Berkeley Group Holdings,BKG
+BHP,BLT
+BP,BP.
+British American Tobacco,BATS
+British Land,BLND
+BT Group,BT.A
+Bunzl,BNZL
+Burberry,BRBY
+Carnival Corporation & plc,CCL
+Centrica,CNA
+Coca-Cola HBC AG,CCH
+Compass Group,CPG
+CRH plc,CRH
+Croda International,CRDA
+DCC plc,DCC
+Diageo,DGE
+Direct Line Group,DLG
+easyJet,EZJ
+Evraz,EVR
+Experian,EXPN
+Ferguson plc,FERG
+Fresnillo plc,FRES
+G4S,GFS
+GKN,GKN
+GlaxoSmithKline,GSK
+Glencore,GLEN
+Halma,HLMA
+Hammerson,HMSO
+Hargreaves Lansdown,HL.
+HSBC,HSBA
+Imperial Brands,IMB
+Informa,INF
+InterContinental Hotels Group,IHG
+International Airlines Group,IAG
+Intertek,ITRK
+ITV plc,ITV
+Johnson Matthey,JMAT
+Just Eat,JE
+Kingfisher plc,KGF
+Land Securities,LAND
+Legal & General,LGEN
+Lloyds Banking Group,LLOY
+London Stock Exchange Group,LSE
+Marks & Spencer,MKS
+Mediclinic International,MDC
+Micro Focus,MCRO
+Mondi,MNDI
+Morrisons,MRW
+National Grid plc,NG.
+Next plc,NXT
+NMC Health,NMC
+Old Mutual,OML
+Paddy Power Betfair,PPB
+Pearson PLC,PSON
+Persimmon plc,PSN
+Prudential plc,PRU
+Randgold Resources,RRS
+Reckitt Benckiser,RB.
+RELX Group,REL
+Rentokil Initial,RTO
+Rio Tinto Group,RIO
+Rolls-Royce Holdings,RR.
+The Royal Bank of Scotland Group,RBS
+Royal Dutch Shell,RDSA
+RSA Insurance Group,RSA
+Sage Group,SGE
+Sainsbury's,SBRY
+Schroders,SDR
+Scottish Mortgage Investment Trust,SMT
+Segro,SGRO
+Severn Trent,SVT
+Shire plc,SHP
+Sky plc,SKY
+Smith & Nephew,SN.
+"Smith, D.S.",SMDS
+Smiths Group,SMIN
+Smurfit Kappa,SKG
+SSE plc,SSE
+Standard Chartered,STAN
+Standard Life Aberdeen,SLA
+St. James's Place plc,STJ
+Taylor Wimpey,TW.
+Tesco,TSCO
+TUI Group,TUI
+Unilever,ULVR
+United Utilities,UU.
+Vodafone Group,VOD
+Whitbread,WTB
+WPP plc,WPP 
