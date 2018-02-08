@@ -13,6 +13,7 @@ import java.io.*;
 public class Core extends Application {
   private GUIcore ui;
   private static INaturalLanguageProcessor nlp;
+  private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
 
   public static void main(String[] args) {
     nlp = new NLPCore();
@@ -58,16 +59,16 @@ public class Core extends Application {
   public void start(Stage primaryStage) {
       //construct UI
       try { //attempt to use custom styling
-          FileReader fRead = new FileReader("./guicore/config/settings.txt");
+          FileReader fRead = new FileReader(PATH_TO_GUI_FOLDER+"/config/settings.txt");
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)
-              ui = new GUIcore(primaryStage, tmp);
+              ui = new GUIcore(primaryStage, tmp,PATH_TO_GUI_FOLDER);
           else
-              ui = new GUIcore(primaryStage);
+              ui = new GUIcore(primaryStage,PATH_TO_GUI_FOLDER);
       } catch (Exception e) { //if any exceptions, create with default styling
           // Alert err = new Alert()
-          ui = new GUIcore(primaryStage);
+          ui = new GUIcore(primaryStage,PATH_TO_GUI_FOLDER);
       }
   }
 
