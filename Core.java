@@ -15,25 +15,37 @@ public class Core extends Application {
   private static INaturalLanguageProcessor nlp;
 
   public static void main(String[] args) {
-     nlp = new NLPCore();
-    
+    nlp = new NLPCore();
+
+    if(args.length > 0){
+        if(args[0].equals("nlp")){
+            debugNLP();
+            return;
+        }
+    }
 
     //Initialise user interface
     launch(args);
-	
-	debugNLP();
-	
-    
+
+
+
+
 
   }
-  
+
   private static void debugNLP(){
-	  while(true){
-      ParseResult result = nlp.parse(readEntry("Enter a query:\n"));
-      if(result == null){
-		System.out.println("Sorry, I did not understand the query.");
-      }
-      System.out.println(result);
+    while(true){
+        String input = readEntry("Enter a query:\n");
+
+        if (input.equals("exit")){
+            break;
+        }
+
+        ParseResult result = nlp.parse(input);
+        if(result == null){
+            System.out.println("Sorry, I did not understand the query.");
+        }
+        System.out.println(result);
     }
   }
 
@@ -46,7 +58,7 @@ public class Core extends Application {
   public void start(Stage primaryStage) {
       //construct UI
       try { //attempt to use custom styling
-          FileReader fRead = new FileReader("./config/settings.txt");
+          FileReader fRead = new FileReader("./guicore/config/settings.txt");
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)
