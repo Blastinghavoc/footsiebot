@@ -70,20 +70,23 @@ public class NLPCore implements INaturalLanguageProcessor{
       }
     }
     //Acceptable for there to be no time specifier.
-    //System.out.println("s is now '"+s+"'");
 
 	//TOKENIZE REMAINING STRING
-
-    if(s.endsWith(".")){//Remove ending full stop if present
-        s = s.substring(0, s.length() - 1);
-    }
+    s = s.replace("   "," ");//removing any triple spaces that may arrise from previous deletions
+    s = s.replace("  "," ");//removing any double spaces.
+    //System.out.println(s);//DEBUG
 
     String[] tokens = s.split(" ");
 
-
+    for (int i = 0; i<tokens.length ; i++ ) {
+        String token = tokens[i];
+        if(token.endsWith(".")){//Remove full stops if present
+            token = token.substring(0, token.length() - 1);
+            tokens[i] = token;
+        }
+    }
 
 	//FIND OPERAND
-
 
 
     /*
@@ -93,12 +96,21 @@ public class NLPCore implements INaturalLanguageProcessor{
     */
 
     int longestMatchingTokenLength = 0;
-    for (String token: tokens) {
-        //TODO Need to add removal of full stops here.
+    for (int i = 0; i<tokens.length ; i++ ) {
+        String token = tokens[i];
+        if (token == null){
+            continue;
+        }
+
+        //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
+        if(token.equals("the")){
+            token = token + " "+ tokens[i+1];//Choose a longer token.
+        }
+
         int index = Collections.binarySearch(operandList,token);
         if(index >= 0){//An exact match was found
             operand = operandMap.get(token);
-            longestMatchingTokenLength = Integer.MAX_VALUE;//Nothing beats an exact match
+            break;//Nothing beats an exact match
         }
         else if(token.length()<=2){//Far too small to autocomplete from
             continue;
@@ -107,11 +119,13 @@ public class NLPCore implements INaturalLanguageProcessor{
 
             int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
             String candidate = operandList.get(nextBestPosition);
+
             if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
-              if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
-                operand = operandMap.get(candidate);//Autocompleting the token
-                longestMatchingTokenLength = token.length();
-              }
+
+                if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
+                    operand = operandMap.get(candidate);//Autocompleting the token
+                    longestMatchingTokenLength = token.length();
+                }
             }
         }
         else{
@@ -124,38 +138,55 @@ public class NLPCore implements INaturalLanguageProcessor{
         valid = true;
     }
     else{
-      //try again with the groups
-      longestMatchingTokenLength = 0;
-      for (String token: tokens) {
-        int index = Collections.binarySearch(groupOperandList,token);
-        if(index >= 0){//An exact match was found
-          operand = groupOperandMap.get(token);
-          longestMatchingTokenLength = Integer.MAX_VALUE;//Nothing beats an exact match
-        }
-        else if(token.length()<=2){//Far too small to autocomplete from
-          continue;
-        }
-        else if(-index <= groupOperandList.size()){//The index where the word would be in the sorted list
-          int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
-          String candidate = groupOperandList.get(nextBestPosition);
-          if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
-            if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
-              operand = groupOperandMap.get(candidate);//Autocompleting the token
-              longestMatchingTokenLength = token.length();
+        //try again with the groups
+
+        /*
+            NOTE: This currently will have issues with many groups, as their names are very similar
+        */
+        
+        longestMatchingTokenLength = 0;
+        for (int i = 0; i<tokens.length ; i++ ) {
+            String token = tokens[i];
+            if (token == null){
+                continue;
             }
-          }
+
+            //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
+            if(token.equals("the")){
+                token = token + " "+ tokens[i+1];//Choose a longer token.
+            }
+
+            int index = Collections.binarySearch(groupOperandList,token);
+            if(index >= 0){//An exact match was found
+                operand = groupOperandMap.get(token);
+                break;//Nothing beats an exact match
+            }
+            else if(token.length()<=2){//Far too small to autocomplete from
+                continue;
+            }
+            else if(-index <= groupOperandList.size()){//The index where the word would be in the sorted list
+                int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
+                String candidate = groupOperandList.get(nextBestPosition);
+
+                if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
+
+                    if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
+                        operand = groupOperandMap.get(candidate);//Autocompleting the token
+                        longestMatchingTokenLength = token.length();
+                    }
+                }
+            }
+            else{
+            //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
+            }
         }
-        else{
-          //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
+        if (operand != null){
+            operandIsGroup = true;
+            valid = true;
+            if(in == Intent.TREND){
+                in = Intent.GROUP_FULL_SUMMARY;
+            }
         }
-      }
-      if (operand != null){
-        operandIsGroup = true;
-        valid = true;
-        if(in == Intent.TREND){
-          in = Intent.GROUP_FULL_SUMMARY;
-        }
-      }
     }
 
 
