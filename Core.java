@@ -8,6 +8,7 @@ import footsiebot.databasecore.*;
 import javafx.application.Application;
 import javafx.stage.Stage;
 import java.io.*;
+import java.util.*;
 
 
 public class Core extends Application {
@@ -45,7 +46,7 @@ public class Core extends Application {
     }
 
     private void timingLoop(){
-
+        //Functionality of this is likely to have to go elsewhere.
     }
 
     private void debugNLP(){
