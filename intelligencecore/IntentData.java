@@ -2,12 +2,22 @@ package footsiebot.intelligencecore;
 
 import footsiebot.nlpcore.Intent;
 
-public class IntentData {
+import java.lang.Comparable;
+
+
+public class IntentData implements Comparable {
 
   private Intent intent;
-  private Double[] values;
-  private Float priority;
-  private Float getIrrelevantSuggestionWeight;
+  private double[] values;
+  private float priority;
+  private float irrelevantSuggestionWeight;
+
+  public IntentData(Intent intent, double[] values, float priority, float irrelevantSuggestionWeight) {
+    this.intent = intent;
+    this.values = values;
+    this.priority = priority;
+    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
+  }
 
 
   public Intent getIntent() {
@@ -25,5 +35,11 @@ public class IntentData {
   public void decrementPriority(Float p) {
 
   }
+
+  @Override
+  public int compareTo(IntentData i) {
+    return i.getPriority() - this.getPriority();
+  }
+
 
 }

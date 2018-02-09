@@ -1,42 +1,53 @@
 package footsiebot.intelligencecore;
 
 import footsiebot.nlpcore.Intent;
+import java.lang.Comparable;
 
-public class Company {
+public class Company implements Comparable {
 
   private String code;
-  private IntentData[] intents;
-  private Intent topIntent;
-  private Float newsCounter;
-  private Float priority;
+  private ArrayList<IntentData> intents;
+  private float newsCounter;
+  private float priority;
   private Double irrelevantSuggestionWeight;
 
 
-  public Double getIrrelevantSuggestionWeight() {
-	return null;
+  public Company(String code, ArrayList<IntentData> intents, ) {
+
+  }
+
+  public float getIrrelevantSuggestionWeight() {
+	return irrelevantSuggestionWeight;
   }
 
   public String getCode() {
-	return null;
+	return code;
   }
 
   public IntentData getTopIntentData() {
+    java.util.Collections.sort(intents);
+	  return intents.get(0);
+  }
+
+  public float getNewsCount() {
+	return newsCounter;
+  }
+
+  public float getPriority() {
 	return null;
   }
 
-  public Float getNewsCount() {
-	return null;
+  public void incrementPriority(float increment) {
+    priority+= increment;
   }
 
-  public Float getPriority() {
-	return null;
+  public void decrementPriority(float decrements) {
+    priority-= decrement;
   }
 
-  public void incrementPriority(Double d) {
-	
-  }
-
-  public void decrementPriority(Double d) {
+  @Override
+  public int compareTo(Company c) {
+    return c.getPriority() - this.getPriority();
   }
 
 

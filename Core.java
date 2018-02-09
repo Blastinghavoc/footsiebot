@@ -13,28 +13,43 @@ import java.io.*;
 public class Core extends Application {
   private GUIcore ui;
   private static INaturalLanguageProcessor nlp;
+  private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
 
   public static void main(String[] args) {
-     nlp = new NLPCore();
-    
+    nlp = new NLPCore();
+
+    if(args.length > 0){
+        if(args[0].equals("nlp")){
+            debugNLP();
+            System.exit(0);
+        }
+    }
 
     //Initialise user interface
     launch(args);
-	
-	debugNLP();
-	
-    
+
+
+
+
 
   }
-  
+
   private static void debugNLP(){
-	  while(true){
-      ParseResult result = nlp.parse(readEntry("Enter a query:\n"));
-      if(result == null){
-		System.out.println("Sorry, I did not understand the query.");
-      }
-      System.out.println(result);
-    }
+        Boolean cont = true;
+        while(cont){
+            String input = readEntry("Enter a query:\n");
+
+            if (input.equals("exit")){
+                cont = false;
+                continue;
+            }
+
+            ParseResult result = nlp.parse(input);
+            if(result == null){
+                System.out.println("Sorry, I did not understand the query.");
+            }
+            System.out.println(result);
+        }
   }
 
   /**
@@ -46,16 +61,16 @@ public class Core extends Application {
   public void start(Stage primaryStage) {
       //construct UI
       try { //attempt to use custom styling
-          FileReader fRead = new FileReader("./config/settings.txt");
+          FileReader fRead = new FileReader(PATH_TO_GUI_FOLDER+"/config/settings.txt");
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)
-              ui = new GUIcore(primaryStage, tmp);
+              ui = new GUIcore(primaryStage, tmp,PATH_TO_GUI_FOLDER);
           else
-              ui = new GUIcore(primaryStage);
+              ui = new GUIcore(primaryStage,PATH_TO_GUI_FOLDER);
       } catch (Exception e) { //if any exceptions, create with default styling
           // Alert err = new Alert()
-          ui = new GUIcore(primaryStage);
+          ui = new GUIcore(primaryStage,PATH_TO_GUI_FOLDER);
       }
   }
 

@@ -70,78 +70,123 @@ public class NLPCore implements INaturalLanguageProcessor{
       }
     }
     //Acceptable for there to be no time specifier.
-    //System.out.println("s is now '"+s+"'");
 
-	  //TOKENIZE REMAINING STRING
+	//TOKENIZE REMAINING STRING
+    s = s.replace("   "," ");//removing any triple spaces that may arrise from previous deletions
+    s = s.replace("  "," ");//removing any double spaces.
+    //System.out.println(s);//DEBUG
+
     String[] tokens = s.split(" ");
 
+    for (int i = 0; i<tokens.length ; i++ ) {
+        String token = tokens[i];
+        if(token.endsWith(".")){//Remove full stops if present
+            token = token.substring(0, token.length() - 1);
+            tokens[i] = token;
+        }
+    }
+
+	//FIND OPERAND
 
 
-	   //FIND OPERAND
-     //Based off following reference
-     //REF: https://docs.oracle.com/javase/tutorial/uiswing/components/textarea.html
-
-     //Currently based on an autocomplete, but if an actual autocomplete is added, this will need full string searching
-     //like above as well.
+    /*
+        The following is an autocomplete based "Heuristic"
+        Based off following reference
+        REF: https://docs.oracle.com/javase/tutorial/uiswing/components/textarea.html
+    */
 
     int longestMatchingTokenLength = 0;
-    for (String token: tokens) {
-      if(token.length()<=2){//Far too small to autocomplete from
-        continue;
-      }
-      int index = Collections.binarySearch(operandList,token);
-      if(index >= 0){//An exact match was found
-        operand = operandMap.get(token);
-      }
-      else if(-index <= operandList.size()){//The index where the word would be in the sorted list
-        int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
-        String candidate = operandList.get(nextBestPosition);
-        if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
-          if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
-            operand = operandMap.get(candidate);//Autocompleting the token
-            longestMatchingTokenLength = token.length();
-          }
+    for (int i = 0; i<tokens.length ; i++ ) {
+        String token = tokens[i];
+        if (token == null){
+            continue;
         }
-      }
-      else{
-        //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
-      }
-    }
-    if (operand != null){//we have an operand
-      operandIsGroup = false;
-      valid = true;
-    }else{
-      //try again with the groups
-      longestMatchingTokenLength = 0;
-      for (String token: tokens) {
-        if(token.length()<=2){//Far too small to autocomplete from
-          continue;
+
+        //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
+        if(token.equals("the")){
+            token = token + " "+ tokens[i+1];//Choose a longer token.
         }
-        int index = Collections.binarySearch(groupOperandList,token);
+
+        int index = Collections.binarySearch(operandList,token);
         if(index >= 0){//An exact match was found
-          operand = groupOperandMap.get(token);
+            operand = operandMap.get(token);
+            break;//Nothing beats an exact match
         }
-        else if(-index <= groupOperandList.size()){//The index where the word would be in the sorted list
-          int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
-          String candidate = groupOperandList.get(nextBestPosition);
-          if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
-            if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
-              operand = groupOperandMap.get(candidate);//Autocompleting the token
-              longestMatchingTokenLength = token.length();
+        else if(token.length()<=2){//Far too small to autocomplete from
+            continue;
+        }
+        else if(-index <= operandList.size()){//The index where the word would be in the sorted list
+
+            int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
+            String candidate = operandList.get(nextBestPosition);
+
+            if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
+
+                if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
+                    operand = operandMap.get(candidate);//Autocompleting the token
+                    longestMatchingTokenLength = token.length();
+                }
             }
-          }
         }
         else{
-          //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
+        //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
         }
-      }
-      if (operand != null){
-        operandIsGroup = true;
+    }
+
+    if (operand != null){//we have an operand
+        operandIsGroup = false;
         valid = true;
-        if(in == Intent.TREND){
-          in = Intent.GROUP_FULL_SUMMARY;
+    }
+    else{
+        //try again with the groups
+
+        /*
+            NOTE: This currently will have issues with many groups, as their names are very similar
+        */
+        
+        longestMatchingTokenLength = 0;
+        for (int i = 0; i<tokens.length ; i++ ) {
+            String token = tokens[i];
+            if (token == null){
+                continue;
+            }
+
+            //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
+            if(token.equals("the")){
+                token = token + " "+ tokens[i+1];//Choose a longer token.
+            }
+
+            int index = Collections.binarySearch(groupOperandList,token);
+            if(index >= 0){//An exact match was found
+                operand = groupOperandMap.get(token);
+                break;//Nothing beats an exact match
+            }
+            else if(token.length()<=2){//Far too small to autocomplete from
+                continue;
+            }
+            else if(-index <= groupOperandList.size()){//The index where the word would be in the sorted list
+                int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
+                String candidate = groupOperandList.get(nextBestPosition);
+
+                if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
+
+                    if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
+                        operand = groupOperandMap.get(candidate);//Autocompleting the token
+                        longestMatchingTokenLength = token.length();
+                    }
+                }
+            }
+            else{
+            //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
+            }
         }
-      }
+        if (operand != null){
+            operandIsGroup = true;
+            valid = true;
+            if(in == Intent.TREND){
+                in = Intent.GROUP_FULL_SUMMARY;
+            }
+        }
     }
 
 
@@ -152,9 +197,9 @@ public class NLPCore implements INaturalLanguageProcessor{
 
 
     return new ParseResult(in,raw,operand,operandIsGroup,ts);
-  }
+    }
 
-  private void initialiseTimes(){
+    private void initialiseTimes(){
     timeMap = new HashMap<String,TimeSpecifier>();
     timeList = new ArrayList<String>();
     timeMap.put("today",TimeSpecifier.TODAY);
@@ -262,6 +307,10 @@ public class NLPCore implements INaturalLanguageProcessor{
         splitLine = line.toLowerCase().split(",");
         String operand = splitLine[0];
 
+        if(operand.endsWith(".")){//Remove full stop if present
+            operand = operand.substring(0, operand.length() - 1);
+        }
+
         operandMap.put(operand,operand);//Adds the operand to the map, mapping to itself
         operandList.add(operand);
         //System.out.println("Added '" + operand +"' to the map");//DEBUG
@@ -277,11 +326,17 @@ public class NLPCore implements INaturalLanguageProcessor{
         }
         else{//There is at least 1 synonym
           for (int i = 1; i< splitLine.length;i++ ) {//Adds all synonyms to map, mapped to the primary operand
-            operandMap.put(splitLine[i],operand);
-            operandList.add(splitLine[i]);
+            String currentOp = splitLine[i];
+
+            if(currentOp.endsWith(".")){//Remove full stop if present
+                currentOp = currentOp.substring(0, currentOp.length() - 1);
+            }
+
+            operandMap.put(currentOp,operand);
+            operandList.add(currentOp);
             //System.out.println("Added '"+ splitLine[i] + "' -> '" + operand +"' to the map");//DEBUG
-            if(splitLine[i].startsWith("the ")){//additional synonyms for things starting with "the"
-              String newSyn = splitLine[i].replaceFirst("the ","");
+            if(currentOp.startsWith("the ")){//additional synonyms for things starting with "the"
+              String newSyn = currentOp.replaceFirst("the ","");
               operandMap.put(newSyn,operand);
               operandList.add(newSyn);
             }
@@ -304,6 +359,10 @@ public class NLPCore implements INaturalLanguageProcessor{
         splitLine = line.toLowerCase().split(",");
         String operand = splitLine[0];
 
+        if(operand.endsWith(".")){//Remove full stop if present
+            operand = operand.substring(0, operand.length() - 1);
+        }
+
         groupOperandMap.put(operand,operand);//Adds the operand to the map, mapping to itself
         groupOperandList.add(operand);
         //System.out.println("Added '" + operand +"' to the map");//DEBUG
@@ -318,11 +377,17 @@ public class NLPCore implements INaturalLanguageProcessor{
         }
         else{//There is at least 1 synonym
           for (int i = 1; i< splitLine.length;i++ ) {//Adds all synonyms to map, mapped to the primary operand
-            groupOperandMap.put(splitLine[i],operand);
-            groupOperandList.add(splitLine[i]);
+            String currentOp = splitLine[i];
+
+            if(currentOp.endsWith(".")){//Remove full stop if present
+                currentOp = currentOp.substring(0, currentOp.length() - 1);
+            }
+
+            groupOperandMap.put(currentOp,operand);
+            groupOperandList.add(currentOp);
             //System.out.println("Added '"+ splitLine[i] + "' -> '" + operand +"' to the map");//DEBUG
-            if(splitLine[i].startsWith("the ")){//additional synonyms for things starting with "the"
-              String newSyn = splitLine[i].replaceFirst("the ","");
+            if(currentOp.startsWith("the ")){//additional synonyms for things starting with "the"
+              String newSyn = currentOp.replaceFirst("the ","");
               groupOperandMap.put(newSyn,operand);
               groupOperandList.add(newSyn);
             }

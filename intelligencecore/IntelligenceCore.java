@@ -2,8 +2,9 @@ package footsiebot.intelligencecore;
 
 import footsiebot.nlpcore.ParseResult;
 import footsiebot.nlpcore.Intent;
-import java.util.ArrayList;
 import footsiebot.databasecore.*;
+
+import java.util.*;
 
 
 
@@ -15,7 +16,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
    private int TOP = 5;
    private ArrayList<Company> companies = new ArrayList<>(100);
    private ArrayList<Group> groups = new ArrayList<>(41);
-   private Company[] topCompanies = new Company[TOP];
    private double startupHour;
    private Suggestion lastSuggestion;
    private DatabaseCore db;
@@ -28,14 +28,39 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
    public String getSuggestion(ParseResult pr) {
      // Fetch operand and intent and increment intent priority
+     Intent intent = pr.getIntent();
+     String companyOrGroup = pr.getOperand();
+     Group targetGroup = null;
+     Company targetCompany = null;
+
+     if(pr.isOperandGroup()) {
+       // search in groups
+       for(Group g: group) {
+         if(g.getGroupCode().equals(companyOrGroup)) {
+           targetGroup = g;
+           break;
+         }
+       }
+       if(targetGroup == null) return "Error group not found";
+       // for group only suggest news
+       lastSuggestion = suggestNews(targetGroup);
+       // return Group to Core
+
+
+     } else {
+       for(Company c: companies) {
+         if(c.getCode().equals(companyOrGroup)) {
+           targetCompany = c;
+         }
+       }
+     }
 
      // increment news counter if asked for news
 	 return null;
-
    }
 
    public String onUpdatedDatabase() {
-	return null;
+	 return null;
    }
 
    public void onShutdown() {
@@ -47,6 +72,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch from database
      companies = db.getAICompanies();
      groups = db.getAIGroups();
+     Collections.sort(companies);
+     Collections.sort(groups);
    }
 
    /**
@@ -77,32 +104,36 @@ public class IntelligenceCore implements IIntelligenceUnit {
      return "Error, no company nor group matching found";
    }
 
-   public String onNewsTime() {
+   public Company[] onNewsTime() {
      // show report about 5 top companies
      // just returns the companies to core ?
-	   return null;
+     Company result = new Company[TOP];
+     for(int i = 0; i < TOP; i++) {
+       result[i] = companies.get(i);
+     }
+	   return result;
    }
 
    private boolean detectedImportantChange() {
-	return false;
-   }
-
-   private Company[] getTopCompanies() {
-	return null;
+	 return false;
    }
 
    private Suggestion suggestIntent(Company company) {
+     // false == suggestion is not news
+     Suggestion result = new Suggestion("Reason ?", company, false);
+     
 
 
-	   return null;
+	 return null;
    }
 
    private Suggestion suggestNews(Company company) {
 	return null;
    }
 
-   private String suggestNews(Group group) {
-	return null;
+   private Suggestion suggestNews(Group group) {
+     Suggestion result = new Suggestion("Reason ? ", group);
+     return result;
    }
 
    private void createSuggestions(Company company) {
@@ -114,7 +145,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private String createStartupReport() {
-	return null;
+	 return null;
    }
 
    private void updateLastSuggestion() {

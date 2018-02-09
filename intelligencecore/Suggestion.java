@@ -2,14 +2,23 @@ package footsiebot.intelligencecore;
 
 public class Suggestion {
 
-  private String desc;
   private Company company;
+  private Group group;
   private boolean isNews;
   private String reason;
 
 
-  public Suggestion(String d) {
-    desc = d;
+  public Suggestion(String r, Company c, boolean isNews) {
+    reason = r;
+    company = c;
+    this.isNews = isNews;
+  }
+
+
+  public Suggestion(String r, Group g) {
+    reason = r;
+    group = g;
+    isNews = true;
   }
 
   public void update() {
@@ -18,19 +27,25 @@ public class Suggestion {
 
 
   public Company getCompany() {
-	return null;
+    return company;
+  }
+
+  public Group getGroup() {
+    return group;
   }
 
   public boolean isNews() {
-	return false;
+    return isNews;
   }
 
-  public String getSuggestion() {
-	return null;
+  public boolean isGroup() {
+    
   }
+
+
 
   public String getReason() {
-	return null;
+    return reason;
   }
 
 
