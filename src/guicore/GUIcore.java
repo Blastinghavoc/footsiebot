@@ -26,15 +26,17 @@ public class GUIcore implements IGraphicalUserInterface {
     private Rectangle inputVisual;
     private TextField input;
     private ListProperty<Node> messages;
+    private String PATH_TO_GUI_FOLDER;//The path from the core to the gui folder
 
     /**
     * Constructor for the user interface using default styling
     *
     * @param primaryStage the initial stage of the application
     */
-    public GUIcore(Stage primaryStage) {
+    public GUIcore(Stage primaryStage,String PATH_TO_GUI_FOLDER) {
         stage = primaryStage;
         style = "main";
+        this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
         setup();
     }
 
@@ -44,9 +46,10 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param primaryStage the initial stage of the application
     * @param style the name of the css file used for styling
     */
-    public GUIcore(Stage primaryStage, String style) {
+    public GUIcore(Stage primaryStage, String style,String PATH_TO_GUI_FOLDER) {
         stage = primaryStage;
         this.style = style;
+        this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
         setup();
     }
 
@@ -63,8 +66,12 @@ public class GUIcore implements IGraphicalUserInterface {
         root.setId("root");
 
         scene = new Scene(root, 550, 700);
+<<<<<<< HEAD:src/guicore/GUIcore.java
         File styleFile = new File("src/guicore/css/main.css");
         scene.getStylesheets().add("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
+=======
+        scene.getStylesheets().add(PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
+>>>>>>> c1c7b9b4e008d27ebc2e2c5f8fd3aa4aa78f6211:guicore/GUIcore.java
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
@@ -186,7 +193,7 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public void setStyle(String style) {
         this.style = style;
-        scene.getStylesheets().setAll("./css/" + style + ".css");
+        scene.getStylesheets().setAll(PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
         stage.setScene(scene);
     }
 
