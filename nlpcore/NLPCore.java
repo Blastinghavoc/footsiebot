@@ -143,7 +143,7 @@ public class NLPCore implements INaturalLanguageProcessor{
         /*
             NOTE: This currently will have issues with many groups, as their names are very similar
         */
-        
+
         longestMatchingTokenLength = 0;
         for (int i = 0; i<tokens.length ; i++ ) {
             String token = tokens[i];
@@ -253,41 +253,17 @@ public class NLPCore implements INaturalLanguageProcessor{
     intentMap.put("risen",Intent.TREND);
     intentMap.put("fallen",Intent.TREND);
     intentMap.put("doing",Intent.TREND);
-    //Group stuff more difficult.
+
+    intentMap.put("news",Intent.NEWS);
+
 
     for (String s :intentMap.keySet()) {
       intentList.add(s);
     }
-    // intentList.add("spot");
-    // intentList.add("current");
-    //
-    // intentList.add("trading volume");
-    // intentList.add("volume");
-    // intentList.add("opening");
-    // intentList.add("closing");
-    // intentList.add("percentage change");
-    // intentList.add("percent change");
-    // intentList.add("% change");
-    // intentList.add("absolute change");
-    // intentList.add("abs change");
-    // intentList.add("rising");
-    // intentList.add("falling");
-    // intentList.add("risen");
-    // intentList.add("fallen");
+
 
     intentList.sort(String.CASE_INSENSITIVE_ORDER);
 
-    // SPOT_PRICE,
-    // TRADING_VOLUME,
-    // OPENING_PRICE,
-    // CLOSING_PRICE,
-    // PERCENT_CHANGE,
-    // ABSOLUTE_CHANGE,
-    // TREND,//rising or falling
-    // GROUP_TREND,//Are X rising or falling
-    // GROUP_GET_RISING,//List those X that are rising
-    // GROUP_GET_FALLING,
-    // GROUP_FULL_SUMMARY//Summary of group X
   }
 
   private void initialiseOperandMap(){
