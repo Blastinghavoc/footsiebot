@@ -277,7 +277,7 @@ public class NLPCore implements INaturalLanguageProcessor{
 
     //normal operands
     try{
-      File fl = new File("src/operands.txt");
+      File fl = new File("src/nlp/operands.txt");
       BufferedReader br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
       String line;
       String[] splitLine;
@@ -330,7 +330,7 @@ public class NLPCore implements INaturalLanguageProcessor{
 
     //group operands
     try{
-      File fl = new File("src/groupOperands.txt");
+      File fl = new File("src/nlp/groupOperands.txt");
       BufferedReader br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
       String line;
       String[] splitLine;
