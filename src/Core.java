@@ -15,6 +15,7 @@ public class Core extends Application {
     private GUIcore ui;
     private INaturalLanguageProcessor nlp;
     private IDatabaseManager dbm;
+<<<<<<< HEAD:src/Core.java
     // private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
 
 // <<<<<<< HEAD:src/Core.java
@@ -22,6 +23,10 @@ public class Core extends Application {
         nlp = new NLPCore();
         dbm = new DatabaseCore();
     }
+=======
+    public static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
+    public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:Core.java
 
     public static void main(String[] args) {
     Core c = new Core();
@@ -91,11 +96,11 @@ public class Core extends Application {
     }
 
     public void onNewDataAvailable(){
-
+        System.out.println("New data available!");
     }
 
     private void timingLoop(){
-        //Functionality of this is likely to have to go elsewhere.
+        //Functionality of this is in guicore now.
     }
 
     private void debugNLP(){
@@ -115,6 +120,53 @@ public class Core extends Application {
             System.out.println(result);
         }
     }
+<<<<<<< HEAD:src/Core.java
+=======
+
+    /**
+    * Starts the application
+    *
+    * @param primaryStage the inital stage of the application
+    */
+    @Override
+    public void start(Stage primaryStage) {
+        //construct UI
+        try { //attempt to use custom styling
+          FileReader fRead = new FileReader(PATH_TO_GUI_FOLDER+"/config/settings.txt");
+          BufferedReader buffRead = new BufferedReader(fRead);
+          String tmp = buffRead.readLine();
+          if (tmp != null)
+              ui = new GUIcore(primaryStage, tmp,this);
+          else
+              ui = new GUIcore(primaryStage,this);
+        } catch (Exception e) { //if any exceptions, create with default styling
+          // Alert err = new Alert()
+          ui = new GUIcore(primaryStage,this);
+        }
+    }
+
+    private static String readEntry(String prompt) //Nicked from Databases worksheets, can't be included in final submission DEBUG
+    {
+        try
+        {
+        	StringBuffer buffer = new StringBuffer();
+        	System.out.print(prompt);
+        	System.out.flush();
+        	int c = System.in.read();
+        	while(c != '\n' && c != -1) {
+        		buffer.append((char)c);
+        		c = System.in.read();
+        	}
+        	return buffer.toString().trim();
+        }
+        catch (IOException e)
+        {
+        	return "";
+        }
+    }
+
+
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:Core.java
 }
 
 //     /**

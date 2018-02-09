@@ -14,6 +14,9 @@ import javafx.beans.binding.*;
 import javafx.beans.property.*;
 import java.io.*;
 
+import footsiebot.Core;
+import javafx.animation.*;
+import javafx.util.Duration;
 
 public class GUIcore implements IGraphicalUserInterface {
     private Stage stage;
@@ -26,17 +29,30 @@ public class GUIcore implements IGraphicalUserInterface {
     private Rectangle inputVisual;
     private TextField input;
     private ListProperty<Node> messages;
+<<<<<<< HEAD:src/guicore/GUIcore.java
     // private String PATH_TO_GUI_FOLDER;//The path from the core to the gui folder
+=======
+
+    private Core core;
+    private Timeline newDataTimeline;
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:guicore/GUIcore.java
 
     /**
     * Constructor for the user interface using default styling
     *
     * @param primaryStage the initial stage of the application
     */
+<<<<<<< HEAD:src/guicore/GUIcore.java
     public GUIcore(Stage primaryStage) {
         stage = primaryStage;
         style = "main";
         // this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
+=======
+    public GUIcore(Stage primaryStage,Core core) {
+        stage = primaryStage;
+        style = "main";
+        this.core = core;
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:guicore/GUIcore.java
         setup();
     }
 
@@ -46,10 +62,17 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param primaryStage the initial stage of the application
     * @param style the name of the css file used for styling
     */
+<<<<<<< HEAD:src/guicore/GUIcore.java
     public GUIcore(Stage primaryStage, String style) {
         stage = primaryStage;
         this.style = style;
         // this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
+=======
+    public GUIcore(Stage primaryStage, String style,Core core) {
+        stage = primaryStage;
+        this.style = style;
+        this.core = core;
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:guicore/GUIcore.java
         setup();
     }
 
@@ -66,12 +89,16 @@ public class GUIcore implements IGraphicalUserInterface {
         root.setId("root");
 
         scene = new Scene(root, 550, 700);
+<<<<<<< HEAD:src/guicore/GUIcore.java
 // <<<<<<< HEAD:src/guicore/GUIcore.java
         File styleFile = new File("src/guicore/css/main.css");
         scene.getStylesheets().add("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
 // =======
         // scene.getStylesheets().add(PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
 // >>>>>>> c1c7b9b4e008d27ebc2e2c5f8fd3aa4aa78f6211:guicore/GUIcore.java
+=======
+        scene.getStylesheets().add(core.PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:guicore/GUIcore.java
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
@@ -157,6 +184,7 @@ public class GUIcore implements IGraphicalUserInterface {
 
         messages.setValue(messageBoard.getChildren());
 
+        startNewDataTimeline();//Starts up the timeline for regular data updates
 
         inputWrapper.getChildren().addAll(inputVisual, input);
         boardWrapper.setContent(messageBoard);
@@ -168,6 +196,19 @@ public class GUIcore implements IGraphicalUserInterface {
         stage.setScene(scene);
         stage.hide();
         stage.show();
+    }
+
+    /**
+    * Starts the newDataTimeline.
+    * Simple Timeline to run the core action regularly
+    * REF: http://tomasmikula.github.io/blog/2014/06/04/timers-in-javafx-and-reactfx.html
+    */
+    private void startNewDataTimeline(){
+        newDataTimeline = new Timeline(new KeyFrame(
+            Duration.millis(core.DATA_REFRESH_RATE),
+            ae -> core.onNewDataAvailable()));
+        newDataTimeline.setCycleCount(Animation.INDEFINITE);
+        newDataTimeline.play();//Running the core function at regular times.
     }
 
     /**
@@ -193,7 +234,11 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public void setStyle(String style) {
         this.style = style;
+<<<<<<< HEAD:src/guicore/GUIcore.java
         // scene.getStylesheets().setAll(PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
+=======
+        scene.getStylesheets().setAll(core.PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
+>>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:guicore/GUIcore.java
         stage.setScene(scene);
     }
 
