@@ -46,7 +46,7 @@ public class Core extends Application {
     public void start(Stage primaryStage) {
       //construct UI
       try { //attempt to use custom styling
-          FileReader fRead = new FileReader("./src/guicore/config/settings.txt");
+          FileReader fRead = new FileReader("./src/gui/config/settings.txt");
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)

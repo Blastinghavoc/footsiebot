@@ -82,7 +82,7 @@ public class GUIcore implements IGraphicalUserInterface {
         root.setId("root");
 
         scene = new Scene(root, 550, 700);
-        String styleFilePath = "src/guicore/css/" + style + ".css";
+        String styleFilePath = "src/gui/css/" + style + ".css";
         File styleFile = new File(styleFilePath);
         scene.getStylesheets().add("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
 
@@ -220,9 +220,9 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public void setStyle(String style) {
         this.style = style;
-        String styleFilePath = "src/guicore/css/" + style + ".css";
+        String styleFilePath = "src/gui/css/" + style + ".css";
         File styleFile = new File(styleFilePath);
-        scene.getStylesheets().setAll("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
+        // scene.getStylesheets().setAll("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
         stage.setScene(scene);
     }
 
