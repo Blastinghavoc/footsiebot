@@ -13,6 +13,7 @@ import java.io.*;
 public class Core extends Application {
   private GUIcore ui;
   private INaturalLanguageProcessor nlp;
+  private IDatabaseManager dbm;
   private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
 
   public static void main(String[] args) {
@@ -32,6 +33,7 @@ public class Core extends Application {
 
     public Core(){
         nlp = new NLPCore();
+        dbm = new DatabaseCore();
     }
 
   private void debugNLP(){
