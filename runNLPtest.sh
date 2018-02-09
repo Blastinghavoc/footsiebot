@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -cp "../" footsiebot.Core nlp
+java -cp "../":"./databasecore/sqlite-jdbc-3.21.0.jar" footsiebot.Core nlp
