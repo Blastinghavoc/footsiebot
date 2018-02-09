@@ -12,15 +12,15 @@ import java.io.*;
 
 public class Core extends Application {
   private GUIcore ui;
-  private static INaturalLanguageProcessor nlp;
+  private INaturalLanguageProcessor nlp;
   private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
 
   public static void main(String[] args) {
-    nlp = new NLPCore();
+    Core c = new Core();
 
     if(args.length > 0){
         if(args[0].equals("nlp")){
-            debugNLP();
+            c.debugNLP();
             System.exit(0);
         }
     }
@@ -28,13 +28,13 @@ public class Core extends Application {
     //Initialise user interface
     launch(args);
 
-
-
-
-
   }
 
-  private static void debugNLP(){
+    public Core(){
+        nlp = new NLPCore();
+    }
+
+  private void debugNLP(){
         Boolean cont = true;
         while(cont){
             String input = readEntry("Enter a query:\n");
