@@ -74,7 +74,7 @@ public class GUIcore implements IGraphicalUserInterface {
         Insets boardPadding = new Insets(0, 0, 0, 16);
         messageBoard.setPadding(boardPadding);
         messageBoard.setId("message-board");
-        messageBoard.setVgap(3);
+        // messageBoard.setVgap(3);
 
         inputWrapper = new StackPane();
         inputWrapper.setId("input-wrapper");
@@ -117,13 +117,14 @@ public class GUIcore implements IGraphicalUserInterface {
             //         tmp.setPrefWidth(stage.getWidth() - 36);
             //     }
             // }
-            resizeMessages();
+            // resizeMessages();
             stage.setScene(scene);
         });
 
         //send user input
         input.setOnAction((event) -> {
             onUserInput();
+            // resizeMessages();
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
@@ -168,6 +169,8 @@ public class GUIcore implements IGraphicalUserInterface {
     private void onUserInput() {
         if (checkInput()) {
             messageBoard.getChildren().add(new Message(input.getText(), LocalDateTime.now(), stage, true));
+            messages.setValue(messageBoard.getChildren());
+            // messageBoard.getChildren().add(new Divider(stage));
             /*
             * send string to core
             */
@@ -210,12 +213,13 @@ public class GUIcore implements IGraphicalUserInterface {
     * Resizes the messages displayed
     */
     private void resizeMessages() {
+        System.out.println("=========================================");
         for (int i = 0; i < messages.size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
-                // System.out.println("Resizing msg(" + i + ")");
                 Message tmp = (Message) messageBoard.getChildren().get(i);
+                System.out.println("Resizing msg[" + i + "] with height and width: " + tmp.getLabel().getHeight() + ", " + tmp.getLabel().getWidth());
                 tmp.getLabel().setMaxWidth(stage.getWidth() * 0.55);
-                tmp.getVisual().setHeight(tmp.getLabel().getHeight() * 1.5);
+                tmp.getVisual().setHeight(tmp.getLabel().getHeight() + 8);
                 tmp.getVisual().setWidth(tmp.getLabel().getWidth() + 10);
                 tmp.setMaxWidth(stage.getWidth() - 36);
                 tmp.setPrefWidth(stage.getWidth() - 36);
