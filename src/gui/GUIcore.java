@@ -1,4 +1,5 @@
 package footsiebot.guicore;
+import footsiebot.Core;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.*;
@@ -13,8 +14,6 @@ import java.time.*;
 import javafx.beans.binding.*;
 import javafx.beans.property.*;
 import java.io.*;
-
-import footsiebot.Core;
 import javafx.animation.*;
 import javafx.util.Duration;
 
