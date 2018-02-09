@@ -331,7 +331,7 @@ public class NLPCore implements INaturalLanguageProcessor{
     //group operands
     try{
       File fl = new File("src/groupOperands.txt");
-      BufferedReader br = new BufferedReader(new FileReader(fl.getAbsolutePath()));
+      BufferedReader br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
       String line;
       String[] splitLine;
       while((line = br.readLine()) != null){
