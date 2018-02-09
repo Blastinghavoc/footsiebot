@@ -30,22 +30,23 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch operand and intent and increment intent priority
 
      // increment news counter if asked for news
+	 return null;
 
    }
 
    public String onUpdatedDatabase() {
-
+	return null;
    }
 
    public void onShutdown() {
-
+     storeAICompanies(companies);
+     storeAIGroups(groups);
    }
 
    public void onStartUp() {
      // Fetch from database
-     for(Company c: companies) {
-       c =
-     }
+     companies = db.getAICompanies();
+     groups = db.getAIGroups();
    }
 
    /**
@@ -66,32 +67,42 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
      // is a group
      for(Group g: group) {
-
+       if(g.getGroupCode().equals(companyOrGroup)) {
+         g.decrementPriority(g.getIrrelevantSuggestionWeight());
+         alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
+         return alert;
+       }
      }
+
+     return "Error, no company nor group matching found";
    }
 
    public String onNewsTime() {
-
+     // show report about 5 top companies
+     // just returns the companies to core ?
+	   return null;
    }
 
    private boolean detectedImportantChange() {
-
+	return false;
    }
 
    private Company[] getTopCompanies() {
-
+	return null;
    }
 
-   private String suggestIntent(Company company) {
+   private Suggestion suggestIntent(Company company) {
 
+
+	   return null;
    }
 
-   private String suggestNews(Company company) {
-
+   private Suggestion suggestNews(Company company) {
+	return null;
    }
 
    private String suggestNews(Group group) {
-
+	return null;
    }
 
    private void createSuggestions(Company company) {
@@ -103,7 +114,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private String createStartupReport() {
-
+	return null;
    }
 
    private void updateLastSuggestion() {

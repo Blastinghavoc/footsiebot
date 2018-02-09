@@ -7,15 +7,15 @@ public class DataGatheringCore implements IDataGathering {
 
 
   public ScrapeResult getData() {
-
+	return null;
   }
 
   public Article[] getNews(String company) {
-
+	return null;
   }
 
   public Article[] getNews(String[] companies) {
-
+	return null;
   }
 
 

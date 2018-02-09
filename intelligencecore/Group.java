@@ -14,19 +14,23 @@ public class Group {
   }
 
   public String getGroupCode() {
+	   return code;
+  }
+
+  public Float getPriority() {
+	   return null;
+  }
+
+  public void incrementPriority(float p) {
 
   }
 
-  public float getPriority() {
+  public void decrementPriority(float p) {
 
   }
 
-  public void incrementPriority() {
-
-  }
-
-  public void decrementPriority() {
-
+  public float getIrrelevantSuggestionWeight() {
+    return irrelevantSuggestionWeight;
   }
 
 

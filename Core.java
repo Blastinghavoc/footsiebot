@@ -5,33 +5,63 @@ import footsiebot.intelligencecore.*;
 import footsiebot.datagatheringcore.*;
 import footsiebot.guicore.*;
 import footsiebot.databasecore.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-
-import java.io.*;//May not be needed
+import javafx.application.Application;
+import javafx.stage.Stage;
+import java.io.*;
 
 
-public class Core{
+public class Core extends Application {
+  private GUIcore ui;
+  private static INaturalLanguageProcessor nlp;
 
-  public static void main(String[] args){
-    INaturalLanguageProcessor p = new NLPCore();
-    while(true){
-      ParseResult result = p.parse(readEntry("Enter a query:\n"));
-      if(result == null){
-	System.out.println("Sorry, I did not understand the query.");
-      }
-      System.out.println(result);
-    }
+  public static void main(String[] args) {
+     nlp = new NLPCore();
     
+
+    //Initialise user interface
+    launch(args);
+	
+	debugNLP();
+	
     
-    //connect();
 
   }
   
+  private static void debugNLP(){
+	  while(true){
+      ParseResult result = nlp.parse(readEntry("Enter a query:\n"));
+      if(result == null){
+		System.out.println("Sorry, I did not understand the query.");
+      }
+      System.out.println(result);
+    }
+  }
+
+  /**
+  * Starts the application
+  *
+  * @param primaryStage the inital stage of the application
+  */
+  @Override
+  public void start(Stage primaryStage) {
+      //construct UI
+      try { //attempt to use custom styling
+          FileReader fRead = new FileReader("./config/settings.txt");
+          BufferedReader buffRead = new BufferedReader(fRead);
+          String tmp = buffRead.readLine();
+          if (tmp != null)
+              ui = new GUIcore(primaryStage, tmp);
+          else
+              ui = new GUIcore(primaryStage);
+      } catch (Exception e) { //if any exceptions, create with default styling
+          // Alert err = new Alert()
+          ui = new GUIcore(primaryStage);
+      }
+  }
+
   private static String readEntry(String prompt) //Nicked from Databases worksheets, can't be included in final submission DEBUG
 	{
-		try 
+		try
 		{
 			StringBuffer buffer = new StringBuffer();
 			System.out.print(prompt);
@@ -42,12 +72,12 @@ public class Core{
 				c = System.in.read();
 			}
 			return buffer.toString().trim();
-		} 
-		catch (IOException e) 
+		}
+		catch (IOException e)
 		{
 			return "";
 		}
- 	} 
+ 	}
 
 
 }
