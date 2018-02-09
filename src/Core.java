@@ -15,53 +15,49 @@ public class Core extends Application {
     private GUIcore ui;
     private INaturalLanguageProcessor nlp;
     private IDatabaseManager dbm;
-<<<<<<< HEAD:src/Core.java
-    // private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
+    public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
 
-// <<<<<<< HEAD:src/Core.java
     public Core() {
         nlp = new NLPCore();
         dbm = new DatabaseCore();
     }
-=======
-    public static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
-    public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
->>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:Core.java
 
     public static void main(String[] args) {
-    Core c = new Core();
+        Core c = new Core();
 
-    if(args.length > 0){
-        if(args[0].equals("nlp")){
-            c.debugNLP();
-            System.exit(0);
+        if(args.length > 0){
+            if(args[0].equals("nlp")){
+                c.debugNLP();
+                System.exit(0);
+            }
         }
+
+        //Initialise user interface
+        launch(args);
+
     }
 
-    //Initialise user interface
-    launch(args);
-
-    }
-
-  /**
-  * Starts the application
-  *
-  * @param primaryStage the inital stage of the application
-  */
-  @Override
-  public void start(Stage primaryStage) {
+    /**
+    * Starts the application
+    *
+    * @param primaryStage the inital stage of the application
+    */
+    @Override
+    public void start(Stage primaryStage) {
       //construct UI
       try { //attempt to use custom styling
-          FileReader fRead = new FileReader("./guicore/config/settings.txt");
+          FileReader fRead = new FileReader("./src/guicore/config/settings.txt");
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)
-              ui = new GUIcore(primaryStage, tmp);
+              ui = new GUIcore(primaryStage, tmp, this);
           else
-              ui = new GUIcore(primaryStage);
+              ui = new GUIcore(primaryStage, this);
         } catch (Exception e) { //if any exceptions, create with default styling
           // Alert err = new Alert()
-          ui = new GUIcore(primaryStage);
+          System.out.println(e.getMessage());
+        //   System.out.println("Styling exception");
+          ui = new GUIcore(primaryStage, this);
         }
     }
 
@@ -84,15 +80,8 @@ public class Core extends Application {
         }
     }
 
-
-// }
-// =======
-
-
-
-
     public void onUserInput(String raw){
-
+        //
     }
 
     public void onNewDataAvailable(){
@@ -120,63 +109,5 @@ public class Core extends Application {
             System.out.println(result);
         }
     }
-<<<<<<< HEAD:src/Core.java
-=======
 
-    /**
-    * Starts the application
-    *
-    * @param primaryStage the inital stage of the application
-    */
-    @Override
-    public void start(Stage primaryStage) {
-        //construct UI
-        try { //attempt to use custom styling
-          FileReader fRead = new FileReader(PATH_TO_GUI_FOLDER+"/config/settings.txt");
-          BufferedReader buffRead = new BufferedReader(fRead);
-          String tmp = buffRead.readLine();
-          if (tmp != null)
-              ui = new GUIcore(primaryStage, tmp,this);
-          else
-              ui = new GUIcore(primaryStage,this);
-        } catch (Exception e) { //if any exceptions, create with default styling
-          // Alert err = new Alert()
-          ui = new GUIcore(primaryStage,this);
-        }
-    }
-
-    private static String readEntry(String prompt) //Nicked from Databases worksheets, can't be included in final submission DEBUG
-    {
-        try
-        {
-        	StringBuffer buffer = new StringBuffer();
-        	System.out.print(prompt);
-        	System.out.flush();
-        	int c = System.in.read();
-        	while(c != '\n' && c != -1) {
-        		buffer.append((char)c);
-        		c = System.in.read();
-        	}
-        	return buffer.toString().trim();
-        }
-        catch (IOException e)
-        {
-        	return "";
-        }
-    }
-
-
->>>>>>> acc3849fe373b95f70734d6fadd1af4bb9a84353:Core.java
 }
-
-//     /**
-//     * Starts the application
-//     *
-//     * @param primaryStage the inital stage of the application
-//     */
-//     @Override
-//     public void start(Stage primaryStage) {
-//         //construct UI
-//         try { //attempt to use custom styling
-//           FileReader fRead = new FileReader(PATH_TO_GUI_FOLDER+"/config/settings.txt");
-// >>>>>>> c1c7b9b4e008d27ebc2e2c5f8fd3aa4aa78f6211:Core.java

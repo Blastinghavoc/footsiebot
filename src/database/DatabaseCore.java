@@ -26,7 +26,7 @@ public class DatabaseCore implements IDatabaseManager {
       try
       {
         // create a database connection
-        connection = DriverManager.getConnection("jdbc:sqlite:src/databasecore/footsie_db.db");
+        connection = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
         Statement statement = connection.createStatement();
         statement.setQueryTimeout(30);  // set timeout to 30 sec.
 

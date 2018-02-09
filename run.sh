@@ -1,4 +1,4 @@
 #!/bin/sh
 
-javac -d ./classes ./src/*.java ./src/nlpcore/*.java ./src/databasecore/*.java ./src/datagatheringcore/*.java ./src/guicore/*.java ./src/intelligencecore/*.java
-java -cp "./classes":"./src/databasecore/sqlite-jdbc-3.21.0.jar" footsiebot.Core
+javac -d ./classes ./src/*.java ./src/nlp/*.java ./src/database/*.java ./src/datagathering/*.java ./src/gui/*.java ./src/ai/*.java
+java -cp "./classes":"./src/database/sqlite-jdbc-3.21.0.jar" footsiebot.Core
