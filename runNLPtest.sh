@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -cp ../ footsiebot.Core nlp
+java -cp "../" footsiebot.Core nlp

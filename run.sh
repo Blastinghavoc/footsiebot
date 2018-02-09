@@ -1,3 +1,3 @@
 #!/bin/sh
 
-java -cp ../ footsiebot.Core 
+java -cp "../" footsiebot.Core 
