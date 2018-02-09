@@ -172,6 +172,7 @@ public class GUIcore implements IGraphicalUserInterface {
     /**
     * Starts the newDataTimeline.
     * Simple Timeline to run the core action regularly
+    * REF: http://tomasmikula.github.io/blog/2014/06/04/timers-in-javafx-and-reactfx.html
     */
     private void startNewDataTimeline(){
         newDataTimeline = new Timeline(new KeyFrame(
