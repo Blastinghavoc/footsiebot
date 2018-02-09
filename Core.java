@@ -15,7 +15,8 @@ public class Core extends Application {
     private GUIcore ui;
     private INaturalLanguageProcessor nlp;
     private IDatabaseManager dbm;
-    private static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
+    public static final String PATH_TO_GUI_FOLDER = "./footsiebot/guicore";
+    public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
 
     public static void main(String[] args) {
     Core c = new Core();
@@ -42,11 +43,11 @@ public class Core extends Application {
     }
 
     public void onNewDataAvailable(){
-
+        System.out.println("New data available!");
     }
 
     private void timingLoop(){
-        //Functionality of this is likely to have to go elsewhere.
+        //Functionality of this is in guicore now.
     }
 
     private void debugNLP(){
@@ -80,12 +81,12 @@ public class Core extends Application {
           BufferedReader buffRead = new BufferedReader(fRead);
           String tmp = buffRead.readLine();
           if (tmp != null)
-              ui = new GUIcore(primaryStage, tmp,PATH_TO_GUI_FOLDER);
+              ui = new GUIcore(primaryStage, tmp,this);
           else
-              ui = new GUIcore(primaryStage,PATH_TO_GUI_FOLDER);
+              ui = new GUIcore(primaryStage,this);
         } catch (Exception e) { //if any exceptions, create with default styling
           // Alert err = new Alert()
-          ui = new GUIcore(primaryStage,PATH_TO_GUI_FOLDER);
+          ui = new GUIcore(primaryStage,this);
         }
     }
 

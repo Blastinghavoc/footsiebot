@@ -13,6 +13,9 @@ import java.time.*;
 import javafx.beans.binding.*;
 import javafx.beans.property.*;
 
+import footsiebot.Core;
+import javafx.animation.*;
+import javafx.util.Duration;
 
 public class GUIcore implements IGraphicalUserInterface {
     private Stage stage;
@@ -25,17 +28,19 @@ public class GUIcore implements IGraphicalUserInterface {
     private Rectangle inputVisual;
     private TextField input;
     private ListProperty<Node> messages;
-    private String PATH_TO_GUI_FOLDER;//The path from the core to the gui folder
+
+    private Core core;
+    private Timeline newDataTimeline;
 
     /**
     * Constructor for the user interface using default styling
     *
     * @param primaryStage the initial stage of the application
     */
-    public GUIcore(Stage primaryStage,String PATH_TO_GUI_FOLDER) {
+    public GUIcore(Stage primaryStage,Core core) {
         stage = primaryStage;
         style = "main";
-        this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
+        this.core = core;
         setup();
     }
 
@@ -45,10 +50,10 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param primaryStage the initial stage of the application
     * @param style the name of the css file used for styling
     */
-    public GUIcore(Stage primaryStage, String style,String PATH_TO_GUI_FOLDER) {
+    public GUIcore(Stage primaryStage, String style,Core core) {
         stage = primaryStage;
         this.style = style;
-        this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
+        this.core = core;
         setup();
     }
 
@@ -65,7 +70,7 @@ public class GUIcore implements IGraphicalUserInterface {
         root.setId("root");
 
         scene = new Scene(root, 550, 700);
-        scene.getStylesheets().add(PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
+        scene.getStylesheets().add(core.PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
@@ -150,6 +155,7 @@ public class GUIcore implements IGraphicalUserInterface {
 
         messages.setValue(messageBoard.getChildren());
 
+        startNewDataTimeline();//Starts up the timeline for regular data updates
 
         inputWrapper.getChildren().addAll(inputVisual, input);
         boardWrapper.setContent(messageBoard);
@@ -161,6 +167,18 @@ public class GUIcore implements IGraphicalUserInterface {
         stage.setScene(scene);
         stage.hide();
         stage.show();
+    }
+
+    /**
+    * Starts the newDataTimeline.
+    * Simple Timeline to run the core action regularly
+    */
+    private void startNewDataTimeline(){
+        newDataTimeline = new Timeline(new KeyFrame(
+            Duration.millis(core.DATA_REFRESH_RATE),
+            ae -> core.onNewDataAvailable()));
+        newDataTimeline.setCycleCount(Animation.INDEFINITE);
+        newDataTimeline.play();//Running the core function at regular times.
     }
 
     /**
@@ -184,7 +202,7 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public void setStyle(String style) {
         this.style = style;
-        scene.getStylesheets().setAll(PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
+        scene.getStylesheets().setAll(core.PATH_TO_GUI_FOLDER+"/css/" + style + ".css");
         stage.setScene(scene);
     }
 
