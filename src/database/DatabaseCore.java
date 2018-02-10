@@ -11,6 +11,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import java.util.ArrayList;
+
+
 public class DatabaseCore implements IDatabaseManager {
 
   public DatabaseCore(){
@@ -85,11 +88,11 @@ public class DatabaseCore implements IDatabaseManager {
 	return null;
   }
 
-  private Company[] getAICompany() {
+  public ArrayList<Company> getAICompanies() {
 	return null;
   }
 
-  private Company[] getAIGroup() {
+  public ArrayList<Group> getAIGroups() {
 	return null;
   }
 
@@ -97,11 +100,11 @@ public class DatabaseCore implements IDatabaseManager {
 	return null;
   }
 
-  private void storeAICompanies(Company[] companies) {
+  public void storeAICompanies(ArrayList<Company> companies) {
 
   }
 
-  private void storeAIGroups(Group[] groups) {
+  public void storeAIGroups(ArrayList<Group> groups) {
 
   }
 

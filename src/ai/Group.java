@@ -3,7 +3,7 @@ package footsiebot.intelligencecore;
 import java.util.ArrayList;
 import java.lang.Comparable;
 
-public class Group implements Comparable {
+public class Group implements Comparable<Group> {
   private ArrayList<Company> companies;
   private String code;
   private float priority;
@@ -30,7 +30,7 @@ public class Group implements Comparable {
     priority+= increment;
   }
 
-  public void decrementPriority(float decrements) {
+  public void decrementPriority(float decrement) {
     priority-= decrement;
   }
 
@@ -40,7 +40,15 @@ public class Group implements Comparable {
 
   @Override
   public int compareTo(Group g) {
-    return g.getPriority() - this.getPriority();
+    float r =  g.getPriority() - this.getPriority();
+
+    if(r < 0) {
+      return -1;
+    } else if (r == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
   }
 
 

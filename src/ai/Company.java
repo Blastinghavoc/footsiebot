@@ -2,17 +2,23 @@ package footsiebot.intelligencecore;
 
 import footsiebot.nlpcore.Intent;
 import java.lang.Comparable;
+import java.util.ArrayList;
 
-public class Company implements Comparable {
+public class Company implements Comparable<Company> {
 
   private String code;
   private ArrayList<IntentData> intents;
   private float newsCounter;
   private float priority;
-  private Double irrelevantSuggestionWeight;
+  private float irrelevantSuggestionWeight;
 
 
-  public Company(String code, ArrayList<IntentData> intents, ) {
+  public Company(String code, ArrayList<IntentData> intents, float newsCounter, float priority, float irrelevantSuggestionWeight) {
+    this.code = code;
+    this.intents = intents;
+    this.newsCounter = newsCounter;
+    this.priority = priority;
+    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
 
   }
 
@@ -34,20 +40,27 @@ public class Company implements Comparable {
   }
 
   public float getPriority() {
-	return null;
+	return priority;
   }
 
   public void incrementPriority(float increment) {
     priority+= increment;
   }
 
-  public void decrementPriority(float decrements) {
+  public void decrementPriority(float decrement) {
     priority-= decrement;
   }
 
   @Override
   public int compareTo(Company c) {
-    return c.getPriority() - this.getPriority();
+    float r = c.getPriority() - this.getPriority();
+    if(r < 0) {
+      return -1;
+    } else if (r == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
   }
 
 

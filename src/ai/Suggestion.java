@@ -28,10 +28,13 @@ public class Suggestion {
     isNews = true;
   }
 
+  public void setDesc(String d) {
+    description = d;
+  }
+
   public void update() {
 
   }
-
 
   public Company getCompany() {
     return company;
@@ -46,10 +49,9 @@ public class Suggestion {
   }
 
   public boolean isGroup() {
-
+    if(group != null) return true;
+    return false;
   }
-
-
 
   public String getReason() {
     return reason;

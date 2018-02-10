@@ -3,16 +3,19 @@ package footsiebot.intelligencecore;
 import footsiebot.nlpcore.Intent;
 
 import java.lang.Comparable;
+import java.lang.Float;
+import java.util.ArrayList;
 
 
-public class IntentData implements Comparable {
+public class IntentData implements Comparable<IntentData> {
 
   private Intent intent;
-  private double[] values;
+  // This could be changed to a linked list if we only ever acces the last value
+  private ArrayList<Float> values;
   private float priority;
   private float irrelevantSuggestionWeight;
 
-  public IntentData(Intent intent, double[] values, float priority, float irrelevantSuggestionWeight) {
+  public IntentData(Intent intent, ArrayList<Float> values, float priority, float irrelevantSuggestionWeight) {
     this.intent = intent;
     this.values = values;
     this.priority = priority;
@@ -22,6 +25,17 @@ public class IntentData implements Comparable {
 
   public Intent getIntent() {
 	return null;
+  }
+
+  public ArrayList<Float> getValues() {
+    return values;
+  }
+
+  public float getLastValue() {
+    float res = 0.0f;
+    Float f = values.get(values.size() - 1);
+    res = f.floatValue();
+    return res;
   }
 
   public Float getPriority() {
@@ -38,7 +52,14 @@ public class IntentData implements Comparable {
 
   @Override
   public int compareTo(IntentData i) {
-    return i.getPriority() - this.getPriority();
+    float r = i.getPriority() - this.getPriority();
+    if(r < 0) {
+      return -1;
+    } else if (r == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
   }
 
 

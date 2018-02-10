@@ -5,13 +5,14 @@ import footsiebot.nlpcore.Intent;
 import footsiebot.databasecore.*;
 
 import java.util.*;
-
+import java.lang.*;
 
 
 public class IntelligenceCore implements IIntelligenceUnit {
   /**
    *
    */
+
    // To be possibly set by the user
    private int TOP = 5;
    private ArrayList<Company> companies = new ArrayList<>(100);
@@ -23,6 +24,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    public IntelligenceCore(double startupHour, DatabaseCore db) {
      this.startupHour = startupHour;
      this.db = db;
+     onStartUp();
    }
 
 
@@ -35,7 +37,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // If operand is a group
      if(pr.isOperandGroup()) {
        // search in groups if valid group
-       for(Group g: group) {
+       for(Group g: groups) {
          if(g.getGroupCode().equals(companyOrGroup)) {
            targetGroup = g;
            break;
@@ -56,7 +58,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
          return lastSuggestion;
          // return Group to Core
        } else {
-         return "No suggestion";
+         return null;
        }
      } else {
        // operand is a company
@@ -78,30 +80,28 @@ public class IntelligenceCore implements IIntelligenceUnit {
          // This will need to be modified as
          // it just suggests an intent now
          // but could decide to suggest news
-         lastSuggestion = suggestIntent(targetGroup);
+         lastSuggestion = suggestIntent(targetCompany);
          return lastSuggestion;
          // return Group to Core
        } else {
-         return "No suggestion";
+         return null;
        }
-
      }
-
-     // increment news counter if asked for news
-     return null;
    }
 
    public String onUpdatedDatabase() {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
+     // DEBUG
+     if(companies == null || groups == null ) return "ERROR";
      Collections.sort(companies);
      Collections.sort(groups);
      return "";
    }
 
    public void onShutdown() {
-     storeAICompanies(companies);
-     storeAIGroups(groups);
+     db.storeAICompanies(companies);
+     db.storeAIGroups(groups);
    }
 
    public void onStartUp() {
@@ -129,7 +129,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
        }
      }
      // is a group
-     for(Group g: group) {
+     for(Group g: groups) {
        if(g.getGroupCode().equals(companyOrGroup)) {
          g.decrementPriority(g.getIrrelevantSuggestionWeight());
          alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
@@ -140,26 +140,41 @@ public class IntelligenceCore implements IIntelligenceUnit {
      return "Error, no company nor group matching found";
    }
 
+   /**
+    *
+    * @return [description]
+    */
    public Company[] onNewsTime() {
      // show report about 5 top companies
      // just returns the companies to core ?
-     Company result = new Company[TOP];
+     Company[] result = new Company[TOP];
      for(int i = 0; i < TOP; i++) {
        result[i] = companies.get(i);
      }
 	   return result;
    }
 
+   // TODO
    private boolean detectedImportantChange() {
 	 return false;
    }
 
+   /**
+    *
+    * @param  Company company       [description]
+    * @return         [description]
+    */
    private Suggestion suggestIntent(Company company) {
      String reason = "Company is in top 5";
-     // false == suggestion is not news
-     Suggestion result = new Suggestion(reason, company, false);
+     String description = "Suggesting ";
 
-	 return null;
+     IntentData topIntent = company.getTopIntentData();
+     float topIntentValue = topIntent.getLastValue();
+
+     description += topIntent.toString() + "has value " + topIntentValue;
+     // false == suggestion is not news
+     Suggestion result = new Suggestion(reason, company, false, description);
+     return result;
    }
 
    private Suggestion suggestNews(Company company) {
