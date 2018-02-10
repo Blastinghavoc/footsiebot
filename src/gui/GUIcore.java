@@ -196,11 +196,11 @@ public class GUIcore implements IGraphicalUserInterface {
         Long startDuration;
         if(timeOfDayInMillis > targetTimeOfDay){
             startDuration = (timeOfDayInMillis - targetTimeOfDay);
-            System.out.println("time of day is later than target.\nStart duration is "+startDuration);
+            //System.out.println("time of day is later than target.\nStart duration is "+startDuration);//DEBUG
         }
         else{
             startDuration = 86400000-(targetTimeOfDay - timeOfDayInMillis);
-            System.out.println("time of day is before target.\nStart duration is "+startDuration);
+            //System.out.println("time of day is before target.\nStart duration is "+startDuration);//DEBUG
         }
         tradingHourTimeline.playFrom(Duration.millis(startDuration));
         System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds");//DEBUG
