@@ -30,18 +30,13 @@ public class GUIcore implements IGraphicalUserInterface {
     private ListProperty<Node> messages;
     private Core core;
     private Timeline newDataTimeline;
+    private Timeline tradingHourTimeline;
 
     /**
     * Constructor for the user interface using default styling
     *
     * @param primaryStage the initial stage of the application
     */
-// <<<<<<< HEAD:src/guicore/GUIcore.java
-//     public GUIcore(Stage primaryStage) {
-//         stage = primaryStage;
-        // style = "main";
-        // this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
-// =======
     public GUIcore(Stage primaryStage, Core core) {
         stage = primaryStage;
         style = "main";
@@ -55,12 +50,6 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param primaryStage the initial stage of the application
     * @param style the name of the css file used for styling
     */
-// <<<<<<< HEAD:src/guicore/GUIcore.java
-//     public GUIcore(Stage primaryStage, String style) {
-//         stage = primaryStage;
-//         this.style = style;
-//         // this.PATH_TO_GUI_FOLDER = PATH_TO_GUI_FOLDER;
-// =======
     public GUIcore(Stage primaryStage, String style, Core core) {
         stage = primaryStage;
         this.style = style;
@@ -170,6 +159,7 @@ public class GUIcore implements IGraphicalUserInterface {
         messages.setValue(messageBoard.getChildren());
 
         startNewDataTimeline();//Starts up the timeline for regular data updates
+        startNewTradingHourTimeline();//Starts timeline for trading hour
 
         inputWrapper.getChildren().addAll(inputVisual, input);
         boardWrapper.setContent(messageBoard);
@@ -194,6 +184,27 @@ public class GUIcore implements IGraphicalUserInterface {
             ae -> core.onNewDataAvailable()));
         newDataTimeline.setCycleCount(Animation.INDEFINITE);
         newDataTimeline.play();//Running the core function at regular times.
+    }
+
+    private void startNewTradingHourTimeline(){
+        tradingHourTimeline = new Timeline(new KeyFrame(
+            Duration.millis(86400000),//24 hour refresh time
+            ae -> core.onTradingHour()));
+        newDataTimeline.setCycleCount(Animation.INDEFINITE);
+        Long timeOfDayInMillis = ((Instant.now().toEpochMilli())%86400000);
+        Long targetTimeOfDay = core.TRADING_TIME;
+        Long startDuration;
+        if(timeOfDayInMillis > targetTimeOfDay){
+            startDuration = (timeOfDayInMillis - targetTimeOfDay);
+            System.out.println("time of day is later than target.\nStart duration is "+startDuration);
+        }
+        else{
+            startDuration = 86400000-(targetTimeOfDay - timeOfDayInMillis);
+            System.out.println("time of day is before target.\nStart duration is "+startDuration);
+        }
+        tradingHourTimeline.playFrom(Duration.millis(startDuration));
+        System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds");//DEBUG
+        //Skips forward by the current time of day + the trading hour time.
     }
 
     /**

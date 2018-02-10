@@ -17,15 +17,20 @@ public class Core extends Application {
     private IDatabaseManager dbm;
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
-    public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+    public static final long DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+    public static long TRADING_TIME = 50000000;//The time of day in milliseconds to call onTradingHour.
 
-    public Core() {        
+    public Core() {
         nlp = new NLPCore();
         dbm = new DatabaseCore();
         dgc = new DataGatheringCore();
         ic = new IntelligenceCore();
     }
 
+    /*
+    Nothing else should go here. If you think it needs to go in main,
+    it probably needs to go in start.
+    */
     public static void main(String[] args) {
         //Initialise user interface
         launch(args);
@@ -65,6 +70,18 @@ public class Core extends Application {
 
     }
 
+    /*
+    Performs shut down operations.
+    May need a handler for ctrl-C as well.
+    */
+    @Override
+    public void stop(){
+        //Store the trading hour somewhere
+        //Write volatile data to the Database
+        ic.onShutdown();
+        System.out.println("Safely closed the program.");
+    }
+
     private static String readEntry(String prompt) {//Nicked from Databases worksheets, can't be included in final submission DEBUG
         try
         {
@@ -90,6 +107,14 @@ public class Core extends Application {
 
     public void onNewDataAvailable(){
         System.out.println("New data available!");
+        ScrapeResult sr = dgc.getData();
+        dbm.storeScraperResults(sr);
+        ic.onUpdatedDatabase();
+    }
+
+    public void onTradingHour(){
+        System.out.println("It's time for your daily news summary!");
+        ic.onNewsTime();
     }
 
     private void timingLoop(){
