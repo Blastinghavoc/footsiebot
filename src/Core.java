@@ -9,6 +9,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import java.io.*;
 import java.util.*;
+import java.time.LocalDateTime;
 
 
 public class Core extends Application {
@@ -102,7 +103,52 @@ public class Core extends Application {
     }
 
     public void onUserInput(String raw){
-        //
+        ParseResult pr = nlp.parse(raw);
+        System.out.println(pr);//DEBUG
+
+        //Branch based on whether the intent is for news or data.
+        if(pr.getIntent()== Intent.NEWS){
+            Article[] result;
+            if(pr.isOperandGroup()){
+                String[] companies = groupNameToCompanyList(pr.getOperand());
+                //TODO resolve a group name into a list of companies
+                result = dgc.getNews(companies);
+            }
+            else{
+                result = dgc.getNews(pr.getOperand());
+            }
+            dbm.storeQuery(pr,LocalDateTime.now());
+            String suggestion = ic.getSuggestion(pr);
+            //TODO send result and suggestion to ui
+        }
+        else{
+            /*
+            NOTE: may wish to branch for groups, using an overloaded/modified method
+            of getFTSE(ParseResult,Boolean).
+            */
+            String[] data = dbm.getFTSE(pr);
+            dbm.storeQuery(pr,LocalDateTime.now());
+            String suggestion = ic.getSuggestion(pr);
+
+            String result;//NOTE: May convert to a different format for the UI
+
+            if(pr.isOperandGroup()){
+                //Format result based on data
+            }
+            else{
+                //format result based on data
+            }
+
+            //TODO send result and suggestion to ui
+        }
+        ui.displayMessage(pr.toString());//DEBUG
+
+
+    }
+
+    //TODO: implement
+    private String[] groupNameToCompanyList(String group){
+        return new String[]{"Hello World!"};//DEBUG
     }
 
     public void onNewDataAvailable(){
