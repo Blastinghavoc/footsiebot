@@ -215,9 +215,12 @@ public class GUIcore implements IGraphicalUserInterface {
             messageBoard.getChildren().add(new Message(input.getText(), LocalDateTime.now(), stage, true));
             messages.setValue(messageBoard.getChildren());
             // messageBoard.getChildren().add(new Divider(stage));
+
             /*
             * send string to core
             */
+            core.onUserInput(input.getText().trim());
+
             messages.setValue(messageBoard.getChildren());
             input.clear();
         }
