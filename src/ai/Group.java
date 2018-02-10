@@ -1,34 +1,55 @@
 package footsiebot.intelligencecore;
 
 import java.util.ArrayList;
+import java.lang.Comparable;
 
-public class Group {
+public class Group implements Comparable<Group> {
   private ArrayList<Company> companies;
   private String code;
-  private Float priority;
-  private Float irrelevantSuggestionWeight;
+  private float priority;
+  private float irrelevantSuggestionWeight;
 
 
-  public Group() {
+  public Group(ArrayList<Company> companies, String code, float priority, float irrelevantSuggestionWeight) {
+    this.companies = companies;
+    this.code = code;
+    this.priority = priority;
+    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
 
   }
 
   public String getGroupCode() {
-	return null;
+	   return code;
   }
 
   public Float getPriority() {
-	return null;
+	   return null;
   }
 
-  public void incrementPriority() {
-
+  public void incrementPriority(float increment) {
+    priority+= increment;
   }
 
-  public void decrementPriority() {
-
+  public void decrementPriority(float decrement) {
+    priority-= decrement;
   }
 
+  public float getIrrelevantSuggestionWeight() {
+    return irrelevantSuggestionWeight;
+  }
+
+  @Override
+  public int compareTo(Group g) {
+    float r =  g.getPriority() - this.getPriority();
+
+    if(r < 0) {
+      return -1;
+    } else if (r == 0) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
 
 
 

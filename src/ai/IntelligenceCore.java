@@ -2,40 +2,117 @@ package footsiebot.intelligencecore;
 
 import footsiebot.nlpcore.ParseResult;
 import footsiebot.nlpcore.Intent;
-import java.util.ArrayList;
+import footsiebot.databasecore.*;
+
+import java.util.*;
+import java.lang.*;
 
 
 public class IntelligenceCore implements IIntelligenceUnit {
   /**
    *
    */
+
    // To be possibly set by the user
-   private int TOP = 5;
+   private byte TOP = 5;
    private ArrayList<Company> companies = new ArrayList<>(100);
    private ArrayList<Group> groups = new ArrayList<>(41);
-   private Company[] topCompanies = new Company[TOP];
    private double startupHour;
    private Suggestion lastSuggestion;
+   private DatabaseCore db;
 
-
-
-   public String getSuggestion(ParseResult pr) {
-     // Fetch operand and intent and increment intent priority
-
-     // increment news counter if asked for news
-	 return null;
-
+   public IntelligenceCore(double startupHour, DatabaseCore db) {
+     this.startupHour = startupHour;
+     this.db = db;
+     onStartUp();
    }
 
 
+   public Suggestion getSuggestion(ParseResult pr) {
+     // Fetch operand and intent and increment intent priority
+     // TODO needs converting to AIIntent
+
+     String companyOrGroup = pr.getOperand();
+     Group targetGroup = null;
+     Company targetCompany = null;
+     // If operand is a group
+     if(pr.isOperandGroup()) {
+       // search in groups if valid group
+       for(Group g: groups) {
+         if(g.getGroupCode().equals(companyOrGroup)) {
+           targetGroup = g;
+           break;
+         }
+       }
+       // if error will return null
+       if(targetGroup == null) return null;
+       // for group only suggest news
+       boolean doSuggestion = false;
+       // check if group is in top 5
+       for(int i = 0; i < TOP; i++) {
+         if(targetGroup.equals(groups.get(i))) {
+           doSuggestion = true;
+         }
+       }
+       if(doSuggestion) {
+         lastSuggestion = suggestNews(targetGroup);
+         return lastSuggestion;
+         // return Group to Core
+       } else {
+         return null;
+       }
+     } else {
+       // operand is a company
+       for(Company c: companies) {
+         if(c.getCode().equals(companyOrGroup)) {
+           targetCompany = c;
+           break;
+         }
+       }
+       if(targetCompany == null) return null;
+       boolean doSuggestion = false;
+       for(int i = 0; i < TOP; i++) {
+         if(targetCompany.equals(companies.get(i))) {
+           doSuggestion = true;
+         }
+       }
+
+       if(doSuggestion) {
+         // This will need to be modified as
+         // it just suggests an intent now
+         // but could decide to suggest news
+         lastSuggestion = suggestIntent(targetCompany);
+         return lastSuggestion;
+         // return Group to Core
+       } else {
+         return null;
+       }
+     }
+   }
 
    public String onUpdatedDatabase() {
-	return null;
+     companies = db.getAICompanies();
+     groups = db.getAIGroups();
+     // DEBUG
+     if(companies == null || groups == null ) return "ERROR";
+     Collections.sort(companies);
+     Collections.sort(groups);
+     return "";
    }
 
    public void onShutdown() {
-
+     db.storeAICompanies(companies);
+     db.storeAIGroups(groups);
    }
+
+   public void onStartUp() {
+     // Fetch from database
+     companies = db.getAICompanies();
+     groups = db.getAIGroups();
+     Collections.sort(companies);
+     Collections.sort(groups);
+   }
+
    /**
     * User has reported that a suggestion has not been relevant
     * ajust weights accordingly
@@ -43,51 +120,74 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @return
     */
    public String onSuggestionIrrelevant(String companyOrGroup) {
+     String alert = "";
      // check if it is a company or a group
-
-     String desc = "For compilation only";
      for(Company c: companies) {
-       if(c.getCode().equals(desc)) {
+       if(c.getCode().equals(companyOrGroup)) {
          c.decrementPriority(c.getIrrelevantSuggestionWeight());
+         alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
+         return alert;
        }
      }
-	 return null;
+     // is a group
+     for(Group g: groups) {
+       if(g.getGroupCode().equals(companyOrGroup)) {
+         g.decrementPriority(g.getIrrelevantSuggestionWeight());
+         alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
+         return alert;
+       }
+     }
+
+     return "Error, no company nor group matching found";
    }
 
-   public String onNewsTime() {
-	return null;
+   /**
+    *
+    * @return [description]
+    */
+   public Company[] onNewsTime() {
+     // show report about 5 top companies
+     // just returns the companies to core ?
+     Company[] result = new Company[TOP];
+     for(int i = 0; i < TOP; i++) {
+       result[i] = companies.get(i);
+     }
+	   return result;
    }
 
+   // TODO
    private boolean detectedImportantChange() {
-	return false;
+	 return false;
    }
 
-   private Company[] getTopCompanies() {
-	return null;
+   /**
+    *
+    * @param  Company company       [description]
+    * @return         [description]
+    */
+   private Suggestion suggestIntent(Company company) {
+     String reason = "Company is in top 5";
+     String description = "Suggesting ";
+
+     IntentData topIntent = company.getTopIntentData();
+     float topIntentValue = topIntent.getLastValue();
+
+     description += topIntent.toString() + "has value " + topIntentValue;
+     // false == suggestion is not news
+     Suggestion result = new Suggestion(reason, company, false, description);
+     return result;
    }
 
-   private String suggestIntent(Company company) {
-	return null;
+   private Suggestion suggestNews(Company company) {
+     String reason = "Company is in top 5";
+     Suggestion result = new Suggestion(reason, company, true);
+     return result;
    }
 
-   private String suggestNews(Company company) {
-	return null;
-   }
-
-   private String suggestNews(Group group) {
-	return null;
-   }
-
-   private void createSuggestions(Company company) {
-
-   }
-
-   private void createSuggestions(Group group) {
-
-   }
-
-   private String createStartupReport() {
-	return null;
+   private Suggestion suggestNews(Group group) {
+     String reason = "Group is in top 5";
+     Suggestion result = new Suggestion(reason, group);
+     return result;
    }
 
    private void updateLastSuggestion() {
