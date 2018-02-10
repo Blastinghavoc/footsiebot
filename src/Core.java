@@ -17,7 +17,7 @@ public class Core extends Application {
     private IDatabaseManager dbm;
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
-    public static final long DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+    public static final long DATA_REFRESH_RATE = 900000;//Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 50000000;//The time of day in milliseconds to call onTradingHour.
 
     public Core() {
@@ -106,14 +106,14 @@ public class Core extends Application {
     }
 
     public void onNewDataAvailable(){
-        System.out.println("New data available!");
+        System.out.println("New data available!");//DEBUG
         ScrapeResult sr = dgc.getData();
         dbm.storeScraperResults(sr);
         ic.onUpdatedDatabase();
     }
 
     public void onTradingHour(){
-        System.out.println("It's time for your daily news summary!");
+        System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
     }
 
