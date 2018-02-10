@@ -15,26 +15,20 @@ public class Core extends Application {
     private GUIcore ui;
     private INaturalLanguageProcessor nlp;
     private IDatabaseManager dbm;
+    private IDataGathering dgc;
+    private IIntelligenceUnit ic;
     public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
 
-    public Core() {
+    public Core() {        
         nlp = new NLPCore();
         dbm = new DatabaseCore();
+        dgc = new DataGatheringCore();
+        ic = new IntelligenceCore();
     }
 
     public static void main(String[] args) {
-        Core c = new Core();
-
-        if(args.length > 0){
-            if(args[0].equals("nlp")){
-                c.debugNLP();
-                System.exit(0);
-            }
-        }
-
         //Initialise user interface
         launch(args);
-
     }
 
     /**
@@ -44,6 +38,15 @@ public class Core extends Application {
     */
     @Override
     public void start(Stage primaryStage) {
+        List<String> args = getParameters().getRaw();
+        //Allows running of tests.
+        if(args.size() > 0){
+            if(args.get(0).equals("nlp")){
+                debugNLP();
+                System.exit(0);
+            }
+        }
+
       //construct UI
       try { //attempt to use custom styling
           FileReader fRead = new FileReader("./src/gui/config/settings.txt");
@@ -59,6 +62,7 @@ public class Core extends Application {
         //   System.out.println("Styling exception");
           ui = new GUIcore(primaryStage, this);
         }
+
     }
 
     private static String readEntry(String prompt) {//Nicked from Databases worksheets, can't be included in final submission DEBUG
