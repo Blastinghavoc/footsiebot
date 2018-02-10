@@ -15,26 +15,25 @@ public class Core extends Application {
     private GUIcore ui;
     private INaturalLanguageProcessor nlp;
     private IDatabaseManager dbm;
-    public static final int DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+    private IDataGathering dgc;
+    private IIntelligenceUnit ic;
+    public static final long DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+    public static long TRADING_TIME = 50000000;//The time of day in milliseconds to call onTradingHour.
 
     public Core() {
         nlp = new NLPCore();
         dbm = new DatabaseCore();
+        dgc = new DataGatheringCore();
+        ic = new IntelligenceCore();
     }
 
+    /*
+    Nothing else should go here. If you think it needs to go in main,
+    it probably needs to go in start.
+    */
     public static void main(String[] args) {
-        Core c = new Core();
-
-        if(args.length > 0){
-            if(args[0].equals("nlp")){
-                c.debugNLP();
-                System.exit(0);
-            }
-        }
-
         //Initialise user interface
         launch(args);
-
     }
 
     /**
@@ -44,6 +43,15 @@ public class Core extends Application {
     */
     @Override
     public void start(Stage primaryStage) {
+        List<String> args = getParameters().getRaw();
+        //Allows running of tests.
+        if(args.size() > 0){
+            if(args.get(0).equals("nlp")){
+                debugNLP();
+                System.exit(0);
+            }
+        }
+
       //construct UI
       try { //attempt to use custom styling
           FileReader fRead = new FileReader("./src/gui/config/settings.txt");
@@ -59,6 +67,19 @@ public class Core extends Application {
         //   System.out.println("Styling exception");
           ui = new GUIcore(primaryStage, this);
         }
+
+    }
+
+    /*
+    Performs shut down operations.
+    May need a handler for ctrl-C as well.
+    */
+    @Override
+    public void stop(){
+        //Store the trading hour somewhere
+        //Write volatile data to the Database
+        ic.onShutdown();
+        System.out.println("Safely closed the program.");
     }
 
     private static String readEntry(String prompt) {//Nicked from Databases worksheets, can't be included in final submission DEBUG
@@ -86,6 +107,14 @@ public class Core extends Application {
 
     public void onNewDataAvailable(){
         System.out.println("New data available!");
+        ScrapeResult sr = dgc.getData();
+        dbm.storeScraperResults(sr);
+        ic.onUpdatedDatabase();
+    }
+
+    public void onTradingHour(){
+        System.out.println("It's time for your daily news summary!");
+        ic.onNewsTime();
     }
 
     private void timingLoop(){
