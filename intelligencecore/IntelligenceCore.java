@@ -26,41 +26,77 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
 
-   public String getSuggestion(ParseResult pr) {
+   public Suggestion getSuggestion(ParseResult pr) {
      // Fetch operand and intent and increment intent priority
      Intent intent = pr.getIntent();
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
      Company targetCompany = null;
-
+     // If operand is a group
      if(pr.isOperandGroup()) {
-       // search in groups
+       // search in groups if valid group
        for(Group g: group) {
          if(g.getGroupCode().equals(companyOrGroup)) {
            targetGroup = g;
            break;
          }
        }
-       if(targetGroup == null) return "Error group not found";
+       // if error will return null
+       if(targetGroup == null) return null;
        // for group only suggest news
-       lastSuggestion = suggestNews(targetGroup);
-       // return Group to Core
-
-
+       boolean doSuggestion = false;
+       // check if group is in top 5
+       for(int i = 0; i < TOP; i++) {
+         if(targetGroup.equals(groups.get(i))) {
+           doSuggestion = true;
+         }
+       }
+       if(doSuggestion) {
+         lastSuggestion = suggestNews(targetGroup);
+         return lastSuggestion;
+         // return Group to Core
+       } else {
+         return "No suggestion";
+       }
      } else {
+       // operand is a company
        for(Company c: companies) {
          if(c.getCode().equals(companyOrGroup)) {
            targetCompany = c;
+           break;
          }
        }
+       if(targetCompany == null) return null;
+       boolean doSuggestion = false;
+       for(int i = 0; i < TOP; i++) {
+         if(targetCompany.equals(companies.get(i))) {
+           doSuggestion = true;
+         }
+       }
+
+       if(doSuggestion) {
+         // This will need to be modified as
+         // it just suggests an intent now
+         // but could decide to suggest news
+         lastSuggestion = suggestIntent(targetGroup);
+         return lastSuggestion;
+         // return Group to Core
+       } else {
+         return "No suggestion";
+       }
+
      }
 
      // increment news counter if asked for news
-	 return null;
+     return null;
    }
 
    public String onUpdatedDatabase() {
-	 return null;
+     companies = db.getAICompanies();
+     groups = db.getAIGroups();
+     Collections.sort(companies);
+     Collections.sort(groups);
+     return "";
    }
 
    public void onShutdown() {
@@ -119,10 +155,9 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private Suggestion suggestIntent(Company company) {
+     String reason = "Company is in top 5";
      // false == suggestion is not news
-     Suggestion result = new Suggestion("Reason ?", company, false);
-     
-
+     Suggestion result = new Suggestion(reason, company, false);
 
 	 return null;
    }
@@ -132,7 +167,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private Suggestion suggestNews(Group group) {
-     Suggestion result = new Suggestion("Reason ? ", group);
+     String reason = "Group is in top 5";
+     Suggestion result = new Suggestion(reason, group);
      return result;
    }
 

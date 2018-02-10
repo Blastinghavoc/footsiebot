@@ -6,6 +6,7 @@ public class Suggestion {
   private Group group;
   private boolean isNews;
   private String reason;
+  private String description;
 
 
   public Suggestion(String r, Company c, boolean isNews) {
@@ -13,7 +14,13 @@ public class Suggestion {
     company = c;
     this.isNews = isNews;
   }
-
+  // with description (for intents)
+  public Suggestion(String r, Company c, boolean isNews, String desc) {
+    reason = r;
+    company = c;
+    this.isNews = isNews;
+    description = desc;
+  }
 
   public Suggestion(String r, Group g) {
     reason = r;
@@ -39,7 +46,7 @@ public class Suggestion {
   }
 
   public boolean isGroup() {
-    
+
   }
 
 
