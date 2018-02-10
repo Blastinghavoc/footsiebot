@@ -1,6 +1,5 @@
 package footsiebot.intelligencecore;
 
-import footsiebot.nlpcore.Intent;
 import java.lang.Comparable;
 import java.util.ArrayList;
 

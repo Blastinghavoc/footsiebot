@@ -1,7 +1,5 @@
 package footsiebot.intelligencecore;
 
-import footsiebot.nlpcore.Intent;
-
 import java.lang.Comparable;
 import java.lang.Float;
 import java.util.ArrayList;
@@ -9,13 +7,13 @@ import java.util.ArrayList;
 
 public class IntentData implements Comparable<IntentData> {
 
-  private Intent intent;
+  private AIIntent intent;
   // This could be changed to a linked list if we only ever acces the last value
   private ArrayList<Float> values;
   private float priority;
   private float irrelevantSuggestionWeight;
 
-  public IntentData(Intent intent, ArrayList<Float> values, float priority, float irrelevantSuggestionWeight) {
+  public IntentData(AIIntent intent, ArrayList<Float> values, float priority, float irrelevantSuggestionWeight) {
     this.intent = intent;
     this.values = values;
     this.priority = priority;
@@ -23,7 +21,7 @@ public class IntentData implements Comparable<IntentData> {
   }
 
 
-  public Intent getIntent() {
+  public AIIntent getIntent() {
 	return null;
   }
 
@@ -38,16 +36,16 @@ public class IntentData implements Comparable<IntentData> {
     return res;
   }
 
-  public Float getPriority() {
-	return null;
+  public float getPriority() {
+	return priority;
   }
 
-  public void incrementPriority(Float p) {
-
+  public void incrementPriority(float p) {
+    priority-= p;
   }
 
-  public void decrementPriority(Float p) {
-
+  public void decrementPriority(float p) {
+    priority-= p;
   }
 
   @Override

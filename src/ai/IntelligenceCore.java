@@ -14,7 +14,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    */
 
    // To be possibly set by the user
-   private int TOP = 5;
+   private byte TOP = 5;
    private ArrayList<Company> companies = new ArrayList<>(100);
    private ArrayList<Group> groups = new ArrayList<>(41);
    private double startupHour;
@@ -30,7 +30,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
    public Suggestion getSuggestion(ParseResult pr) {
      // Fetch operand and intent and increment intent priority
-     Intent intent = pr.getIntent();
+     // TODO needs converting to AIIntent
+
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
      Company targetCompany = null;
@@ -178,25 +179,15 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private Suggestion suggestNews(Company company) {
-	return null;
+     String reason = "Company is in top 5";
+     Suggestion result = new Suggestion(reason, company, true);
+     return result;
    }
 
    private Suggestion suggestNews(Group group) {
      String reason = "Group is in top 5";
      Suggestion result = new Suggestion(reason, group);
      return result;
-   }
-
-   private void createSuggestions(Company company) {
-
-   }
-
-   private void createSuggestions(Group group) {
-
-   }
-
-   private String createStartupReport() {
-	 return null;
    }
 
    private void updateLastSuggestion() {
