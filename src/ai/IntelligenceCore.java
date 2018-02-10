@@ -15,14 +15,13 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
    // To be possibly set by the user
    private byte TOP = 5;
-   private ArrayList<Company> companies = new ArrayList<>(100);
-   private ArrayList<Group> groups = new ArrayList<>(41);
+   private ArrayList<Company> companies;
+   private ArrayList<Group> groups;
    private double startupHour;
    private Suggestion lastSuggestion;
-   private DatabaseCore db;
+   private IDatabaseManager db;
 
-   public IntelligenceCore(double startupHour, DatabaseCore db) {
-     this.startupHour = startupHour;
+   public IntelligenceCore(IDatabaseManager db) {
      this.db = db;
      onStartUp();
    }
@@ -31,6 +30,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
    public Suggestion getSuggestion(ParseResult pr) {
      // Fetch operand and intent and increment intent priority
      // TODO needs converting to AIIntent
+
+     if(companies == null || groups == null){
+         return null;
+     }
 
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
@@ -109,8 +112,11 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch from database
      companies = db.getAICompanies();
      groups = db.getAIGroups();
-     Collections.sort(companies);
-     Collections.sort(groups);
+     if((groups != null) && (companies != null)){
+         Collections.sort(companies);
+         Collections.sort(groups);
+     }
+
    }
 
    /**

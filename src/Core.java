@@ -25,7 +25,7 @@ public class Core extends Application {
         nlp = new NLPCore();
         dbm = new DatabaseCore();
         dgc = new DataGatheringCore();
-        ic = new IntelligenceCore();
+        ic = new IntelligenceCore(dbm);
     }
 
     /*
@@ -118,7 +118,7 @@ public class Core extends Application {
                 result = dgc.getNews(pr.getOperand());
             }
             dbm.storeQuery(pr,LocalDateTime.now());
-            String suggestion = ic.getSuggestion(pr);
+            Suggestion suggestion = ic.getSuggestion(pr);
             //TODO send result and suggestion to ui
         }
         else{
@@ -128,7 +128,7 @@ public class Core extends Application {
             */
             String[] data = dbm.getFTSE(pr);
             dbm.storeQuery(pr,LocalDateTime.now());
-            String suggestion = ic.getSuggestion(pr);
+            Suggestion suggestion = ic.getSuggestion(pr);
 
             String result;//NOTE: May convert to a different format for the UI
 
