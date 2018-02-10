@@ -1,0 +1,65 @@
+#board-wrapper {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+}
+
+#message-board {
+    -fx-background-color: blue;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: white;
+    -fx-opacity: 0.5;
+    -fx-background-radius: 2em;
+    /*-fx-background-insets: 2, 0;*/
+}
+
+.scroll-bar .track-background {
+    -fx-background-color: #414366;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    /*-fx-shape: " ";*/
+    -fx-background-color: white;
+    -fx-opacity: 0.5;
+}
+
+#input-wrapper {
+    -fx-background-color: derive(#414366, -4%);
+}
+
+#input-visual {
+    -fx-fill: derive(#414366, 15%);
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 0);
+    -fx-arc-height: 35;
+    -fx-arc-width: 35;
+}
+
+#input {
+    -fx-background-color: transparent;
+    -fx-text-fill: white;
+}
+
+.message-visual {
+    -fx-fill: lime;
+}
+
+.label {
+    -fx-background-color: transparent;
+    /*-fx-text-fill: black;*/
+}
+
+.user-message {
+    -fx-background-color: derive(#414366, 60%);
+    /*-fx-fill: derive(#414366, 60%);*/
+}
+
+.system-message {
+    -fx-background-color: derive(#414366, 30%);
+    /*-fx-fill: derive(#414366, 30%);*/
+}
+
+.root {
+    -fx-background-color: #414366;
+}

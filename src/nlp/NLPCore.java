@@ -5,6 +5,7 @@ import java.util.regex.Matcher;
 import java.util.*;
 import java.io.FileReader;
 import java.io.BufferedReader;
+import java.io.File;
 
 public class NLPCore implements INaturalLanguageProcessor{
   private HashMap<String,String> operandMap;//Maps raw string to internally used string. Could map to an enum instead.
@@ -276,7 +277,8 @@ public class NLPCore implements INaturalLanguageProcessor{
 
     //normal operands
     try{
-      BufferedReader br = new BufferedReader(new FileReader("./operands.txt"));
+      File fl = new File("src/nlp/operands.txt");
+      BufferedReader br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
       String line;
       String[] splitLine;
       while((line = br.readLine()) != null){
@@ -328,7 +330,8 @@ public class NLPCore implements INaturalLanguageProcessor{
 
     //group operands
     try{
-      BufferedReader br = new BufferedReader(new FileReader("./groupOperands.txt"));
+      File fl = new File("src/nlp/groupOperands.txt");
+      BufferedReader br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
       String line;
       String[] splitLine;
       while((line = br.readLine()) != null){

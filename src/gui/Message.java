@@ -18,16 +18,20 @@ public class Message extends StackPane {
     private LocalDateTime timestamp;
     private boolean sent;
     private Rectangle visual;
+    private StackPane wrapper;
 
     public Message(String text, LocalDateTime timestamp, Stage stage, boolean sent) {
         super();
+        wrapper = new StackPane();
+        wrapper.setMaxWidth((stage.getWidth() - 36) * 0.55);
         visual = new Rectangle();
         // visual.setFill(Color.LIME);
         // visual.getStyleClass().add("message-visual");
         setPrefWidth(stage.getScene().getWidth() - 36);
         setMaxWidth(stage.getScene().getWidth() - 36);
         msg = new Label(text);
-        msg.setMaxWidth(stage.getScene().getWidth() * 0.55);
+        // msg.setMaxWidth(stage.getScene().getWidth() * 0.55);
+        // msg.setPrefWidth(20);
         msg.setWrapText(true);
         this.timestamp = timestamp;
         this.sent = sent;
@@ -46,6 +50,31 @@ public class Message extends StackPane {
             msg.setAlignment(Pos.CENTER_LEFT);
             setAlignment(Pos.CENTER_LEFT);
         }
+
+        // msg.heightProperty().addListener((obs, oldVal, newVal) -> {
+        //     System.out.println("Initial height and width: " + visual.getWidth() + ", " + visual.getHeight());
+        //     visual.setWidth(msg.getWidth() + 10);
+        //     visual.setHeight(msg.getHeight() + 8);
+        //     System.out.println("Changed height and width: " + visual.getWidth() + ", " + visual.getHeight());
+        //     // visual.setHeight(msg.getHeight() * 1.5);
+        //     setMaxWidth(stage.getWidth() - 36);
+        //     setPrefWidth(stage.getWidth() - 36);
+        //     System.out.println("Initial pane height and width: " + getWidth() + ", " + getHeight());
+        //     setMaxHeight(visual.getHeight() + 10);
+        //     setMinHeight(visual.getHeight() + 10);
+        //     System.out.println("Changed pane height and width: " + getWidth() + ", " + getHeight());
+        //     if (sent)
+        //         setAlignment(visual, Pos.CENTER_RIGHT);
+        //     else
+        //         setAlignment(visual, Pos.CENTER_LEFT);
+        //     // visual.setHeight(newVal.doubleValue() * 1.5);
+        //     // setMinHeight(visual.getHeight() + 10);
+        //     // setMaxHeight(visual.getHeight() + 10);
+        //     // if (sent)
+        //     //     setAlignment(visual, Pos.CENTER_RIGHT);
+        //     // else
+        //     //     setAlignment(visual, Pos.CENTER_LEFT);
+        // });
     }
 
     /**
