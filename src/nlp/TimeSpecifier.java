@@ -1,4 +1,4 @@
-package footsiebot.nlpcore;
+package footsiebot.nlp;
 
 public enum TimeSpecifier{
   TODAY,
@@ -7,6 +7,6 @@ public enum TimeSpecifier{
   LAST_TUESDAY,
   LAST_WEDNESDAY,
   LAST_THURSDAY,
-  LAST_FRIDAY 
+  LAST_FRIDAY
 
 }

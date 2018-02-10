@@ -1,4 +1,4 @@
-package footsiebot.datagatheringcore;
+package footsiebot.datagathering;
 
 public class Article {
   private String headline;
@@ -6,7 +6,7 @@ public class Article {
   private String digest;
 
   public Article() {
-    
+
   }
 
 

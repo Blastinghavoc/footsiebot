@@ -1,4 +1,4 @@
-package footsiebot.guicore;
+package footsiebot.gui;
 
 public interface IGraphicalUserInterface {
 

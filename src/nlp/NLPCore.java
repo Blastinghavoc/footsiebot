@@ -1,4 +1,4 @@
-package footsiebot.nlpcore;
+package footsiebot.nlp;
 
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;

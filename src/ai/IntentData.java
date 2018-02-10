@@ -1,4 +1,4 @@
-package footsiebot.intelligencecore;
+package footsiebot.ai;
 
 import java.lang.Comparable;
 import java.lang.Float;
