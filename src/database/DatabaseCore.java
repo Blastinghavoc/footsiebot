@@ -12,6 +12,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+import java.util.ArrayList;
+
+
 public class DatabaseCore implements IDatabaseManager {
 
     public DatabaseCore() {
@@ -24,6 +27,7 @@ public class DatabaseCore implements IDatabaseManager {
             e.printStackTrace();
         }
 
+<<<<<<< HEAD:databasecore/DatabaseCore.java
         Connection connection = null;
         try {
             // create a database connection
@@ -33,6 +37,42 @@ public class DatabaseCore implements IDatabaseManager {
 
         } catch (SQLException e) {
             e.printStackTrace();
+=======
+      Connection connection = null;
+      try
+      {
+        // create a database connection
+        connection = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
+        Statement statement = connection.createStatement();
+        statement.setQueryTimeout(30);  // set timeout to 30 sec.
+
+        statement.executeUpdate("INSERT INTO FTSECompanies VALUES('BAR', 'Barclays')");
+        ResultSet rs = statement.executeQuery("select * from FTSECompanies");
+        while(rs.next())
+        {
+          // read the result set
+          System.out.println("code = " + rs.getString("CompanyCode"));
+          System.out.println("name = " + rs.getString("CompanyName"));
+        }
+      }
+      catch(SQLException e)
+      {
+        // if the error message is "out of memory",
+        // it probably means no database file is found
+        System.err.println(e.getMessage());
+      }
+      finally
+      {
+        try
+        {
+          if(connection != null)
+            connection.close();
+        }
+        catch(SQLException e)
+        {
+          // connection close failed.
+          System.err.println(e);
+>>>>>>> ab553938a488f2ca5e155764ba441dea6a0a51ed:src/database/DatabaseCore.java
         }
 
     }
@@ -109,6 +149,7 @@ public class DatabaseCore implements IDatabaseManager {
         return null;
     }
 
+<<<<<<< HEAD:databasecore/DatabaseCore.java
     private Company[] getAICompany() {
         return null;
     }
@@ -116,16 +157,33 @@ public class DatabaseCore implements IDatabaseManager {
     private Company[] getAIGroup() {
         return null;
     }
+=======
+  public ArrayList<Company> getAICompanies() {
+	return null;
+  }
+
+  public ArrayList<Group> getAIGroups() {
+	return null;
+  }
+>>>>>>> ab553938a488f2ca5e155764ba441dea6a0a51ed:src/database/DatabaseCore.java
 
     private IntentData getIntentForCompany() {
         return null;
     }
 
+<<<<<<< HEAD:databasecore/DatabaseCore.java
     private void storeAICompanies(Company[] companies) {
+=======
+  public void storeAICompanies(ArrayList<Company> companies) {
+>>>>>>> ab553938a488f2ca5e155764ba441dea6a0a51ed:src/database/DatabaseCore.java
 
     }
 
+<<<<<<< HEAD:databasecore/DatabaseCore.java
     private void storeAIGroups(Group[] groups) {
+=======
+  public void storeAIGroups(ArrayList<Group> groups) {
+>>>>>>> ab553938a488f2ca5e155764ba441dea6a0a51ed:src/database/DatabaseCore.java
 
     }
 

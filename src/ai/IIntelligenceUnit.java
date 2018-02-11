@@ -3,9 +3,10 @@ import footsiebot.nlpcore.ParseResult;
 
 
 public interface IIntelligenceUnit {
-     public String getSuggestion(ParseResult pr);
 
 
+
+   public Suggestion getSuggestion(ParseResult pr);
 
    public String onUpdatedDatabase();
 
@@ -18,7 +19,7 @@ public interface IIntelligenceUnit {
     */
    public String onSuggestionIrrelevant(String companyOrGroup);
 
-   public String onNewsTime();
+   public Company[] onNewsTime();
 
 
 
