@@ -45,7 +45,7 @@ public class DatabaseCore implements IDatabaseManager {
         int numCompanies = 100;//Constant
         LocalDateTime currentTime = LocalDateTime.now();
         String code = " ";
-        Double price, absChange, percChange = 0.0;
+        Float price, absChange, percChange = 0.0f;
 
         String group,name;
 
