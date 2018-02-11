@@ -22,4 +22,6 @@ public interface IDatabaseManager {
 
   public void storeAIGroups(ArrayList<Group> groups);
 
+  public String[] getCompaniesInGroup(String groupName);
+
 }
