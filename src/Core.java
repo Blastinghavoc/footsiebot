@@ -9,6 +9,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import java.io.*;
 import java.util.*;
+import java.time.LocalDateTime;
 
 
 public class Core extends Application {
@@ -17,14 +18,14 @@ public class Core extends Application {
     private IDatabaseManager dbm;
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
-    public static final long DATA_REFRESH_RATE = 5000;//Rate to call onNewDataAvailable in milliseconds
+    public static final long DATA_REFRESH_RATE = 900000;//Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 50000000;//The time of day in milliseconds to call onTradingHour.
 
     public Core() {
         nlp = new NLPCore();
         dbm = new DatabaseCore();
         dgc = new DataGatheringCore();
-        ic = new IntelligenceCore();
+        ic = new IntelligenceCore(dbm);
     }
 
     /*
@@ -102,18 +103,63 @@ public class Core extends Application {
     }
 
     public void onUserInput(String raw){
-        //
+        ParseResult pr = nlp.parse(raw);
+        System.out.println(pr);//DEBUG
+
+        //Branch based on whether the intent is for news or data.
+        if(pr.getIntent()== Intent.NEWS){
+            Article[] result;
+            if(pr.isOperandGroup()){
+                String[] companies = groupNameToCompanyList(pr.getOperand());
+                //TODO resolve a group name into a list of companies
+                result = dgc.getNews(companies);
+            }
+            else{
+                result = dgc.getNews(pr.getOperand());
+            }
+            dbm.storeQuery(pr,LocalDateTime.now());
+            Suggestion suggestion = ic.getSuggestion(pr);
+            //TODO send result and suggestion to ui
+        }
+        else{
+            /*
+            NOTE: may wish to branch for groups, using an overloaded/modified method
+            of getFTSE(ParseResult,Boolean).
+            */
+            String[] data = dbm.getFTSE(pr);
+            dbm.storeQuery(pr,LocalDateTime.now());
+            Suggestion suggestion = ic.getSuggestion(pr);
+
+            String result;//NOTE: May convert to a different format for the UI
+
+            if(pr.isOperandGroup()){
+                //Format result based on data
+            }
+            else{
+                //format result based on data
+            }
+
+            //TODO send result and suggestion to ui
+        }
+        ui.displayMessage(pr.toString());//DEBUG
+
+
+    }
+
+    //TODO: implement
+    private String[] groupNameToCompanyList(String group){
+        return new String[]{"Hello World!"};//DEBUG
     }
 
     public void onNewDataAvailable(){
-        System.out.println("New data available!");
+        System.out.println("New data available!");//DEBUG
         ScrapeResult sr = dgc.getData();
         dbm.storeScraperResults(sr);
         ic.onUpdatedDatabase();
     }
 
     public void onTradingHour(){
-        System.out.println("It's time for your daily news summary!");
+        System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
     }
 
