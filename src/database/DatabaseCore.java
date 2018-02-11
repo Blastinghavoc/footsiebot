@@ -13,6 +13,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 
 public class DatabaseCore implements IDatabaseManager {
+    private Connection conn;
 
     public DatabaseCore() {
 
@@ -24,12 +25,18 @@ public class DatabaseCore implements IDatabaseManager {
             e.printStackTrace();
         }
 
-        Connection connection = null;
+        conn = null;
         try {
             // create a database connection
-            connection = DriverManager.getConnection("jdbc:sqlite:databasecore/footsie_db.db");
-            Statement statement = connection.createStatement();
+// <<<<<<< HEAD
+            conn = DriverManager.getConnection("jdbc:sqlite:databasecore/footsie_db.db");
+            Statement statement = conn.createStatement();
             statement.setQueryTimeout(30);  // set timeout to 30 seconds
+// =======
+//             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
+//             Statement statement = conn.createStatement();
+//             statement.setQueryTimeout(30);  // set timeout to 30 sec.
+// >>>>>>> cf73fd7b0fd43e0630b9f4bc40ab4472d10f4cc6
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -38,13 +45,16 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     public boolean storeScraperResults(ScrapeResult sr) {
-        
+
         // need to delete old FTSE data
 
-        int numCompanies = sr.codes.length;
+        int numCompanies = 100;//Constant
         LocalDateTime currentTime = LocalDateTime.now();
         String code = " ";
-        Double price, absChange, percChange = 0;
+        Double price, absChange, percChange = 0.0;
+
+        String group,name;
+
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
@@ -56,7 +66,7 @@ public class DatabaseCore implements IDatabaseManager {
             percChange = sr.getPercChange(i);
 
             try {
-                
+
                 // if the company is a new FTSE company, add it to the FTSECompanies and FTSEGroupMappings table
                 String checkNewCompanyQuery = "SELECT * FROM FTSECompanies WHERE CompanyCode = " + code;
                 Statement s1 = conn.createStatement();
@@ -70,7 +80,7 @@ public class DatabaseCore implements IDatabaseManager {
                     String addCompanyGroupQuery = "INSERT INTO FTSEGroupMappings\n"
                                                 + "VALUES(" + group + ", " + code + ")";
                     Statement s3 = conn.createStatement();
-                    s3.executeQuery(addCompanyGroupQuery);                          
+                    s3.executeQuery(addCompanyGroupQuery);
                 }
 
                 // add the company data into the FTSECompanySnapshots table
@@ -97,35 +107,35 @@ public class DatabaseCore implements IDatabaseManager {
         return null;
     }
 
-    private String convertScrapeResult(ScrapeResult sr) {
+    public String convertScrapeResult(ScrapeResult sr) {
         return null;
     }
 
-    private String convertQuery(ParseResult pr, LocalDateTime date) {
+    public String convertQuery(ParseResult pr, LocalDateTime date) {
         return null;
     }
 
-    private String convertFTSEQuery(ParseResult pr) {
+    public String convertFTSEQuery(ParseResult pr) {
         return null;
     }
 
-    private ArrayList<Company> getAICompany() {
+    public ArrayList<Company> getAICompanies() {
         return null;
     }
 
-    private ArrayList<Group> getAIGroup() {
+    public ArrayList<Group> getAIGroups() {
         return null;
     }
 
-    private IntentData getIntentForCompany() {
+    public IntentData getIntentForCompany() {
         return null;
     }
 
-    private void storeAICompanies(ArrayList<Company> companies) {
+    public void storeAICompanies(ArrayList<Company> companies) {
 
     }
 
-    private void storeAIGroups(ArrayList<Group> groups) {
+    public void storeAIGroups(ArrayList<Group> groups) {
 
     }
 
