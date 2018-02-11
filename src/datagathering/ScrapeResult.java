@@ -1,4 +1,4 @@
-package footsiebot.datagatheringcore;
+package footsiebot.datagathering;
 
 
 public class ScrapeResult {

@@ -4,7 +4,7 @@
 }
 
 #message-board {
-    -fx-background-color: blue;
+    /*-fx-background-color: blue;*/
 }
 
 #input-wrapper {
@@ -28,12 +28,12 @@
 }
 
 .user-message {
-    -fx-background-color: green;
+    -fx-background-color: transparent;
     /*-fx-fill: derive(#414366, 60%);*/
 }
 
 .system-message {
-    -fx-background-color: green;
+    -fx-background-color: transparent;
     /*-fx-fill: derive(#414366, 30%);*/
 }
 

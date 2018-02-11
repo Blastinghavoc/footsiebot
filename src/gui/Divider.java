@@ -1,4 +1,4 @@
-package footsiebot.guicore;
+package footsiebot.gui;
 
 import java.time.LocalDateTime;
 import javafx.application.Application;

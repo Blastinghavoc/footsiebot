@@ -1,8 +1,8 @@
-package footsiebot.databasecore;
+package footsiebot.database;
 
-import footsiebot.nlpcore.ParseResult;
-import footsiebot.datagatheringcore.ScrapeResult;
-import footsiebot.intelligencecore.*;
+import footsiebot.nlp.ParseResult;
+import footsiebot.datagathering.ScrapeResult;
+import footsiebot.ai.*;
 import java.time.LocalDateTime;
 
 import java.sql.Connection;
