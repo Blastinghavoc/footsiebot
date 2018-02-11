@@ -17,6 +17,7 @@ public class WebScraper {
         try {
             page = Jsoup.connect("https://arcane-citadel-48781.herokuapp.com/").get();
         } catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
 
