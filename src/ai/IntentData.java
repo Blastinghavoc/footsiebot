@@ -37,7 +37,7 @@ public class IntentData implements Comparable<IntentData> {
   }
 
   public float getPriority() {
-	return priority;
+    return priority;
   }
 
   public void incrementPriority(float p) {

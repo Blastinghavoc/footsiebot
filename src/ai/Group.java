@@ -23,7 +23,7 @@ public class Group implements Comparable<Group> {
   }
 
   public Float getPriority() {
-	   return null;
+    return priority;
   }
 
   public void incrementPriority(float increment) {

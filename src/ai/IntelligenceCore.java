@@ -35,6 +35,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
      Company targetCompany = null;
+     // TODO
+     UPDATE TALLIES FOR THIS COMPANY LOCALLY 
      // If operand is a group
      if(pr.isOperandGroup()) {
        // search in groups if valid group
