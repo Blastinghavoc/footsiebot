@@ -144,7 +144,7 @@ public class Core extends Application {
 
     //TODO: implement
     private String[] groupNameToCompanyList(String group) {
-        return new String[]{"Hello World!"};//DEBUG
+        return dbm.getCompaniesInGroup(group);//DEBUG
     }
 
    /**
