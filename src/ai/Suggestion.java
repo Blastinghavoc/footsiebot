@@ -1,4 +1,4 @@
-package footsiebot.intelligencecore;
+package footsiebot.ai;
 
 public class Suggestion {
 

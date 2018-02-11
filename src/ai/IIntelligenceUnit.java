@@ -1,5 +1,5 @@
-package footsiebot.intelligencecore;
-import footsiebot.nlpcore.ParseResult;
+package footsiebot.ai;
+import footsiebot.nlp.ParseResult;
 
 
 public interface IIntelligenceUnit {

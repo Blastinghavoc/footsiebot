@@ -1,5 +1,4 @@
-
-package footsiebot.intelligencecore;
+package footsiebot.ai;
 
 public enum AIIntent {
   SPOT_PRICE,
