@@ -2,48 +2,44 @@ package footsiebot.datagathering;
 
 
 public class ScrapeResult {
-  private String[] codes;
-  private String[] names;
-  private String[] groups;
-  private Double[] prices;
-  private Double absChange;
-  private Double[] percChange;
+    private String[] codes;
+    private String[] names;
+    private String[] groups;
+    private Float[] prices;
+    private Float[] absChange;
+    private Float[] percChange;
 
-  public ScrapeResult() {
+    public ScrapeResult(String[] codes, String[] names, String[] groups, Float[] prices, Float[] absChange, Float[] percChange) {
+        this.codes = codes;
+        this.names = names;
+        this.groups = groups;
+        this.prices = prices;
+        this.absChange = absChange;
+        this.percChange = percChange;
+    }
 
-  }
+    public String getCode(int index) {
+        return codes[index];
+    }
 
-  public String getCode(int index) {
-	return null;
-  }
+    public String getName(int index) {
+        return names[index];
+    }
 
-  public String getName(int index) {
-	return null;
-  }
+    public String getGroup(int index) {
+        return groups[index];
+    }
 
-  public String getGroup(int index) {
-	return null;
-  }
+    public Float getPrice(int index) {
+        return prices[index];
+    }
 
-  public Double getPrice(int index) {
-	return null;
-  }
+    public Float getAbsChange(int index) {
+        return absChange[index];
+    }
 
-  public Double getAbsChange(int index) {
-	return null;
-  }
-
-  public Double getPercChange(int index) {
-    return null;
-  }
-
-
-
-
-
-
-
-
-
+    public Float getPercChange(int index) {
+        return percChange[index];
+    }
 
 }

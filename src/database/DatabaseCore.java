@@ -43,11 +43,18 @@ public class DatabaseCore implements IDatabaseManager {
 
     public boolean storeScraperResults(ScrapeResult sr) {
 
-        // ---------------------- need to delete old FTSE data -----------------------------------------
+        // need to delete old FTSE data
 
-        int numCompanies = 100; // constant
+        int numCompanies = 100;//Constant
+        LocalDateTime currentTime = LocalDateTime.now();
+        String code = " ";
         Float price, absChange, percChange = 0.0f;
-        String code, group, name = " ";
+
+        String group, name;
+
+        // int numCompanies = 100; // constant
+        // Float price, absChange, percChange = 0.0f;
+        // String code, group, name = " ";
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
@@ -196,6 +203,26 @@ public class DatabaseCore implements IDatabaseManager {
 
     public void storeAIGroups(ArrayList<Group> groups) {
 
+    }
+
+    public String[] getCompaniesInGroup(String groupName){
+        groupName.toLowerCase();
+        ArrayList<String> companies = new ArrayList<String>();
+        try {
+            String query = "SELECT CompanyName from FTSECompanies ";
+            query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
+            query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
+            Statement s1 = conn.createStatement();
+            ResultSet r1 = s1.executeQuery(query);
+            while(r1.next()){
+                companies.add(r1.getString(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Couldn't resolve group name");
+            return null;
+        }
+        return companies.toArray(new String[1]);
     }
 
 }

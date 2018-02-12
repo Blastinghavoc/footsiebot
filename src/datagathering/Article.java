@@ -1,14 +1,15 @@
 package footsiebot.datagathering;
 
 public class Article {
-  private String headline;
-  private String url;
-  private String digest;
+    private String headline;
+    private String url;
+    private String digest;
 
-  public Article() {
-
-  }
-
+    public Article(String headline, String url, String digest) {
+        this.headline = headline;
+        this.url = url;
+        this.digest = digest;
+    }
 
 	/**
 	* Returns value of headline

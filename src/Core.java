@@ -144,7 +144,7 @@ public class Core extends Application {
 
     //TODO: implement
     private String[] groupNameToCompanyList(String group) {
-        return new String[]{"Hello World!"};//DEBUG
+        return dbm.getCompaniesInGroup(group);//DEBUG
     }
 
    /**
@@ -154,8 +154,11 @@ public class Core extends Application {
     public void onNewDataAvailable() {
         System.out.println("New data available!");//DEBUG
         ScrapeResult sr = dgc.getData();
-        dbm.storeScraperResults(sr);
-        ic.onUpdatedDatabase();
+        for(int i = 0; i < 100;i++){
+            System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
+        }
+        //dbm.storeScraperResults(sr);
+        //ic.onUpdatedDatabase();
     }
 
     public void onTradingHour() {
