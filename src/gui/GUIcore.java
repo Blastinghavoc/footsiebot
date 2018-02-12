@@ -1,16 +1,17 @@
 package footsiebot.gui;
 
 import footsiebot.Core;
+import footsiebot.datagathering.Article;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.*;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.stage.*;
 import javafx.scene.paint.*;
 import javafx.scene.shape.*;
-import javafx.geometry.*;
 import javafx.scene.text.Font;
+import javafx.stage.*;
+import javafx.geometry.*;
 import java.time.*;
 import javafx.beans.binding.*;
 import javafx.beans.property.*;
@@ -31,9 +32,10 @@ public class GUIcore implements IGraphicalUserInterface {
     private StackPane inputWrapper;
     private Rectangle inputVisual;
     private TextField input;
+    private Button btnSend;
     private ListProperty<Node> messages;
 
-    /**
+   /**
     * Constructor for the user interface using default styling
     *
     * @param primaryStage the initial stage of the application
@@ -45,7 +47,7 @@ public class GUIcore implements IGraphicalUserInterface {
         setup();
     }
 
-    /**
+   /**
     * Constructor for the user interface using custom styling
     *
     * @param primaryStage the initial stage of the application
@@ -58,7 +60,7 @@ public class GUIcore implements IGraphicalUserInterface {
         setup();
     }
 
-    /**
+   /**
     * Builds the user interface on the initial stage of the application
     */
     private void setup() {
@@ -86,6 +88,9 @@ public class GUIcore implements IGraphicalUserInterface {
         // messageBoard.setVgap(3);
 
         inputWrapper = new StackPane();
+        Insets inputPadding = new Insets(0, 5, 0, 5);
+        Insets inputMargin = new Insets(0, 0, 0, 5);
+        inputWrapper.setPadding(inputPadding);
         inputWrapper.setId("input-wrapper");
         inputWrapper.setMaxHeight(45);
         inputWrapper.setMinHeight(45);
@@ -100,6 +105,9 @@ public class GUIcore implements IGraphicalUserInterface {
         input.setMaxHeight(25);
         input.setPromptText("Type something here...");
 
+        btnSend = new Button("Send");
+        btnSend.setId("send-button");
+
         //resize nodes to conform to layout
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
             boardWrapper.setMaxHeight(scene.getHeight() - 45);
@@ -111,17 +119,25 @@ public class GUIcore implements IGraphicalUserInterface {
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
             inputWrapper.setMaxWidth(scene.getWidth());
             inputWrapper.setMinWidth(scene.getWidth());
-            inputVisual.setWidth(scene.getWidth() - 10);
-            input.setMinWidth(scene.getWidth() - 20);
-            input.setMaxWidth(scene.getWidth() - 20);
+            inputVisual.setWidth(scene.getWidth() - 60);
+            input.setMinWidth(scene.getWidth() - 65);
+            input.setMaxWidth(scene.getWidth() - 65);
+            boardWrapper.setMaxWidth(scene.getWidth());
+            boardWrapper.setMinWidth(scene.getWidth());
+            messageBoard.setMaxWidth(scene.getWidth());
+            messageBoard.setMinWidth(scene.getWidth());
             resizeMessages();
             stage.setScene(scene);
         });
 
         //send user input
-        input.setOnAction((event) -> {
+        input.setOnAction(e -> {
             onUserInput();
-            // resizeMessages();
+        });
+
+        //send user input
+        btnSend.setOnAction(e -> {
+            onUserInput();
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
@@ -134,12 +150,14 @@ public class GUIcore implements IGraphicalUserInterface {
             resizeMessages();
         });
 
-        messages.setValue(messageBoard.getChildren());
-
         startNewDataTimeline(); //Starts up the timeline for regular data updates
         startNewTradingHourTimeline(); //Starts timeline for trading hour
 
-        inputWrapper.getChildren().addAll(inputVisual, input);
+        inputWrapper.getChildren().addAll(inputVisual, input, btnSend);
+        inputWrapper.setAlignment(Pos.CENTER_LEFT);
+        inputWrapper.setMargin(input, inputMargin);
+
+        inputWrapper.setAlignment(btnSend, Pos.CENTER_RIGHT);
         boardWrapper.setContent(messageBoard);
         root.getChildren().addAll(inputWrapper, boardWrapper);
         root.setAlignment(inputWrapper, Pos.BOTTOM_LEFT);
@@ -152,8 +170,7 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Starts the newDataTimeline.
-    * Simple Timeline to run the core action regularly
+    * Starts the newDataTimeline to run the core action regularly
     * REF: http://tomasmikula.github.io/blog/2014/06/04/timers-in-javafx-and-reactfx.html
     */
     private void startNewDataTimeline() {
@@ -164,6 +181,9 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.play(); //Running the core function at regular times.
     }
 
+   /**
+    * Starts the tradingHourTimeline to run the core action regularly
+    */
     private void startNewTradingHourTimeline() {
         tradingHourTimeline = new Timeline(new KeyFrame(
             Duration.millis(86400000),//24 hour refresh time
@@ -183,30 +203,23 @@ public class GUIcore implements IGraphicalUserInterface {
         }
 
         tradingHourTimeline.playFrom(Duration.millis(startDuration));
-        System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds"); //DEBUG
+        // System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds"); //DEBUG
         //Skips forward by the current time of day + the trading hour time.
     }
 
-    /**
+   /**
     * Manages input from the user
     */
     private void onUserInput() {
         if (checkInput()) {
-            messageBoard.getChildren().add(new Message(input.getText(), LocalDateTime.now(), stage, true));
-            messages.setValue(messageBoard.getChildren());
-            // messageBoard.getChildren().add(new Divider(stage));
-
-            /*
-            * send string to core
-            */
+            messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), stage, true, false, this));
             core.onUserInput(input.getText().trim());
-
             messages.setValue(messageBoard.getChildren());
             input.clear();
         }
     }
 
-    /**
+   /**
     * Sets the css used for the application
     *
     * @param style the name of the css file to be used
@@ -215,17 +228,18 @@ public class GUIcore implements IGraphicalUserInterface {
         this.style = style;
         String styleFilePath = "src/gui/css/" + style + ".css";
         File styleFile = new File(styleFilePath);
-        // scene.getStylesheets().setAll("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
+        scene.getStylesheets().setAll("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
         stage.setScene(scene);
     }
 
-    /**
+   /**
     * Displays a message from the system to the user
     *
     * @param msg a string containing the message to be displayed
+    * @param isAI a boolean representing whether the message was sent by the AI
     */
-    public void displayMessage(String msg) {
-        messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), stage, false));
+    public void displayMessage(String msg, boolean isAI) {
+        messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), stage, false, isAI, this));
         messages.setValue(messageBoard.getChildren());
     }
 
@@ -234,31 +248,33 @@ public class GUIcore implements IGraphicalUserInterface {
 
     }
 
-    public void displayResults(String[] news, boolean isAI) {
+   /**
+    * Displays news results
+    *
+    * @param news the array of Articles to displayed
+    * @param isAI a boolean representing whether the message was sent by the AI
+    */
+    public void displayResults(Article[] news, boolean isAI) {
+        for (Article a: news) {
+            String msg = a.getHeadline() + "\n" + a.getDigest() + "\n" + a.getUrl();
+            displayMessage(msg, isAI);
+        }
 
     }
 
-    /**
+   /**
     * Resizes the messages displayed
     */
     private void resizeMessages() {
-        System.out.println("=========================================");
         for (int i = 0; i < messages.size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
                 Message tmp = (Message) messageBoard.getChildren().get(i);
-                System.out.println("Resizing msg[" + i + "] with height and width: " + tmp.getLabel().getHeight() + ", " + tmp.getLabel().getWidth());
-                tmp.getLabel().setMaxWidth(stage.getWidth() * 0.55);
-                tmp.getVisual().setHeight(tmp.getLabel().getHeight() + 8);
-                tmp.getVisual().setWidth(tmp.getLabel().getWidth() + 10);
-                tmp.setMaxWidth(stage.getWidth() - 36);
-                tmp.setPrefWidth(stage.getWidth() - 36);
-                tmp.setMinHeight(tmp.getVisual().getHeight() + 10);
-                tmp.setMaxHeight(tmp.getVisual().getHeight() + 10);
+                tmp.resize(stage);
             }
         }
     }
 
-    /**
+   /**
     * Verifies the input
     */
     private boolean checkInput() {
@@ -270,5 +286,14 @@ public class GUIcore implements IGraphicalUserInterface {
         }
         input.clear();
         return false;
+    }
+
+   /**
+    * Getter for the message board
+    *
+    * @return the message board of the GUI
+    */
+    public FlowPane getMessageBoard() {
+        return messageBoard;
     }
 }
