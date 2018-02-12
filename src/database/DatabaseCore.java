@@ -1,8 +1,9 @@
 package footsiebot.database;
 
-import footsiebot.nlp.ParseResult;
-import footsiebot.nlp.Intent;
-import footsiebot.nlp.TimeSpecifier;
+import footsiebot.nlp.*;
+// import footsiebot.nlp.ParseResult;
+// import footsiebot.nlp.Intent;
+// import footsiebot.nlp.TimeSpecifier;
 
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
@@ -31,7 +32,7 @@ public class DatabaseCore implements IDatabaseManager {
         conn = null;
         try {
             // create a database connection
-            conn = DriverManager.getConnection("jdbc:sqlite:databasecore/footsie_db.db");
+            conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
             Statement statement = conn.createStatement();
             statement.setQueryTimeout(30);  // set timeout to 30 seconds
 
@@ -51,10 +52,6 @@ public class DatabaseCore implements IDatabaseManager {
         Float price, absChange, percChange = 0.0f;
 
         String group, name;
-
-        // int numCompanies = 100; // constant
-        // Float price, absChange, percChange = 0.0f;
-        // String code, group, name = " ";
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
@@ -106,8 +103,12 @@ public class DatabaseCore implements IDatabaseManager {
     public String[] getFTSE(ParseResult pr) {
 
         String FTSEQuery = convertFTSEQuery(pr); 
-        Statement s1 = conn.createStatement();
-        Resultset results = s1.executeQuery(FTSEQuery);
+        try {
+            Statement s1 = conn.createStatement();
+            ResultSet results = s1.executeQuery(FTSEQuery);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         
 
         return null;
@@ -122,14 +123,14 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     public String convertFTSEQuery(ParseResult pr) {
-        nlp.Intent intent = pr.getIntent();
-        nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
+        footsiebot.nlp.Intent intent = pr.getIntent();
+        footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
         String operand = pr.getOperand(); 
         Boolean isGroup = pr.isOperandGroup();
 
         String query = "";
         String timeSpecifierSQL = "";
-        String companyCode;
+        String companyCode = "";
         Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
         String colName = "";
 
@@ -138,7 +139,7 @@ public class DatabaseCore implements IDatabaseManager {
             String getCompanyCodeQuery = "SELECT CompanyCode FROM FTSECompanies WHERE CompanyName = " + operand;
             try {
                 Statement s1 = conn.createStatement();
-                Resultset code = s1.executeQuery(getCompanyCodeQuery);
+                ResultSet code = s1.executeQuery(getCompanyCodeQuery);
                 while (code.next()) {
                     companyCode = code.getString(1);
                 }
