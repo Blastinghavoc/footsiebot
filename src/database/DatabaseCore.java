@@ -196,12 +196,12 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "SELECT CompanyCode,NewsCount,SpotPriceCount,OpeningPriceCount,";
       query+= "AbsoluteChangeCount,ClosingPriceCount,percentageChangeCount, ";
       // and also adjustments
-      query+= "newsAdjustment";
-      query+= "SpotPriceAdjustment";
-      query+= "OpeningPriceAdjustment";
-      query+= "AbsoluteChangeAdjustment";
-      query+= "ClosingPriceAdjustment";
-      query+= "percentageChangeAdjustment";
+      query+= "newsAdjustment, ";
+      query+= "SpotPriceAdjustment, ";
+      query+= "OpeningPriceAdjustment,";
+      query+= "AbsoluteChangeAdjustment,";
+      query+= "ClosingPriceAdjustment,";
+      query+= "percentageChangeAdjustment,";
       // Join
       query+= "FROM FTSECompanies ";
       query+= "NATURAL JOIN CompanyNewsCount ";
@@ -233,13 +233,13 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChange = (float) rs.getInt("percentageChangeCount");
           // Now the  adjustments
           // for news
-          float newsAdj = (float) rs.getInt("newsAdjustment");
+          float newsAdj = (float) rs.getFloat("newsAdjustment");
           // and for intents
-          float spotAdj = (float) rs.getInt("SpotPriceAdjustment");
-          float openingAdj = (float) rs.getInt("OpeningPriceAdjustment");
-          float absoluteChangeAdj = (float) rs.getInt("AbsoluteChangeAdjustment");
-          float closingPriceAdj = (float) rs.getInt("ClosingPriceAdjustment");
-          float percentageChangeAdj = (float) rs.getInt("percentageChangeAdjustment");
+          float spotAdj = (float) rs.getFloat("SpotPriceAdjustment");
+          float openingAdj = (float) rs.getFloat("OpeningPriceAdjustment");
+          float absoluteChangeAdj = (float) rs.getFloat("AbsoluteChangeAdjustment");
+          float closingPriceAdj = (float) rs.getFloat("ClosingPriceAdjustment");
+          float percentageChangeAdj = (float) rs.getFloat("percentageChangeAdjustment");
 
           // Instantiate IntentData List for this company
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
