@@ -1,8 +1,8 @@
-package footsiebot.databasecore;
+package footsiebot.database;
 
-import footsiebot.nlpcore.ParseResult;
-import footsiebot.datagatheringcore.ScrapeResult;
-import footsiebot.intelligencecore.*;
+import footsiebot.nlp.ParseResult;
+import footsiebot.datagathering.ScrapeResult;
+import footsiebot.ai.*;
 import java.time.LocalDateTime;
 
 import java.sql.Connection;
@@ -45,7 +45,7 @@ public class DatabaseCore implements IDatabaseManager {
         int numCompanies = 100;//Constant
         LocalDateTime currentTime = LocalDateTime.now();
         String code = " ";
-        Double price, absChange, percChange = 0.0;
+        Float price, absChange, percChange = 0.0f;
 
         String group,name;
 
@@ -131,6 +131,26 @@ public class DatabaseCore implements IDatabaseManager {
 
     public void storeAIGroups(ArrayList<Group> groups) {
 
+    }
+
+    public String[] getCompaniesInGroup(String groupName){
+        groupName.toLowerCase();
+        ArrayList<String> companies = new ArrayList<String>();
+        try {
+            String query = "SELECT CompanyName from FTSECompanies ";
+            query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
+            query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
+            Statement s1 = conn.createStatement();
+            ResultSet r1 = s1.executeQuery(query);
+            while(r1.next()){
+                companies.add(r1.getString(1));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println("Couldn't resolve group name");
+            return null;
+        }
+        return companies.toArray(new String[1]);
     }
 
 }

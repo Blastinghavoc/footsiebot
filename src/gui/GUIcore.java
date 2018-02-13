@@ -1,4 +1,5 @@
-package footsiebot.guicore;
+package footsiebot.gui;
+
 import footsiebot.Core;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -18,6 +19,9 @@ import javafx.animation.*;
 import javafx.util.Duration;
 
 public class GUIcore implements IGraphicalUserInterface {
+    private Core core;
+    private Timeline newDataTimeline;
+    private Timeline tradingHourTimeline;
     private Stage stage;
     private String style;
     private StackPane root;
@@ -28,9 +32,6 @@ public class GUIcore implements IGraphicalUserInterface {
     private Rectangle inputVisual;
     private TextField input;
     private ListProperty<Node> messages;
-    private Core core;
-    private Timeline newDataTimeline;
-    private Timeline tradingHourTimeline;
 
     /**
     * Constructor for the user interface using default styling
@@ -113,19 +114,7 @@ public class GUIcore implements IGraphicalUserInterface {
             inputVisual.setWidth(scene.getWidth() - 10);
             input.setMinWidth(scene.getWidth() - 20);
             input.setMaxWidth(scene.getWidth() - 20);
-            //resize all messages on the board
-            // for (int i = 0; i < messages.size(); i++) {
-            //     if (messageBoard.getChildren().get(i) instanceof Message) {
-            //         // System.out.println("Resizing msg(" + i + ")");
-            //         Message tmp = (Message) messageBoard.getChildren().get(i);
-            //         tmp.getLabel().setMaxWidth(stage.getWidth() * 0.55);
-            //         tmp.getVisual().setHeight(tmp.getLabel().getHeight() * 1.5);
-            //         tmp.getVisual().setWidth(tmp.getLabel().getWidth() + 10);
-            //         tmp.setMaxWidth(stage.getWidth() - 36);
-            //         tmp.setPrefWidth(stage.getWidth() - 36);
-            //     }
-            // }
-            // resizeMessages();
+            resizeMessages();
             stage.setScene(scene);
         });
 
@@ -142,24 +131,13 @@ public class GUIcore implements IGraphicalUserInterface {
         messages = new SimpleListProperty<Node>();
 
         messages.addListener((obs, oldVal, newVal) -> {
-            // for (int i = 0; i < messages.size(); i++) {
-            //     if (messageBoard.getChildren().get(i) instanceof Message) {
-            //         Message tmp = (Message) messageBoard.getChildren().get(i);
-            //         tmp.getVisual().setHeight(tmp.getLabel().getHeight() * 1.5);
-            //         tmp.getVisual().setWidth(tmp.getLabel().getWidth() + 10);
-            //         tmp.setMinHeight(tmp.getVisual().getHeight() + 10);
-            //         tmp.setMaxHeight(tmp.getVisual().getHeight() + 10);
-            //     }
-            //     // stage.setScene(null);
-            //     stage.setScene(stage.getScene());
-            // }
             resizeMessages();
         });
 
         messages.setValue(messageBoard.getChildren());
 
-        startNewDataTimeline();//Starts up the timeline for regular data updates
-        startNewTradingHourTimeline();//Starts timeline for trading hour
+        startNewDataTimeline(); //Starts up the timeline for regular data updates
+        startNewTradingHourTimeline(); //Starts timeline for trading hour
 
         inputWrapper.getChildren().addAll(inputVisual, input);
         boardWrapper.setContent(messageBoard);
@@ -173,37 +151,39 @@ public class GUIcore implements IGraphicalUserInterface {
         stage.show();
     }
 
-    /**
+   /**
     * Starts the newDataTimeline.
     * Simple Timeline to run the core action regularly
     * REF: http://tomasmikula.github.io/blog/2014/06/04/timers-in-javafx-and-reactfx.html
     */
-    private void startNewDataTimeline(){
+    private void startNewDataTimeline() {
         newDataTimeline = new Timeline(new KeyFrame(
             Duration.millis(core.DATA_REFRESH_RATE),
             ae -> core.onNewDataAvailable()));
         newDataTimeline.setCycleCount(Animation.INDEFINITE);
-        newDataTimeline.play();//Running the core function at regular times.
+        newDataTimeline.play(); //Running the core function at regular times.
     }
 
-    private void startNewTradingHourTimeline(){
+    private void startNewTradingHourTimeline() {
         tradingHourTimeline = new Timeline(new KeyFrame(
             Duration.millis(86400000),//24 hour refresh time
             ae -> core.onTradingHour()));
+
         newDataTimeline.setCycleCount(Animation.INDEFINITE);
         Long timeOfDayInMillis = ((Instant.now().toEpochMilli())%86400000);
         Long targetTimeOfDay = core.TRADING_TIME;
         Long startDuration;
-        if(timeOfDayInMillis > targetTimeOfDay){
+
+        if (timeOfDayInMillis > targetTimeOfDay) {
             startDuration = (timeOfDayInMillis - targetTimeOfDay);
-            //System.out.println("time of day is later than target.\nStart duration is "+startDuration);//DEBUG
-        }
-        else{
+            //System.out.println("time of day is later than target.\nStart duration is "+startDuration); //DEBUG
+        } else {
             startDuration = 86400000-(targetTimeOfDay - timeOfDayInMillis);
-            //System.out.println("time of day is before target.\nStart duration is "+startDuration);//DEBUG
+            //System.out.println("time of day is before target.\nStart duration is "+startDuration); //DEBUG
         }
+
         tradingHourTimeline.playFrom(Duration.millis(startDuration));
-        System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds");//DEBUG
+        System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds"); //DEBUG
         //Skips forward by the current time of day + the trading hour time.
     }
 

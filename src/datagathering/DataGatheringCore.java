@@ -1,22 +1,25 @@
-package footsiebot.datagatheringcore;
+package footsiebot.datagathering;
 
 public class DataGatheringCore implements IDataGathering {
-  private WebScraper webScraper;
-  private NewsScraper newsScraper;
+    private WebScraper webScraper;
+    private NewsScraper newsScraper;
 
+    public ScrapeResult getData() {
+      return webScraper.scrape();
+    }
 
+    public Article[] getNews(String company) {
+      return newsScraper.scrapeNews(company);
+    }
 
-  public ScrapeResult getData() {
-	return null;
-  }
+    public Article[] getNews(String[] companies) {
+      return newsScraper.scrapeNews(companies);
+    }
 
-  public Article[] getNews(String company) {
-	return null;
-  }
-
-  public Article[] getNews(String[] companies) {
-	return null;
-  }
+    public DataGatheringCore(){
+        webScraper = new WebScraper();
+        newsScraper = new NewsScraper();
+    }
 
 
 

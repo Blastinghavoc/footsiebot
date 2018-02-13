@@ -1,4 +1,4 @@
-package footsiebot.nlpcore;
+package footsiebot.nlp;
 
 public interface INaturalLanguageProcessor{
 

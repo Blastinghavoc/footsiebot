@@ -1,9 +1,9 @@
-package footsiebot.datagatheringcore;
+package footsiebot.datagathering;
 
 public class NewsScraper {
 
   public NewsScraper() {
-    
+
   }
 
   public Article[] scrapeNews(String company) {

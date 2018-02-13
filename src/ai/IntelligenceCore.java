@@ -1,8 +1,8 @@
-package footsiebot.intelligencecore;
+package footsiebot.ai;
 
-import footsiebot.nlpcore.ParseResult;
-import footsiebot.nlpcore.Intent;
-import footsiebot.databasecore.*;
+import footsiebot.nlp.ParseResult;
+import footsiebot.nlp.Intent;
+import footsiebot.database.*;
 
 import java.util.*;
 import java.lang.*;

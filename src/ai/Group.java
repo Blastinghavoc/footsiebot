@@ -1,4 +1,4 @@
-package footsiebot.intelligencecore;
+package footsiebot.ai;
 
 import java.util.ArrayList;
 import java.lang.Comparable;
