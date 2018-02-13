@@ -163,7 +163,7 @@ public class Core extends Application {
         ic.onNewsTime();
     }
 
-    private void timingLoop(){
+    private void timingLoop() {
         //Functionality of this is in guicore now.
     }
 

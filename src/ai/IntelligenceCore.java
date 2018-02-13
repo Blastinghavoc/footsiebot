@@ -39,7 +39,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      Group targetGroup = null;
      Company targetCompany = null;
      // TODO
-     UPDATE TALLIES FOR THIS COMPANY LOCALLY 
+     UPDATE TALLIES FOR THIS COMPANY LOCALLY
      // If operand is a group
      if(pr.isOperandGroup()) {
        // search in groups if valid group
@@ -102,6 +102,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      if(companies == null || groups == null ) return "ERROR";
      Collections.sort(companies);
      Collections.sort(groups);
+     // What to return here ?
      return "";
    }
 
@@ -178,7 +179,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      String description = "Suggesting ";
 
      IntentData topIntent = company.getTopIntentData();
-     float topIntentValue = topIntent.getLastValue();
+     Float topIntentValue = topIntent.getLastValue();
 
      description += topIntent.toString() + "has value " + topIntentValue;
      // false == suggestion is not news
