@@ -21,7 +21,7 @@ public class NLPCore implements INaturalLanguageProcessor{
   private ArrayList<String> timeList;
 
   public NLPCore(){
-    initialiseOperandMap();
+    initialiseOperands();
     initialiseIntents();
     initialiseTimes();
   }
@@ -33,171 +33,99 @@ public class NLPCore implements INaturalLanguageProcessor{
     return "";//DEBUG
   }
 
-  public ParseResult parse(String s){
-    Intent in = Intent.SPOT_PRICE;//DEBUG
-    String raw = s;
-    String operand = null;
-    Boolean operandIsGroup = false;
-    TimeSpecifier ts = TimeSpecifier.TODAY;//DEBUG
+    public ParseResult parse(String s){
+        Intent in = Intent.SPOT_PRICE;//DEBUG
+        String raw = s;
+        String operand = null;
+        Boolean operandIsGroup = false;
+        TimeSpecifier ts = TimeSpecifier.TODAY;//DEBUG
 
-    s = s.toLowerCase();
-	  //STRIP INTENT OUT OF STRING USING STRING.REPLACE AND STRING.CONTAINS
-    Boolean valid = false;
-    for ( String i: intentList) {
-      if(s.contains(i)){
-        in = intentMap.get(i);
-        s = s.replace(i,"");
-        //System.out.println("Found intent '"+ in + "' as string '" + i + "' in raw '" + raw + "'");//DEBUG
-        valid = true;
-        break;
-      }
-    }
-
-    if(!valid){
-      return new ParseResult(null,raw,null,operandIsGroup,null);//Replace with error enums?
-    }
-
-    //System.out.println("s is now '"+s+"'");
-
-    //FIND TIME SPECIFIER FROM REMAINING.
-    valid = false;
-    for ( String i: timeList) {
-      if(s.contains(i)){
-        ts = timeMap.get(i);
-        //System.out.println("Found TimeSpecifier '"+ ts + "' as string '" + i + "' in s '" + s + "'");//DEBUG
-        s = s.replace(i,"");
-        valid = true;
-        break;
-      }
-    }
-    //Acceptable for there to be no time specifier.
-
-	//TOKENIZE REMAINING STRING
-    s = s.replace("   "," ");//removing any triple spaces that may arrise from previous deletions
-    s = s.replace("  "," ");//removing any double spaces.
-    //System.out.println(s);//DEBUG
-
-    String[] tokens = s.split(" ");
-
-    for (int i = 0; i<tokens.length ; i++ ) {
-        String token = tokens[i];
-        if(token.endsWith(".")){//Remove full stops if present
-            token = token.substring(0, token.length() - 1);
-            tokens[i] = token;
-        }
-    }
-
-	//FIND OPERAND
-
-
-    /*
-        The following is an autocomplete based "Heuristic"
-        Based off following reference
-        REF: https://docs.oracle.com/javase/tutorial/uiswing/components/textarea.html
-    */
-
-    int longestMatchingTokenLength = 0;
-    for (int i = 0; i<tokens.length ; i++ ) {
-        String token = tokens[i];
-        if (token == null){
-            continue;
+        s = s.toLowerCase();
+    	  //STRIP INTENT OUT OF STRING USING STRING.REPLACE AND STRING.CONTAINS
+        Boolean valid = false;
+        for ( String i: intentList) {
+          if(s.contains(i)){
+            in = intentMap.get(i);
+            s = s.replace(i,"");
+            //System.out.println("Found intent '"+ in + "' as string '" + i + "' in raw '" + raw + "'");//DEBUG
+            valid = true;
+            break;
+          }
         }
 
-        //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
-        if(token.equals("the")){
-            token = token + " "+ tokens[i+1];//Choose a longer token.
+        if(!valid){
+          return new ParseResult(null,raw,null,operandIsGroup,null);//Replace with error enums?
         }
 
-        int index = Collections.binarySearch(operandList,token);
-        if(index >= 0){//An exact match was found
-            operand = operandMap.get(token);
-            break;//Nothing beats an exact match
+        //System.out.println("s is now '"+s+"'");
+
+        //FIND TIME SPECIFIER FROM REMAINING.
+        valid = false;
+        for ( String i: timeList) {
+          if(s.contains(i)){
+            ts = timeMap.get(i);
+            //System.out.println("Found TimeSpecifier '"+ ts + "' as string '" + i + "' in s '" + s + "'");//DEBUG
+            s = s.replace(i,"");
+            valid = true;
+            break;
+          }
         }
-        else if(token.length()<=2){//Far too small to autocomplete from
-            continue;
-        }
-        else if(-index <= operandList.size()){//The index where the word would be in the sorted list
+        //Acceptable for there to be no time specifier.
 
-            int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
-            String candidate = operandList.get(nextBestPosition);
+    	//TOKENIZE REMAINING STRING
+        s = s.replace("   "," ");//removing any triple spaces that may arrise from previous deletions
+        s = s.replace("  "," ");//removing any double spaces.
+        //System.out.println(s);//DEBUG
 
-            if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
+        String[] tokens = s.split(" ");
 
-                if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
-                    operand = operandMap.get(candidate);//Autocompleting the token
-                    longestMatchingTokenLength = token.length();
-                }
-            }
-        }
-        else{
-        //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
-        }
-    }
-
-    if (operand != null){//we have an operand
-        operandIsGroup = false;
-        valid = true;
-    }
-    else{
-        //try again with the groups
-
-        /*
-            NOTE: This currently will have issues with many groups, as their names are very similar
-        */
-
-        longestMatchingTokenLength = 0;
         for (int i = 0; i<tokens.length ; i++ ) {
             String token = tokens[i];
-            if (token == null){
-                continue;
+            if(token.endsWith(".")){//Remove full stops if present
+                token = token.substring(0, token.length() - 1);
+                tokens[i] = token;
             }
+        }
 
-            //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
-            if(token.equals("the")){
-                token = token + " "+ tokens[i+1];//Choose a longer token.
+    	//FIND OPERAND
+
+
+        operand = autocompleteHeuristic(tokens,operandList,operandMap);
+
+        if (operand != null){//we have an operand
+            operandIsGroup = false;
+            valid = true;
+        }
+        else
+        {
+            //try again with the groups
+
+            operand = searchForFullGroup(s);//First try to find the full group name
+            if(operand != null){
+                operandIsGroup = true;
+                valid = true;
             }
-
-            int index = Collections.binarySearch(groupOperandList,token);
-            if(index >= 0){//An exact match was found
-                operand = groupOperandMap.get(token);
-                break;//Nothing beats an exact match
+            else
+            {
+                operand = autocompleteHeuristic(tokens,groupOperandList,groupOperandMap);
             }
-            else if(token.length()<=2){//Far too small to autocomplete from
-                continue;
-            }
-            else if(-index <= groupOperandList.size()){//The index where the word would be in the sorted list
-                int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
-                String candidate = groupOperandList.get(nextBestPosition);
-
-                if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
-
-                    if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
-                        operand = groupOperandMap.get(candidate);//Autocompleting the token
-                        longestMatchingTokenLength = token.length();
-                    }
+            if (operand != null){
+                operandIsGroup = true;
+                valid = true;
+                if(in == Intent.TREND){
+                    in = Intent.GROUP_FULL_SUMMARY;
                 }
             }
-            else{
-            //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
-            }
         }
-        if (operand != null){
-            operandIsGroup = true;
-            valid = true;
-            if(in == Intent.TREND){
-                in = Intent.GROUP_FULL_SUMMARY;
-            }
+
+
+        if(!valid){
+          return new ParseResult(in,raw,null,operandIsGroup,ts);//Replace with error enums?
         }
-    }
-
-
-    if(!valid){
-      return new ParseResult(in,raw,null,operandIsGroup,ts);//Replace with error enums?
-    }
 
 
 
-    return new ParseResult(in,raw,operand,operandIsGroup,ts);
+        return new ParseResult(in,raw,operand,operandIsGroup,ts);
     }
 
     private void initialiseTimes(){
@@ -215,14 +143,6 @@ public class NLPCore implements INaturalLanguageProcessor{
       timeList.add(s);
     }
     timeList.sort(String.CASE_INSENSITIVE_ORDER);
-
-    // TODAY,
-    // YESTERDAY,
-    // LAST_MONDAY,
-    // LAST_TUESDAY,
-    // LAST_WEDNESDAY,
-    // LAST_THURSDAY,
-    // LAST_FRIDAY
 
 
   }
@@ -267,11 +187,11 @@ public class NLPCore implements INaturalLanguageProcessor{
 
   }
 
-  private void initialiseOperandMap(){
+  private void initialiseOperands(){
     //An operand is a company
     operandMap = new HashMap<String,String>();
     operandList = new ArrayList<String>();
-
+    //or a group
     groupOperandMap = new HashMap<String,String>();
     groupOperandList = new ArrayList<String>();
 
@@ -297,6 +217,12 @@ public class NLPCore implements INaturalLanguageProcessor{
           String newSyn = operand.replaceFirst("the ","");
           operandMap.put(newSyn,operand);
           operandList.add(newSyn);
+        }
+
+        if(operand.contains(" & ")){//additional synonyms for things containing &
+            String newSyn = operand.replace(" & "," and ");
+            operandMap.put(newSyn,operand);
+            operandList.add(newSyn);
         }
 
         if(splitLine.length < 2){//There are no synonyms
@@ -344,11 +270,17 @@ public class NLPCore implements INaturalLanguageProcessor{
 
         groupOperandMap.put(operand,operand);//Adds the operand to the map, mapping to itself
         groupOperandList.add(operand);
-        //System.out.println("Added '" + operand +"' to the map");//DEBUG
+
         if(operand.startsWith("the ")){//additional synonyms for things starting with "the"
           String newSyn = operand.replaceFirst("the ","");
           groupOperandMap.put(newSyn,operand);
           groupOperandList.add(newSyn);
+        }
+
+        if(operand.contains(" & ")){//additional synonyms for things containing &
+            String newSyn = operand.replace(" & "," and ");
+            groupOperandMap.put(newSyn,operand);
+            groupOperandList.add(newSyn);
         }
 
         if(splitLine.length < 2){//There are no synonyms
@@ -380,112 +312,85 @@ public class NLPCore implements INaturalLanguageProcessor{
     }
     groupOperandList.sort(String.CASE_INSENSITIVE_ORDER);
 
-    /*DEBUG
-    //Adding company mappings name-code
-    operandMap.put("3i","III");
-    operandMap.put("Admiral Group","ADM");
-    operandMap.put("Anglo American plc","AAL");
-    operandMap.put("Antofagasta","ANTO");
-    operandMap.put("Ashtead Group","AHT");
-    operandMap.put("Associated British Foods","ABF");
-    operandMap.put("AstraZeneca","AZN");
-    operandMap.put("Aviva","AV.");
-    operandMap.put("BAE Systems","BA.");
-    operandMap.put("Barclays","BARC");
-    operandMap.put("Barratt Developments","BDEV");
-    operandMap.put("Berkeley Group Holdings","BKG");
-    operandMap.put("BHP","BLT");
-    operandMap.put("BP","BP.");
-    operandMap.put("British American Tobacco","BATS");
-    operandMap.put("British Land","BLND");
-    operandMap.put("BT Group","BT.A");
-    operandMap.put("Bunzl","BNZL");
-    operandMap.put("Burberry","BRBY");
-    operandMap.put("Carnival Corporation & plc","CCL");
-    operandMap.put("Centrica","CNA");
-    operandMap.put("Coca-Cola HBC AG","CCH");
-    operandMap.put("Compass Group","CPG");
-    operandMap.put("CRH plc","CRH");
-    operandMap.put("Croda International","CRDA");
-    operandMap.put("DCC plc","DCC");
-    operandMap.put("Diageo","DGE");
-    operandMap.put("Direct Line Group","DLG");
-    operandMap.put("easyJet","EZJ");
-    operandMap.put("Evraz","EVR");
-    operandMap.put("Experian","EXPN");
-    operandMap.put("Ferguson plc","FERG");
-    operandMap.put("Fresnillo plc","FRES");
-    operandMap.put("G4S","GFS");
-    operandMap.put("GKN","GKN");
-    operandMap.put("GlaxoSmithKline","GSK");
-    operandMap.put("Glencore","GLEN");
-    operandMap.put("Halma","HLMA");
-    operandMap.put("Hammerson","HMSO");
-    operandMap.put("Hargreaves Lansdown","HL.");
-    operandMap.put("HSBC","HSBA");
-    operandMap.put("Imperial Brands","IMB");
-    operandMap.put("Informa","INF");
-    operandMap.put("InterContinental Hotels Group","IHG");
-    operandMap.put("International Airlines Group","IAG");
-    operandMap.put("Intertek","ITRK");
-    operandMap.put("ITV plc","ITV");
-    operandMap.put("Johnson Matthey","JMAT");
-    operandMap.put("Just Eat","JE");
-    operandMap.put("Kingfisher plc","KGF");
-    operandMap.put("Land Securities","LAND");
-    operandMap.put("Legal & General","LGEN");
-    operandMap.put("Lloyds Banking Group","LLOY");
-    operandMap.put("London Stock Exchange Group","LSE");
-    operandMap.put("Marks & Spencer","MKS");
-    operandMap.put("Mediclinic International","MDC");
-    operandMap.put("Micro Focus","MCRO");
-    operandMap.put("Mondi","MNDI");
-    operandMap.put("Morrisons","MRW");
-    operandMap.put("National Grid plc","NG.");
-    operandMap.put("Next plc","NXT");
-    operandMap.put("NMC Health","NMC");
-    operandMap.put("Old Mutual","OML");
-    operandMap.put("Paddy Power Betfair","PPB");
-    operandMap.put("Pearson PLC","PSON");
-    operandMap.put("Persimmon plc","PSN");
-    operandMap.put("Prudential plc","PRU");
-    operandMap.put("Randgold Resources","RRS");
-    operandMap.put("Reckitt Benckiser","RB.");
-    operandMap.put("RELX Group","REL");
-    operandMap.put("Rentokil Initial","RTO");
-    operandMap.put("Rio Tinto Group","RIO");
-    operandMap.put("Rolls-Royce Holdings","RR.");
-    operandMap.put("The Royal Bank of Scotland Group","RBS");
-    operandMap.put("Royal Dutch Shell","RDSA");
-    operandMap.put("RSA Insurance Group","RSA");
-    operandMap.put("Sage Group","SGE");
-    operandMap.put("Sainsbury's","SBRY");
-    operandMap.put("Schroders","SDR");
-    operandMap.put("Scottish Mortgage Investment Trust","SMT");
-    operandMap.put("Segro","SGRO");
-    operandMap.put("Severn Trent","SVT");
-    operandMap.put("Shire plc","SHP");
-    operandMap.put("Sky plc","SKY");
-    operandMap.put("Smith & Nephew","SN.");
-    operandMap.put("Smith, D.S.","SMDS");
-    operandMap.put("Smiths Group","SMIN");
-    operandMap.put("Smurfit Kappa","SKG");
-    operandMap.put("SSE plc","SSE");
-    operandMap.put("Standard Chartered","STAN");
-    operandMap.put("Standard Life Aberdeen","SLA");
-    operandMap.put("St. James's Place plc","STJ");
-    operandMap.put("Taylor Wimpey","TW.");
-    operandMap.put("Tesco","TSCO");
-    operandMap.put("TUI Group","TUI");
-    operandMap.put("Unilever","ULVR");
-    operandMap.put("United Utilities","UU.");
-    operandMap.put("Vodafone Group","VOD");
-    operandMap.put("Whitbread","WTB");
-    operandMap.put("WPP plc","WPP");
-
-
-
-    */
   }
+
+  private String searchForFullGroup(String s){
+    //System.out.println(s);
+    for(String candidate: groupOperandList){
+        //System.out.println(candidate);
+        if(s.contains(candidate)){
+            //System.out.println("Candidate was "+candidate);
+            return groupOperandMap.get(candidate);
+        }
+    }
+    return null;
+  }
+
+    /*
+      The following is an autocomplete based "Heuristic"
+      Based off following reference
+      REF: https://docs.oracle.com/javase/tutorial/uiswing/components/textarea.html
+    */
+    private String autocompleteHeuristic(String[] tokens,ArrayList<String> list, HashMap<String,String> map){
+        String operand = null;
+        int longestMatchingTokenLength = 0;
+        for (int i = 0; i<tokens.length ; i++ ) {
+            String token = tokens[i];
+            if (token == null){
+              continue;
+            }
+
+            //Check for 'the', as this word is too general to autocomplete from. Could extend to check a list of common words
+            if(token.equals("the")){
+                if((i+1)<tokens.length){
+                    token = token + " "+ tokens[i+1];//Choose a longer token if possible.
+                }
+                else{
+                    //If a longer token isn't possible, it means our string ends with 'the', which is ridiculous.
+                    continue;
+                }
+            }
+
+            Boolean keepTryingToExtendToken = false;
+            int extension = 1;
+
+            do{
+                keepTryingToExtendToken = false;
+                int index = Collections.binarySearch(list,token);
+                if(index >= 0){//An exact match was found
+                  operand = map.get(token);
+                  break;//Nothing beats an exact match
+                }
+                else if(token.length()<=2){//Far too small to autocomplete from
+                  break;
+                }
+                else if(-index <= list.size()){//The index where the word would be in the sorted list
+                  int nextBestPosition = -index -1;//Finding the string that's lexicographically closest to the token
+                  String candidate = list.get(nextBestPosition);
+
+                  if(candidate.startsWith(token)){//If the token is a substring, then it's likely that the user just didn't type the full thing
+                        keepTryingToExtendToken = true;
+                        if(longestMatchingTokenLength<token.length()){//Replace previous autocompletion if we find one for a longer token, as this is more likely to be correct?
+                          operand = map.get(candidate);//Autocompleting the token
+                          longestMatchingTokenLength = token.length();
+                        }
+                  }
+                }
+                else{
+                    //If the index magnitude is greater than the list size,the closest match would be something off the end of the list, so we can't have that
+                    break;
+                }
+
+                if(keepTryingToExtendToken && !(i+extension<tokens.length)){
+                    keepTryingToExtendToken = false;
+                }
+                if(keepTryingToExtendToken){
+                    token = token + " " + tokens[i+extension];
+                    extension++;
+                }
+            }while(keepTryingToExtendToken);
+        }
+        return operand;
+    }
 
 }

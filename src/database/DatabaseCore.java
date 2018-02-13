@@ -1,6 +1,10 @@
 package footsiebot.database;
 
-import footsiebot.nlp.ParseResult;
+import footsiebot.nlp.*;
+// import footsiebot.nlp.ParseResult;
+// import footsiebot.nlp.Intent;
+// import footsiebot.nlp.TimeSpecifier;
+
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
@@ -30,7 +34,7 @@ public class DatabaseCore implements IDatabaseManager {
             // create a database connection
             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
             Statement statement = conn.createStatement();
-            statement.setQueryTimeout(30);  // set timeout to 30 sec.
+            statement.setQueryTimeout(30);  // set timeout to 30 seconds
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -47,14 +51,13 @@ public class DatabaseCore implements IDatabaseManager {
         String code = " ";
         Float price, absChange, percChange = 0.0f;
 
-        String group,name;
-
+        String group, name;
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
             code = sr.getCode(i);
-            group = sr.getGroup(i);
-            name = sr.getName(i);
+            group = sr.getGroup(i).toLowerCase();
+            name = sr.getName(i).toLowerCase();
             price = sr.getPrice(i);
             absChange = sr.getAbsChange(i);
             percChange = sr.getPercChange(i);
@@ -78,8 +81,8 @@ public class DatabaseCore implements IDatabaseManager {
                 }
 
                 // add the company data into the FTSECompanySnapshots table
-                String addScrapeResultQuery = "INSERT INTO FTSECompanySnapshots\n"
-                                            + "VALUES(" + code + ", " + currentTime + ", " + price + ", " + percChange + ", " + absChange + ")";
+                String addScrapeResultQuery = "INSERT INTO FTSECompanySnapshots(CompanyCode, SpotPrice, PercentageChange, AbsoluteChange)\n"
+                                            + "VALUES(" + code + ", " + price + ", " + percChange + ", " + absChange + ")";
                 Statement s4 = conn.createStatement();
                 s4.executeQuery(addScrapeResultQuery);
 
@@ -98,6 +101,17 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     public String[] getFTSE(ParseResult pr) {
+
+        String FTSEQuery = convertFTSEQuery(pr);
+        try {
+            Statement s1 = conn.createStatement();
+            ResultSet results = s1.executeQuery(FTSEQuery);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            System.out.println(FTSEQuery);//DEBUG
+        }
+
+
         return null;
     }
 
@@ -110,7 +124,69 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     public String convertFTSEQuery(ParseResult pr) {
-        return null;
+        footsiebot.nlp.Intent intent = pr.getIntent();
+        footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
+        String operand = pr.getOperand();
+        Boolean isGroup = pr.isOperandGroup();
+
+        operand = "'"+operand+"'";//Ensuring operand in correct string representation
+
+        String query = "";
+        String timeSpecifierSQL = "";
+        String companyCode = "";
+        Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
+        String colName = "";
+
+        // if not the operand is not a group, get the company code
+        if (!isGroup) {
+            String getCompanyCodeQuery = "SELECT CompanyCode FROM FTSECompanies WHERE CompanyName = " + operand;
+            try {
+                Statement s1 = conn.createStatement();
+                ResultSet code = s1.executeQuery(getCompanyCodeQuery);
+                while (code.next()) {
+                    companyCode = code.getString(1);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        switch (intent) {
+            case SPOT_PRICE:
+                isFetchCurrentQuery = true;
+                colName = "SpotPrice";
+                break;
+            case TRADING_VOLUME: // haven't got this column yet so won't work
+                isFetchCurrentQuery = true;
+                colName = "TradingVolume";
+                break;
+            case PERCENT_CHANGE:
+                isFetchCurrentQuery = true;
+                colName = "PercentageChange";
+                break;
+            case ABSOLUTE_CHANGE:
+                isFetchCurrentQuery = true;
+                colName = "AbsoluteChange";
+                break;
+            case OPENING_PRICE:
+
+            case CLOSING_PRICE:
+
+            case TREND:
+
+            case NEWS:
+
+            case GROUP_FULL_SUMMARY:
+
+        }
+
+        // need to make sure you get last record added for current data
+        if (isFetchCurrentQuery) {
+            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = " + companyCode + "ORDER BY TimeOfData DESC LIMIT 1";
+
+        }
+
+        return query;
     }
 
     public ArrayList<Company> getAICompanies() throws SQLException {

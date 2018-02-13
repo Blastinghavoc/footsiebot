@@ -12,72 +12,128 @@ import javafx.scene.paint.*;
 import javafx.scene.shape.*;
 import javafx.geometry.*;
 import javafx.scene.text.Font;
+import javafx.scene.text.Text;
+import java.lang.Math;
 
-public class Message extends StackPane {
+public class Message extends FlowPane {
     private Label msg;
     private LocalDateTime timestamp;
     private boolean sent;
     private Rectangle visual;
-    private StackPane wrapper;
+    private StackPane msgWrapper;
+    private StackPane btnWrapper;
+    private double width;
+    private double height;
+    private GUIcore ui;
+    private boolean isAI;
 
-    public Message(String text, LocalDateTime timestamp, Stage stage, boolean sent) {
+    public Message(String text, LocalDateTime timestamp, Stage stage, boolean sent, boolean isAI, GUIcore ui) {
         super();
-        wrapper = new StackPane();
-        wrapper.setMaxWidth((stage.getWidth() - 36) * 0.55);
-        visual = new Rectangle();
-        // visual.setFill(Color.LIME);
-        // visual.getStyleClass().add("message-visual");
-        setPrefWidth(stage.getScene().getWidth() - 36);
-        setMaxWidth(stage.getScene().getWidth() - 36);
-        msg = new Label(text);
-        // msg.setMaxWidth(stage.getScene().getWidth() * 0.55);
-        // msg.setPrefWidth(20);
-        msg.setWrapText(true);
         this.timestamp = timestamp;
         this.sent = sent;
-        getChildren().addAll(visual, msg);
+        this.ui = ui;
+        this.isAI = isAI;
+        setPrefWidth(stage.getScene().getWidth() - 36);
+        setMaxWidth(stage.getScene().getWidth() - 36);
+
+        final double maxWidth = (stage.getScene().getWidth() - 36) * 0.55;
+        Text sizing = new Text(text);
+        if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
+            sizing.setWrappingWidth(maxWidth);
+
+        width = Math.ceil(sizing.getLayoutBounds().getWidth());
+        height = Math.ceil(sizing.getLayoutBounds().getHeight());
+        msg = new Label(text);
+        msg.setMaxWidth(width);
+        msg.setMinHeight(height);
+        msg.setWrapText(true);
+
+        visual = new Rectangle((width + 14), (height + 8));
+        msgWrapper = new StackPane();
+        msgWrapper.setMinWidth(visual.getWidth());
+        msgWrapper.setMaxWidth(visual.getWidth());
+        msgWrapper.getChildren().addAll(visual, msg);
+
+        Tooltip aiNote = new Tooltip("Why am I seeing this?");
+        Tooltip removeNote = new Tooltip("Remove message");
+
+        if (isAI) {
+            btnWrapper = new StackPane();
+            Insets btnPadding = new Insets(0, 5, 2, 5);
+            btnWrapper.setPadding(btnPadding);
+            Label lbl2 = new Label("x");
+            lbl2.getStyleClass().add("remove-button");
+            lbl2.setTooltip(removeNote);
+            Text lblSize = new Text("?");
+            Label lbl = new Label("?");
+            lbl.setTooltip(aiNote);
+            lbl.setAlignment(Pos.CENTER);
+            lbl.setMinWidth(lblSize.getLayoutBounds().getHeight());
+            lbl.getStyleClass().add("options-button");
+            btnWrapper.getChildren().addAll(lbl, lbl2);
+            btnWrapper.setAlignment(lbl2, Pos.TOP_CENTER);
+            btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
+
+            lbl.setOnMouseClicked(e -> {
+                ui.displayMessage("This is why", false);
+            });
+
+            lbl2.setOnMouseClicked(e -> {
+                ui.getMessageBoard().getChildren().removeAll(this);
+            });
+        }
+
         if (sent) {
+            if (isAI)
+                getChildren().add(btnWrapper);
+            getChildren().add(msgWrapper);
             msg.getStyleClass().add("user-label");
             visual.getStyleClass().add("user-visual");
             getStyleClass().add("user-message");
             msg.setAlignment(Pos.CENTER_RIGHT);
             setAlignment(Pos.CENTER_RIGHT);
-            // setAlignment(visual, Pos.CENTER_LEFT);
         } else {
+            getChildren().addAll(msgWrapper);
+            if (isAI)
+                getChildren().add(btnWrapper);
             msg.getStyleClass().add("system-label");
             visual.getStyleClass().add("system-visual");
             getStyleClass().add("system-message");
             msg.setAlignment(Pos.CENTER_LEFT);
             setAlignment(Pos.CENTER_LEFT);
         }
-
-        // msg.heightProperty().addListener((obs, oldVal, newVal) -> {
-        //     System.out.println("Initial height and width: " + visual.getWidth() + ", " + visual.getHeight());
-        //     visual.setWidth(msg.getWidth() + 10);
-        //     visual.setHeight(msg.getHeight() + 8);
-        //     System.out.println("Changed height and width: " + visual.getWidth() + ", " + visual.getHeight());
-        //     // visual.setHeight(msg.getHeight() * 1.5);
-        //     setMaxWidth(stage.getWidth() - 36);
-        //     setPrefWidth(stage.getWidth() - 36);
-        //     System.out.println("Initial pane height and width: " + getWidth() + ", " + getHeight());
-        //     setMaxHeight(visual.getHeight() + 10);
-        //     setMinHeight(visual.getHeight() + 10);
-        //     System.out.println("Changed pane height and width: " + getWidth() + ", " + getHeight());
-        //     if (sent)
-        //         setAlignment(visual, Pos.CENTER_RIGHT);
-        //     else
-        //         setAlignment(visual, Pos.CENTER_LEFT);
-        //     // visual.setHeight(newVal.doubleValue() * 1.5);
-        //     // setMinHeight(visual.getHeight() + 10);
-        //     // setMaxHeight(visual.getHeight() + 10);
-        //     // if (sent)
-        //     //     setAlignment(visual, Pos.CENTER_RIGHT);
-        //     // else
-        //     //     setAlignment(visual, Pos.CENTER_LEFT);
-        // });
     }
 
-    /**
+   /**
+    * Resizes the visual parts of the Message
+    *
+    * @param stage the stage used to calculate widths
+    */
+    public void resize(Stage stage) {
+        setPrefWidth(stage.getScene().getWidth() - 36);
+        setMaxWidth(stage.getScene().getWidth() - 36);
+
+        final double maxWidth = (stage.getScene().getWidth() - 36) * 0.55;
+        Text sizing = new Text(msg.getText());
+        if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
+            sizing.setWrappingWidth(maxWidth);
+
+        width = Math.ceil(sizing.getLayoutBounds().getWidth());
+        height = Math.ceil(sizing.getLayoutBounds().getHeight());
+        msgWrapper.setMinWidth(visual.getWidth());
+        msgWrapper.setMaxWidth(visual.getWidth());
+        msg.setMaxWidth(width);
+        visual.setWidth(width + 14);
+        visual.setHeight(height + 8);
+
+        if (isAI)
+            btnWrapper.setMaxHeight(visual.getHeight());
+
+        setMinHeight(getVisual().getHeight() + 10);
+        setMaxHeight(getVisual().getHeight() + 10);
+    }
+
+   /**
     * Getter for msg
     *
     * @return returns msg
@@ -86,7 +142,7 @@ public class Message extends StackPane {
         return msg;
     }
 
-    /**
+   /**
     * Getter for the text of msg
     *
     * @return returns a String representation of msg
@@ -95,7 +151,7 @@ public class Message extends StackPane {
         return msg.getText();
     }
 
-    /**
+   /**
     * Getter for sent
     *
     * @return returns sent
@@ -104,7 +160,7 @@ public class Message extends StackPane {
         return sent;
     }
 
-    /**
+   /**
     * Getter for visual
     *
     * @return returns visual
@@ -113,7 +169,7 @@ public class Message extends StackPane {
         return visual;
     }
 
-    /**
+   /**
     * Getter for timestamp
     *
     * @return returns timestamp

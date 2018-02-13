@@ -10,6 +10,8 @@ import javafx.stage.Stage;
 import java.io.*;
 import java.util.*;
 import java.time.LocalDateTime;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 
 public class Core extends Application {
@@ -34,6 +36,8 @@ public class Core extends Application {
    /**
     * Nothing else should go here. If you think it needs to go in main,
     * it probably needs to go in start.
+    *
+    * @param args command-line arguments
     */
     public static void main(String[] args) {
         //Initialise user interface
@@ -66,11 +70,14 @@ public class Core extends Application {
             else
                 ui = new GUIcore(primaryStage, this);
         } catch (Exception e) { //if any exceptions, create with default styling
-            //   Alert err = new Alert()
-            System.out.println(e.getMessage());
+            Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
+            err.showAndWait();
+            // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
 
+        Article[] news = {new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing")};
+        ui.displayResults(news, true);
     }
 
    /**
@@ -102,12 +109,17 @@ public class Core extends Application {
         }
     }
 
+   /**
+    * Executes the request input by the user
+    *
+    * @param raw the String input by the user
+    */
     public void onUserInput(String raw) {
         ParseResult pr = nlp.parse(raw);
         System.out.println(pr); //DEBUG
 
         //Branch based on whether the intent is for news or data.
-        if (pr.getIntent()== Intent.NEWS) {
+        if (pr.getIntent() == Intent.NEWS) {
             Article[] result;
             if (pr.isOperandGroup()) {
                 String[] companies = groupNameToCompanyList(pr.getOperand());
@@ -119,6 +131,7 @@ public class Core extends Application {
             dbm.storeQuery(pr,LocalDateTime.now());
             Suggestion suggestion = ic.getSuggestion(pr);
             //TODO send result and suggestion to ui
+            ui.displayResults(result, false);
         } else {
             /*
             NOTE: may wish to branch for groups, using an overloaded/modified method
@@ -138,7 +151,7 @@ public class Core extends Application {
 
             //TODO send result and suggestion to ui
         }
-        ui.displayMessage(pr.toString());//DEBUG
+        ui.displayMessage(pr.toString(), false);//DEBUG
     }
 
 
