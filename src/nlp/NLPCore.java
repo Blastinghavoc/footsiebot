@@ -80,11 +80,7 @@ public class NLPCore implements INaturalLanguageProcessor{
         String[] tokens = s.split(" ");
 
         for (int i = 0; i<tokens.length ; i++ ) {
-            String token = tokens[i];
-            if(token.endsWith(".")){//Remove full stops if present
-                token = token.substring(0, token.length() - 1);
-                tokens[i] = token;
-            }
+            tokens[i] = stripPunctuation(tokens[i]);
         }
 
     	//FIND OPERAND
@@ -205,9 +201,7 @@ public class NLPCore implements INaturalLanguageProcessor{
         splitLine = line.toLowerCase().split(",");
         String operand = splitLine[0];
 
-        if(operand.endsWith(".")){//Remove full stop if present
-            operand = operand.substring(0, operand.length() - 1);
-        }
+        operand = stripPunctuation(operand);
 
         operandMap.put(operand,operand);//Adds the operand to the map, mapping to itself
         operandList.add(operand);
@@ -232,9 +226,7 @@ public class NLPCore implements INaturalLanguageProcessor{
           for (int i = 1; i< splitLine.length;i++ ) {//Adds all synonyms to map, mapped to the primary operand
             String currentOp = splitLine[i];
 
-            if(currentOp.endsWith(".")){//Remove full stop if present
-                currentOp = currentOp.substring(0, currentOp.length() - 1);
-            }
+            currentOp = stripPunctuation(currentOp);
 
             operandMap.put(currentOp,operand);
             operandList.add(currentOp);
@@ -264,9 +256,7 @@ public class NLPCore implements INaturalLanguageProcessor{
         splitLine = line.toLowerCase().split(",");
         String operand = splitLine[0];
 
-        if(operand.endsWith(".")){//Remove full stop if present
-            operand = operand.substring(0, operand.length() - 1);
-        }
+        operand = stripPunctuation(operand);
 
         groupOperandMap.put(operand,operand);//Adds the operand to the map, mapping to itself
         groupOperandList.add(operand);
@@ -290,9 +280,7 @@ public class NLPCore implements INaturalLanguageProcessor{
           for (int i = 1; i< splitLine.length;i++ ) {//Adds all synonyms to map, mapped to the primary operand
             String currentOp = splitLine[i];
 
-            if(currentOp.endsWith(".")){//Remove full stop if present
-                currentOp = currentOp.substring(0, currentOp.length() - 1);
-            }
+            currentOp = stripPunctuation(currentOp);
 
             groupOperandMap.put(currentOp,operand);
             groupOperandList.add(currentOp);
@@ -391,6 +379,13 @@ public class NLPCore implements INaturalLanguageProcessor{
             }while(keepTryingToExtendToken);
         }
         return operand;
+    }
+
+    private String stripPunctuation(String inp){
+        if(inp.endsWith(".")||inp.endsWith("?")||inp.endsWith("!")||inp.endsWith(",")){//Remove punctuation if present
+            inp = inp.substring(0, inp.length() - 1);
+        }
+        return inp;
     }
 
 }
