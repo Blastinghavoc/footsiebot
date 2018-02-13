@@ -102,14 +102,15 @@ public class DatabaseCore implements IDatabaseManager {
 
     public String[] getFTSE(ParseResult pr) {
 
-        String FTSEQuery = convertFTSEQuery(pr); 
+        String FTSEQuery = convertFTSEQuery(pr);
         try {
             Statement s1 = conn.createStatement();
             ResultSet results = s1.executeQuery(FTSEQuery);
         } catch (SQLException e) {
             e.printStackTrace();
+            System.out.println(FTSEQuery);//DEBUG
         }
-        
+
 
         return null;
     }
@@ -125,8 +126,10 @@ public class DatabaseCore implements IDatabaseManager {
     public String convertFTSEQuery(ParseResult pr) {
         footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
-        String operand = pr.getOperand(); 
+        String operand = pr.getOperand();
         Boolean isGroup = pr.isOperandGroup();
+
+        operand = "'"+operand+"'";//Ensuring operand in correct string representation
 
         String query = "";
         String timeSpecifierSQL = "";
@@ -166,7 +169,7 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
-                
+
             case CLOSING_PRICE:
 
             case TREND:
@@ -177,7 +180,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         }
 
-        // need to make sure you get last record added for current data 
+        // need to make sure you get last record added for current data
         if (isFetchCurrentQuery) {
             query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = " + companyCode + "ORDER BY TimeOfData DESC LIMIT 1";
 
