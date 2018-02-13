@@ -35,7 +35,7 @@ public class Company implements Comparable<Company> {
   }
 
   public Float getNewsCount() {
-	return newsCounter;
+	   return newsCounter;
   }
 
   public Float getPriority() {

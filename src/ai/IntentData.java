@@ -13,7 +13,7 @@ public class IntentData implements Comparable<IntentData> {
   private Float priority;
   private Float irrelevantSuggestionWeight;
 
-  public IntentData(AIIntent intent, ArrayList<Float> values, Float priority, Float irrelevantSuggestionWeight) {
+  public IntentData(AIIntent intent, Float priority, Float irrelevantSuggestionWeight) {
     this.intent = intent;
     this.values = values;
     this.priority = priority;
@@ -22,7 +22,11 @@ public class IntentData implements Comparable<IntentData> {
 
 
   public AIIntent getIntent() {
-	return null;
+	   return null;
+  }
+
+  public void setValues(ArrayList<Float> list) {
+    values = list;
   }
 
   public ArrayList<Float> getValues() {

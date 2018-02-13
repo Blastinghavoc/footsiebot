@@ -113,8 +113,86 @@ public class DatabaseCore implements IDatabaseManager {
         return null;
     }
 
-    public ArrayList<Company> getAICompanies() {
+    public ArrayList<Company> getAICompanies() throws SQLException {
+      // Get Counts for each intent
+      String query = "";
+      // Fetch company code and counters
+      query+= "SELECT CompanyCode,NewsCount,SpotPriceCount,OpeningPriceCount,";
+      query+= "AbsoluteChangeCount,ClosingPriceCount,percentageChangeCount, ";
+      // and also adjustments
+      query+= "newsAdjustment";
+      query+= "SpotPriceAdjustment";
+      query+= "OpeningPriceAdjustment";
+      query+= "AbsoluteChangeAdjustment";
+      query+= "ClosingPriceAdjustment";
+      query+= "percentageChangeAdjustment";
+      // Join
+      query+= "NATURAL JOIN CompanyNewsCount ";
+      query+= "NATURAL JOIN CompanySpotPriceCount ";
+      query+= "NATURAL JOIN CompanyOpeningPriceCount ";
+      query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
+      query+= "NATURAL JOIN CompanyClosingPriceCount ";
+      query+= "NATURAL JOIN PercentageChangeCount ";
+
+      Statement stmt = null;
+      ResultSet rs = null;
+
+      ArrayList<Company> companies = new ArrayList<>();
+
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query);
+
+        while(rs.next()) {
+          // Create list of intents for each company
+          ArrayList<IntentData> intents = new ArrayList<>();
+          // News counter
+          float newsCount = (float) rs.getInt("NewsCount");
+          // Intents
+          float spot = (float) rs.getInt("SpotPriceCount");
+          float opening = (float) rs.getInt("OpeningPriceCount");
+          float absoluteChange = (float) rs.getInt("AbsoluteChangeCount");
+          float closing = (float) rs.getInt("ClosingPriceCount");
+          float percentageChange = (float) rs.getInt("percentageChangeCount");
+          // Now the  adjustments
+          // for news
+          float newsAdj = (float) rs.getInt("newsAdjustment");
+          // and for intents
+          float spotAdj = (float) rs.getInt("SpotPriceAdjustment");
+          float openingAdj = (float) rs.getInt("OpeningPriceAdjustment");
+          float absoluteChangeAdj = (float) rs.getInt("AbsoluteChangeAdjustment");
+          float closingPriceAdj = (float) rs.getInt("ClosingPriceAdjustment");
+          float percentageChangeAdj = (float) rs.getInt("percentageChangeAdjustment");
+
+          // Instantiate IntentData List for this company
+          intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
+          intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
+          intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
+          intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
+          intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
+
+          // Calculate priority for each company
+          // it is the sum of all the counts
+          float priority = spot + opening + absoluteChange + closing + percentageChange;
+          // average of all intent's irrelevantSuggestionWeight
+          float irrelevantSuggestionWeightForCompany = (spotAdj + openingAdj + absoluteChangeAdj + closingPriceAdj + percentageChangeAdj) / 5;
+          companies.add(new Company(rs.getString("CompanyCode"), intents, newsCount, priority,  irrelevantSuggestionWeightForCompany ));
+        }
+
+        if(companies.size() != 0) {
+          return companies;
+        } else {
+          return null;
+        }
+
+      } catch (SQLException e) {
+        printSQLException(e);
         return null;
+      } finally {
+        if (stmt != null) { stmt.close(); }
+      }
+
+      return null;
     }
 
     public ArrayList<Group> getAIGroups() {
@@ -151,6 +229,37 @@ public class DatabaseCore implements IDatabaseManager {
             return null;
         }
         return companies.toArray(new String[1]);
+    }
+    /**
+     *  Nicked from JDBC tutorial
+     *  Found it useful for debugging
+     * @param SQLException
+     */
+    public void printSQLException(SQLException ex) {
+
+      for (Throwable e : ex) {
+          if (e instanceof SQLException) {
+              if (ignoreSQLException(
+                  ((SQLException)e).
+                  getSQLState()) == false) {
+
+                  e.printStackTrace(System.err);
+                  System.err.println("SQLState: " +
+                      ((SQLException)e).getSQLState());
+
+                  System.err.println("Error Code: " +
+                      ((SQLException)e).getErrorCode());
+
+                  System.err.println("Message: " + e.getMessage());
+
+                  Throwable t = ex.getCause();
+                  while(t != null) {
+                      System.out.println("Cause: " + t);
+                      t = t.getCause();
+                  }
+              }
+          }
+      }
     }
 
 }
