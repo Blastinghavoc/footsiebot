@@ -127,6 +127,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "ClosingPriceAdjustment";
       query+= "percentageChangeAdjustment";
       // Join
+      query+= "FROM FTSECompanies ";
       query+= "NATURAL JOIN CompanyNewsCount ";
       query+= "NATURAL JOIN CompanySpotPriceCount ";
       query+= "NATURAL JOIN CompanyOpeningPriceCount ";
