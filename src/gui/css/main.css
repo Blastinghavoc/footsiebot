@@ -1,31 +1,41 @@
+.root {
+    -fx-background-color: white;
+    -fx-accent: derive(#6699CC, 50%);
+}
+
+/*==============================================================================
+================================ Message Board ================================
+==============================================================================*/
 #board-wrapper {
     -fx-background: transparent;
     -fx-background-color: transparent;
 }
 
-#message-board {
-    /*-fx-background-color: blue;*/
+/*#message-board {
+    -fx-background-color: blue;
+}*/
+
+.scroll-bar .thumb {
+    -fx-background-color: black;
+    -fx-opacity: 0.5;
+    -fx-background-radius: 2em;
+    /*-fx-background-insets: 2, 0;*/
 }
 
-#input-wrapper {
-    -fx-background-color: derive(white, -4%);
-}
-
-#input-visual {
-    -fx-fill: white;
-    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 0);
-    -fx-arc-height: 35;
-    -fx-arc-width: 35;
-}
-
-#input {
-    -fx-background-color: transparent;
-    /*-fx-text-fill: white;*/
-}
-
-#root {
+.scroll-bar .track-background {
     -fx-background-color: white;
 }
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    /*-fx-shape: " ";*/
+    -fx-background-color: black;
+    -fx-opacity: 0.5;
+}
+
+/*==============================================================================
+=================================== Messages ===================================
+==============================================================================*/
 
 .user-message {
     -fx-background-color: transparent;
@@ -52,29 +62,79 @@
 }
 
 .user-label {
-    -fx-background-color: transparent;
+    /*-fx-background-color: transparent;*/
     -fx-text-fill: white;
+    /*-fx-cursor: text;*/
 }
 
 .system-label {
-    -fx-background-color: transparent;
+    /*-fx-background-color: transparent;*/
+    -fx-padding: 0;
     -fx-text-fill: black;
+    /*-fx-cursor: text;*/
 }
 
-.scroll-bar .thumb {
-    -fx-background-color: black;
-    -fx-opacity: 0.5;
-    -fx-background-radius: 2em;
-    /*-fx-background-insets: 2, 0;*/
+.options-button {
+    -fx-font-size: 8pt;
+    -fx-border-color: derive(#edecea, -20%);
+    -fx-border-width: 1;
+    -fx-border-radius: 10px;
+    -fx-text-fill: derive(#edecea, -20%);
+    -fx-cursor: hand;
 }
 
-.scroll-bar .track-background {
-    -fx-background-color: white;
+.options-button:hover {
+    -fx-border-color: derive(#edecea, -40%);
+    -fx-text-fill: derive(#edecea, -40%);
 }
 
-.scroll-bar .increment-arrow,
-.scroll-bar .decrement-arrow {
-    /*-fx-shape: " ";*/
-    -fx-background-color: black;
-    -fx-opacity: 0.5;
+.remove-button {
+    -fx-font-size: 12pt;
+    -fx-text-fill: derive(#edecea, -20%);
+    -fx-cursor: hand;
+}
+
+.remove-button:hover {
+    -fx-text-fill: derive(#edecea, -40%);
+}
+
+.tooltip {
+    -fx-font-size: 8.5pt;
+    -fx-background-color: derive(white, -5%);
+    -fx-text-fill: derive(black, 60%);
+    -fx-background-radius: 3px;
+    -fx-padding: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 5, 0.0, 0, 3)
+}
+
+/*==============================================================================
+==================================== Input ===================================
+==============================================================================*/
+
+#input-wrapper {
+    -fx-background-color: derive(white, -4%);
+}
+
+#input-visual {
+    -fx-fill: white;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 0);
+    -fx-arc-height: 35;
+    -fx-arc-width: 35;
+}
+
+#input {
+    -fx-background-color: transparent;
+}
+
+#send-button {
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+    -fx-background-color: #6699CC;
+    -fx-cursor: hand;
+    -fx-arc-height: 50;
+    -fx-arc-width: 50;
+}
+
+#send-button:hover {
+    -fx-background-color: #5783af;
 }
