@@ -239,8 +239,10 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param isAI a boolean representing whether the message was sent by the AI
     */
     public void displayMessage(String msg, boolean isAI) {
-        messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), stage, false, isAI, this));
-        messages.setValue(messageBoard.getChildren());
+        if(msg != null){
+            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), stage, false, isAI, this));
+            messages.setValue(messageBoard.getChildren());
+        }
     }
 
 
@@ -255,9 +257,11 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param isAI a boolean representing whether the message was sent by the AI
     */
     public void displayResults(Article[] news, boolean isAI) {
-        for (Article a: news) {
-            String msg = a.getHeadline() + "\n" + a.getDigest() + "\n" + a.getUrl();
-            displayMessage(msg, isAI);
+        if(news != null){
+            for (Article a: news) {
+                String msg = a.getHeadline() + "\n" + a.getDigest() + "\n" + a.getUrl();
+                displayMessage(msg, isAI);
+            }
         }
 
     }
