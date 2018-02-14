@@ -3,6 +3,25 @@
     -fx-accent: derive(#6699CC, 50%);
 }
 
+#chat-pane {
+
+}
+
+#side-pane {
+    -fx-border-color: derive(white, -10%);
+    -fx-border-width: 0 0 0 1;
+    -fx-background-color: white;
+}
+
+#top-bar {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
+    -fx-background-color: white;
+}
+
+#settings {
+    -fx-background-color: derive(white, -4%);
+}
+
 /*==============================================================================
 ================================ Message Board ================================
 ==============================================================================*/
@@ -112,6 +131,8 @@
 ==============================================================================*/
 
 #input-wrapper {
+    -fx-border-color: derive(white, -7%);
+    -fx-border-width: 1 0 0 0;
     -fx-background-color: derive(white, -4%);
 }
 
@@ -137,4 +158,8 @@
 
 #send-button:hover {
     -fx-background-color: #5783af;
+}
+
+#settings-icon {
+    -fx-cursor: hand;
 }
