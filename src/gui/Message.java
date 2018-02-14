@@ -29,14 +29,16 @@ public class Message extends FlowPane {
 
     public Message(String text, LocalDateTime timestamp, Stage stage, boolean sent, boolean isAI, GUIcore ui) {
         super();
+        double chatPaneWidth = stage.getScene().getWidth() * 0.6875;
+
         this.timestamp = timestamp;
         this.sent = sent;
         this.ui = ui;
         this.isAI = isAI;
-        setPrefWidth(stage.getScene().getWidth() - 36);
-        setMaxWidth(stage.getScene().getWidth() - 36);
+        setPrefWidth(chatPaneWidth - 36);
+        setMaxWidth(chatPaneWidth - 36);
 
-        final double maxWidth = (stage.getScene().getWidth() - 36) * 0.55;
+        final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
@@ -110,10 +112,11 @@ public class Message extends FlowPane {
     * @param stage the stage used to calculate widths
     */
     public void resize(Stage stage) {
-        setPrefWidth(stage.getScene().getWidth() - 36);
-        setMaxWidth(stage.getScene().getWidth() - 36);
+        double chatPaneWidth = stage.getScene().getWidth() * 0.6875;
+        setMinWidth(chatPaneWidth - 36);
+        setMaxWidth(chatPaneWidth - 36);
 
-        final double maxWidth = (stage.getScene().getWidth() - 36) * 0.55;
+        final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(msg.getText());
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
@@ -129,8 +132,8 @@ public class Message extends FlowPane {
         if (isAI)
             btnWrapper.setMaxHeight(visual.getHeight());
 
-        setMinHeight(getVisual().getHeight() + 10);
-        setMaxHeight(getVisual().getHeight() + 10);
+        setMinHeight(visual.getHeight() + 10);
+        setMaxHeight(visual.getHeight() + 10);
     }
 
    /**
