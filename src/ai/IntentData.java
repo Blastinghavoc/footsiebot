@@ -10,10 +10,10 @@ public class IntentData implements Comparable<IntentData> {
   private AIIntent intent;
   // This could be changed to a linked list if we only ever acces the last value
   private ArrayList<Float> values;
-  private float priority;
-  private float irrelevantSuggestionWeight;
+  private Float priority;
+  private Float irrelevantSuggestionWeight;
 
-  public IntentData(AIIntent intent, ArrayList<Float> values, float priority, float irrelevantSuggestionWeight) {
+  public IntentData(AIIntent intent, Float priority, Float irrelevantSuggestionWeight) {
     this.intent = intent;
     this.values = values;
     this.priority = priority;
@@ -22,35 +22,39 @@ public class IntentData implements Comparable<IntentData> {
 
 
   public AIIntent getIntent() {
-	return null;
+	   return null;
+  }
+
+  public void setValues(ArrayList<Float> list) {
+    values = list;
   }
 
   public ArrayList<Float> getValues() {
     return values;
   }
 
-  public float getLastValue() {
-    float res = 0.0f;
+  public Float getLastValue() {
+    Float res = 0.0f;
     Float f = values.get(values.size() - 1);
-    res = f.floatValue();
+    res = f.FloatValue();
     return res;
   }
 
-  public float getPriority() {
-	return priority;
+  public Float getPriority() {
+    return priority;
   }
 
-  public void incrementPriority(float p) {
+  public void incrementPriority(Float p) {
     priority-= p;
   }
 
-  public void decrementPriority(float p) {
+  public void decrementPriority(Float p) {
     priority-= p;
   }
 
   @Override
   public int compareTo(IntentData i) {
-    float r = i.getPriority() - this.getPriority();
+    Float r = i.getPriority() - this.getPriority();
     if(r < 0) {
       return -1;
     } else if (r == 0) {
