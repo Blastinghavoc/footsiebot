@@ -18,6 +18,8 @@ import javafx.beans.property.*;
 import java.io.*;
 import javafx.animation.*;
 import javafx.util.Duration;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class GUIcore implements IGraphicalUserInterface {
     private Core core;
@@ -26,6 +28,9 @@ public class GUIcore implements IGraphicalUserInterface {
     private Stage stage;
     private String style;
     private StackPane root;
+    private StackPane chatPane;
+    private StackPane sidePane;
+    private StackPane topBar;
     private Scene scene;
     private ScrollPane boardWrapper;
     private FlowPane messageBoard;
@@ -34,6 +39,12 @@ public class GUIcore implements IGraphicalUserInterface {
     private TextField input;
     private Button btnSend;
     private ListProperty<Node> messages;
+    private StackPane settings;
+    private StackPane newsPane;
+    private FadeTransition settingsPaneTrans;
+    private RotateTransition settingsTrans;
+    private ImageView settingsIcon;
+
 
    /**
     * Constructor for the user interface using default styling
@@ -64,28 +75,56 @@ public class GUIcore implements IGraphicalUserInterface {
     * Builds the user interface on the initial stage of the application
     */
     private void setup() {
-        // System.out.println(LocalDateTime.now());
-        // System.out.println(Instant.now());
         stage.setMinWidth(250);
         stage.setMinHeight(200);
 
         root = new StackPane();
         root.setId("root");
 
-        scene = new Scene(root, 550, 700);
-        String styleFilePath = "src/gui/css/" + style + ".css";
-        File styleFile = new File(styleFilePath);
-        scene.getStylesheets().add("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
+        scene = new Scene(root, 800, 700);
+        scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
+
+        messages = new SimpleListProperty<Node>();
+
+        initChat();
+        initSide();
+        initTop();
+        setupListeners();
+        setupActions();
+        startNewDataTimeline(); //Starts up the timeline for regular data updates
+        startNewTradingHourTimeline(); //Starts timeline for trading hour
+
+        root.getChildren().addAll(chatPane, sidePane, topBar);
+        root.setAlignment(topBar, Pos.TOP_LEFT);
+        root.setAlignment(chatPane, Pos.BOTTOM_LEFT);
+        root.setAlignment(sidePane, Pos.BOTTOM_RIGHT);
+
+        stage.setTitle("Footsiebot");
+        stage.setScene(scene);
+        stage.getIcons().add(new Image("file:src/img/home-icon.png"));
+        stage.hide();
+        stage.show();
+    }
+
+   /**
+    * Initialises the chat
+    */
+    private void initChat() {
+        chatPane = new StackPane();
+        chatPane.setId("chat-pane");
+        chatPane.setMinWidth(scene.getWidth() * 0.6875);
+        chatPane.setMaxWidth(scene.getWidth() * 0.6875);
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
         boardWrapper.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        Insets boardWrapperPadding = new Insets(7, 0, 0, 0);
+        boardWrapper.setPadding(boardWrapperPadding);
 
         messageBoard = new FlowPane();
         Insets boardPadding = new Insets(0, 0, 0, 16);
         messageBoard.setPadding(boardPadding);
         messageBoard.setId("message-board");
-        // messageBoard.setVgap(3);
 
         inputWrapper = new StackPane();
         Insets inputPadding = new Insets(0, 5, 0, 5);
@@ -108,28 +147,115 @@ public class GUIcore implements IGraphicalUserInterface {
         btnSend = new Button("Send");
         btnSend.setId("send-button");
 
+        inputWrapper.getChildren().addAll(inputVisual, input, btnSend);
+        inputWrapper.setAlignment(Pos.CENTER_LEFT);
+        inputWrapper.setMargin(input, inputMargin);
+
+        inputWrapper.setAlignment(btnSend, Pos.CENTER_RIGHT);
+        boardWrapper.setContent(messageBoard);
+        chatPane.getChildren().addAll(inputWrapper, boardWrapper);
+        chatPane.setAlignment(inputWrapper, Pos.BOTTOM_LEFT);
+        chatPane.setAlignment(boardWrapper, Pos.TOP_LEFT);
+        Insets boardWrapperMargins = new Insets(0, 0, 45, 0);
+        chatPane.setMargin(boardWrapper, boardWrapperMargins);
+    }
+
+   /**
+    * Initialises the sidepane
+    */
+    private void initSide() {
+        sidePane = new StackPane();
+        sidePane.setId("side-pane");
+        sidePane.setMinWidth(scene.getWidth() * 0.3125);
+        sidePane.setMaxWidth(scene.getWidth() * 0.3125);
+        sidePane.setMinHeight(scene.getHeight() - 45);
+        sidePane.setMaxHeight(scene.getHeight() - 45);
+
+        settings = new StackPane();
+        settings.setId("settings-pane");
+        settings.setVisible(false);
+        Insets settingsPadding = new Insets(10, 10, 10, 10);
+        settings.setPadding(settingsPadding);
+        settingsPaneTrans = new FadeTransition(Duration.millis(500), settings);
+
+        Button btnStyle = new Button("Update style");
+        btnStyle.setOnAction(e -> {
+            updateStyle();
+        });
+        settings.getChildren().add(btnStyle);
+        settings.setAlignment(btnStyle, Pos.BOTTOM_CENTER);
+
+        sidePane.getChildren().add(settings);
+        sidePane.setAlignment(settings, Pos.CENTER_RIGHT);
+    }
+
+   /**
+    * Initialises the topbar
+    */
+    private void initTop() {
+        topBar = new StackPane();
+        topBar.setId("top-bar");
+        topBar.setMinWidth(scene.getWidth());
+        topBar.setMaxWidth(scene.getWidth());
+        topBar.setMinHeight(45);
+        topBar.setMaxHeight(45);
+
+        settingsIcon = new ImageView("file:src/img/settings.png");
+        settingsIcon.setPreserveRatio(true);
+        settingsIcon.setFitWidth(27);
+        settingsIcon.setId("settings-icon");
+        topBar.getChildren().add(settingsIcon);
+        topBar.setAlignment(settingsIcon, Pos.CENTER_RIGHT);
+        Insets settingsIconMargin = new Insets(0, 10, 0, 0);
+        topBar.setMargin(settingsIcon, settingsIconMargin);
+        settingsTrans = new RotateTransition(Duration.millis(300), settingsIcon);
+    }
+
+   /**
+    * Sets the listeners for Nodes in the Stage
+    */
+    private void setupListeners() {
         //resize nodes to conform to layout
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            boardWrapper.setMaxHeight(scene.getHeight() - 45);
-            boardWrapper.setMinHeight(scene.getHeight() - 45);
+            chatPane.setMaxHeight(scene.getHeight() - 45);
+            chatPane.setMinHeight(scene.getHeight() - 45);
             stage.setScene(scene);
         });
 
         //resizes nodes to conform to layout
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            inputWrapper.setMaxWidth(scene.getWidth());
-            inputWrapper.setMinWidth(scene.getWidth());
-            inputVisual.setWidth(scene.getWidth() - 60);
-            input.setMinWidth(scene.getWidth() - 65);
-            input.setMaxWidth(scene.getWidth() - 65);
-            boardWrapper.setMaxWidth(scene.getWidth());
-            boardWrapper.setMinWidth(scene.getWidth());
-            messageBoard.setMaxWidth(scene.getWidth());
-            messageBoard.setMinWidth(scene.getWidth());
+            chatPane.setMinWidth(scene.getWidth() * 0.6875);
+            chatPane.setMaxWidth(scene.getWidth() * 0.6875);
+            sidePane.setMinWidth(scene.getWidth() * 0.3125);
+            sidePane.setMaxWidth(scene.getWidth() * 0.3125);
+            topBar.setMinWidth(scene.getWidth());
+            topBar.setMaxWidth(scene.getWidth());
+            inputWrapper.setMaxWidth(chatPane.getWidth());
+            inputWrapper.setMinWidth(chatPane.getWidth());
+            inputVisual.setWidth(chatPane.getWidth() - 60);
+            input.setMinWidth(chatPane.getWidth() - 65);
+            input.setMaxWidth(chatPane.getWidth() - 65);
+            boardWrapper.setMaxWidth(chatPane.getWidth());
+            boardWrapper.setMinWidth(chatPane.getWidth());
+            messageBoard.setMaxWidth(chatPane.getWidth() - 36);
+            messageBoard.setMinWidth(chatPane.getWidth() - 36);
             resizeMessages();
             stage.setScene(scene);
         });
 
+        messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
+            boardWrapper.setVvalue(1);
+        });
+
+        messages.addListener((obs, oldVal, newVal) -> {
+            resizeMessages();
+        });
+    }
+
+   /**
+    * Sets the actions performed by Nodes in the Stage
+    */
+    private void setupActions() {
         //send user input
         input.setOnAction(e -> {
             onUserInput();
@@ -140,33 +266,38 @@ public class GUIcore implements IGraphicalUserInterface {
             onUserInput();
         });
 
-        messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
-            boardWrapper.setVvalue(1);
+        settingsIcon.setOnMouseEntered(e -> {
+            settingsTrans.setFromAngle(0);
+            settingsTrans.setToAngle(45);
+            settingsTrans.play();
         });
 
-        messages = new SimpleListProperty<Node>();
-
-        messages.addListener((obs, oldVal, newVal) -> {
-            resizeMessages();
+        settingsIcon.setOnMouseExited(e -> {
+            settingsTrans.stop();
+            settingsTrans.setFromAngle(45);
+            settingsTrans.setToAngle(0);
+            settingsTrans.play();
         });
 
-        startNewDataTimeline(); //Starts up the timeline for regular data updates
-        startNewTradingHourTimeline(); //Starts timeline for trading hour
-
-        inputWrapper.getChildren().addAll(inputVisual, input, btnSend);
-        inputWrapper.setAlignment(Pos.CENTER_LEFT);
-        inputWrapper.setMargin(input, inputMargin);
-
-        inputWrapper.setAlignment(btnSend, Pos.CENTER_RIGHT);
-        boardWrapper.setContent(messageBoard);
-        root.getChildren().addAll(inputWrapper, boardWrapper);
-        root.setAlignment(inputWrapper, Pos.BOTTOM_LEFT);
-        root.setAlignment(boardWrapper, Pos.TOP_LEFT);
-
-        stage.setTitle("Footsiebot");
-        stage.setScene(scene);
-        stage.hide();
-        stage.show();
+        settingsIcon.setOnMouseClicked(e -> {
+            if (settings.visibleProperty().getValue() == Boolean.FALSE) {
+                settings.setVisible(true);
+                settingsPaneTrans.setFromValue(0);
+                settingsPaneTrans.setToValue(1);
+                settingsPaneTrans.setOnFinished(event -> {
+                    settings.setVisible(true);
+                });
+                settingsPaneTrans.play();
+            } else {
+                settings.setVisible(true);
+                settingsPaneTrans.setFromValue(1);
+                settingsPaneTrans.setToValue(0);
+                settingsPaneTrans.setOnFinished(event -> {
+                    settings.setVisible(false);
+                });
+                settingsPaneTrans.play();
+            }
+        });
     }
 
    /**
@@ -220,15 +351,20 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
+    * Updates the current styling
+    */
+    private void updateStyle() {
+        scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
+    }
+
+   /**
     * Sets the css used for the application
     *
     * @param style the name of the css file to be used
     */
     public void setStyle(String style) {
         this.style = style;
-        String styleFilePath = "src/gui/css/" + style + ".css";
-        File styleFile = new File(styleFilePath);
-        scene.getStylesheets().setAll("file:///" + styleFile.getAbsolutePath().replace("\\", "/"));
+        scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
         stage.setScene(scene);
     }
 
@@ -239,7 +375,7 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param isAI a boolean representing whether the message was sent by the AI
     */
     public void displayMessage(String msg, boolean isAI) {
-        if(msg != null){
+        if (msg != null) {
             messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), stage, false, isAI, this));
             messages.setValue(messageBoard.getChildren());
         }
@@ -257,7 +393,7 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param isAI a boolean representing whether the message was sent by the AI
     */
     public void displayResults(Article[] news, boolean isAI) {
-        if(news != null){
+        if (news != null) {
             for (Article a: news) {
                 String msg = a.getHeadline() + "\n" + a.getDigest() + "\n" + a.getUrl();
                 displayMessage(msg, isAI);
