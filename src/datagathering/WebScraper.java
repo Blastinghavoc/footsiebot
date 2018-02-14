@@ -21,20 +21,23 @@ public class WebScraper {
             return null;
         }
 
-        Elements entries = page.getElementsByClass("feedEntryContent");
-        String[] codes = new String[100];
-        String[] names = new String[100];
-        String[] groups = new String[100];
-        Float[] prices = new Float[100];
-        Float[] absChange = new Float[100];
-        Float[] percChange = new Float[100];
+        Elements entries = page.select("item").select("description");
+        String[] codes = new String[101];
+        String[] names = new String[101];
+        String[] groups = new String[101];
+        Float[] prices = new Float[101];
+        Float[] absChange = new Float[101];
+        Float[] percChange = new Float[101];
         int i = 0;
         int j = 0;
 
         for (Element entry : entries) {
-            String[] content = entry.ownText().split(",");
+            // System.out.println("entry " + i);
+            // System.out.println(entry.text());
+            String[] content = entry.text().split(",");
             codes[i] = content[j++];
             names[i] = content[j++];
+            j++;
             groups[i] = "grouptest";
             if (content[j].contains(".")) prices[i] = Float.parseFloat(content[j++]);
             else {
