@@ -78,6 +78,8 @@ public class Core extends Application {
 
         Article[] news = {new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing")};
         ui.displayResults(news, true);
+
+        onNewDataAvailable();//Call once on startup
     }
 
    /**
@@ -167,9 +169,10 @@ public class Core extends Application {
     public void onNewDataAvailable() {
         System.out.println("New data available!");//DEBUG
         ScrapeResult sr = dgc.getData();
-        for(int i = 0; i < 100;i++){
+        for(int i = 0; i < 101;i++){
             System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
         }
+        System.out.println("Data collected.");
         //dbm.storeScraperResults(sr);
         //ic.onUpdatedDatabase();
     }
