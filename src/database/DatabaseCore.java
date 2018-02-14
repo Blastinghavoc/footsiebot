@@ -18,6 +18,10 @@ import java.util.ArrayList;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
+    // Will declare as a global variable
+    // so that 
+    private ArrayList<Company> companies = new ArrayList<>();
+
 
     public DatabaseCore() {
 
@@ -214,8 +218,6 @@ public class DatabaseCore implements IDatabaseManager {
       Statement stmt = null;
       ResultSet rs = null;
 
-      ArrayList<Company> companies = new ArrayList<>();
-
       try {
         stmt = conn.createStatement();
         rs = stmt.executeQuery(query);
@@ -272,8 +274,9 @@ public class DatabaseCore implements IDatabaseManager {
       return null;
     }
 
-    public ArrayList<Group> getAIGroups() {
-        return null;
+    public ArrayList<Group> getAIGroups() throws SQLException {
+      String query = "";
+
     }
 
     public IntentData getIntentForCompany() {
