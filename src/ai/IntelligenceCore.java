@@ -98,8 +98,13 @@ public class IntelligenceCore implements IIntelligenceUnit {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
-     if(companies == null || groups == null ) return "ERROR";
+     if(companies == null) {
+       return "Companies are null";
+     }
      Collections.sort(companies);
+     if(groups == null) {
+       return "Groups are null";
+     }
      Collections.sort(groups);
      // What to return here ?
      return "";
@@ -114,8 +119,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch from database
      companies = db.getAICompanies();
      groups = db.getAIGroups();
-     if((groups != null) && (companies != null)){
+     if(companies != null){
          Collections.sort(companies);
+     }
+     if(groups  != null){
          Collections.sort(groups);
      }
 

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
     // Will declare as a global variable
-    // so that 
+    // so that
     private ArrayList<Company> companies = new ArrayList<>();
 
 
@@ -279,15 +279,16 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChange = (float) rs.getInt("percentageChangeCount");
           // Now the  adjustments
           // for news
-          float newsAdj = (float) rs.getFloat("newsAdjustment");
+          float newsAdj =  rs.getFloat("newsAdjustment");
           // and for intents
-          float spotAdj = (float) rs.getFloat("SpotPriceAdjustment");
-          float openingAdj = (float) rs.getFloat("OpeningPriceAdjustment");
-          float absoluteChangeAdj = (float) rs.getFloat("AbsoluteChangeAdjustment");
-          float closingPriceAdj = (float) rs.getFloat("ClosingPriceAdjustment");
-          float percentageChangeAdj = (float) rs.getFloat("percentageChangeAdjustment");
+          float spotAdj =  rs.getFloat("SpotPriceAdjustment");
+          float openingAdj =  rs.getFloat("OpeningPriceAdjustment");
+          float absoluteChangeAdj =  rs.getFloat("AbsoluteChangeAdjustment");
+          float closingPriceAdj =  rs.getFloat("ClosingPriceAdjustment");
+          float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
 
           // Instantiate IntentData List for this company
+          // TODO not haveing values for each intent for now 
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
           intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
           intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
