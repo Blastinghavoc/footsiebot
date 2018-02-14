@@ -147,10 +147,14 @@ public class DatabaseCore implements IDatabaseManager {
         String FTSEQuery = convertFTSEQuery(pr);
         Statement s1 = null;
         ResultSet results = null;
+        ArrayList<String> output = new ArrayList<String>();
 
         try {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
+            while (results.next()) {
+                output.add(results.getString(1));
+            }
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println(FTSEQuery); //DEBUG
@@ -158,7 +162,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
 
-        return null;
+        return output.toArray();
     }
 
     public String convertScrapeResult(ScrapeResult sr) {
