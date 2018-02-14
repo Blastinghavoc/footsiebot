@@ -68,6 +68,11 @@ public class DatabaseCore implements IDatabaseManager {
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
             code = sr.getCode(i);
+
+            if(code.endsWith(".")){//Remove punctuation if present
+                code = code.substring(0, code.length() - 1);
+            }
+
             group = sr.getGroup(i).toLowerCase();
             name = sr.getName(i).toLowerCase();
             price = sr.getPrice(i);
@@ -167,33 +172,15 @@ public class DatabaseCore implements IDatabaseManager {
     public String convertFTSEQuery(ParseResult pr) {
         footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
-        String operand = pr.getOperand();
+        String companyCode = pr.getOperand();
         Boolean isGroup = pr.isOperandGroup();
 
         String query = "";
         String timeSpecifierSQL = "";
-        String companyCode = "";
         Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
         String colName = "";
 
         PreparedStatement s1 = null;
-        ResultSet code = null;
-
-        // if not the operand is not a group, get the company code
-        if (!isGroup) {
-            String getCompanyCodeQuery = "SELECT CompanyCode FROM FTSECompanies WHERE CompanyName = ?";//NOTE: will be code not name
-            try {
-                s1 = conn.prepareStatement(getCompanyCodeQuery);
-                s1.setString(1,operand);
-                code = s1.executeQuery();
-                while (code.next()) {
-                    companyCode = code.getString(1);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                tryClose(s1,code);
-            }
-        }
 
         switch (intent) {
             case SPOT_PRICE:
@@ -230,7 +217,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         }
 
-        tryClose(s1,code);
+        tryClose(s1);
 
         return query;
     }
