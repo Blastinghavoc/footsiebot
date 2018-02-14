@@ -42,4 +42,8 @@ public class ScrapeResult {
         return percChange[index];
     }
 
+    public int getSize() {
+        return names.length;
+    }
+
 }

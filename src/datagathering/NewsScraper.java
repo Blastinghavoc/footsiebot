@@ -2,9 +2,7 @@ package footsiebot.datagathering;
 
 public class NewsScraper {
 
-  public NewsScraper() {
-
-  }
+  public NewsScraper() {}
 
   public Article[] scrapeNews(String company) {
 	return null;
@@ -13,8 +11,5 @@ public class NewsScraper {
   public Article[] scrapeNews(String[] company) {
 	return null;
   }
-
-
-
 
 }
