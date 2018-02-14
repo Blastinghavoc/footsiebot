@@ -207,18 +207,12 @@ public class DatabaseCore implements IDatabaseManager {
             case TREND:
                 break;
             case NEWS:
-<<<<<<< HEAD
                 break;
             case GROUP_FULL_SUMMARY:
                 break;
             default:
             System.out.println("No cases ran");
             break;
-=======
-                query = null;
-            case GROUP_FULL_SUMMARY:
-            // 3 array indices - absolute change, perc change, group rising or falling, group member with most rising spot price, group member with most falling spot price
->>>>>>> ae9317d006f7beb77c90afeb98378a4650a4904b
 
         }
 
