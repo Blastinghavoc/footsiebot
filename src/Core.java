@@ -146,6 +146,10 @@ public class Core extends Application {
 
             String result;//NOTE: May convert to a different format for the UI
 
+            if(data == null){
+                System.out.println("NULL DATA!");
+            }
+
             if (pr.isOperandGroup()) {
                 //Format result based on data
                 result = formatOutput(data,pr);

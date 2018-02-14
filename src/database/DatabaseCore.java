@@ -67,7 +67,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
-            code = sr.getCode(i);
+            code = sr.getCode(i).toLowerCase();
 
             if(code.endsWith(".")){//Remove punctuation if present
                 code = code.substring(0, code.length() - 1);
@@ -153,7 +153,7 @@ public class DatabaseCore implements IDatabaseManager {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
             while (results.next()) {
-                output.add(results.getString(1));
+                output.add(((Float)results.getFloat(1)).toString());
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -162,7 +162,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
 
-        return output.toArray();
+        return output.toArray(new String[1]);
     }
 
     public String convertScrapeResult(ScrapeResult sr) {
@@ -231,7 +231,7 @@ public class DatabaseCore implements IDatabaseManager {
         return query;
     }
 
-    
+
 
     public ArrayList<Company> getAICompanies() {
       // Get Counts for each intent
