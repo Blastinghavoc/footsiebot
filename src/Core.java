@@ -174,13 +174,15 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand() + " is "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
                 break;
             case TRADING_VOLUME:
                 break;
             case PERCENT_CHANGE:
+                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened";
                 break;
             case ABSOLUTE_CHANGE:
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened";
                 break;
             case OPENING_PRICE:
                 break;
