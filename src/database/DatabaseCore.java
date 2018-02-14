@@ -200,14 +200,19 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
+                break;
 
             case CLOSING_PRICE:
-
+                break;
             case TREND:
-
+                break;
             case NEWS:
-
+                break;
             case GROUP_FULL_SUMMARY:
+                break;
+            default:
+            System.out.println("No cases ran");
+            break;
 
         }
 
