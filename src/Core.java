@@ -148,19 +148,51 @@ public class Core extends Application {
 
             if (pr.isOperandGroup()) {
                 //Format result based on data
+                result = formatOutput(data,pr);
+                ui.displayMessage(result,false);
             } else {
+                result = formatOutput(data,pr);
                 //format result based on data
+                //TODO send suggestion to ui
+                ui.displayMessage(result,false);
             }
-
-            //TODO send result and suggestion to ui
         }
         ui.displayMessage(pr.toString(), false);//DEBUG
     }
 
 
-    //TODO: implement
+
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
+    }
+
+    private String formatOutput(String[] data,ParseResult pr){
+        String output = "Whoops, something went wrong!";
+        switch(pr.getIntent()){
+            case SPOT_PRICE:
+                output = "The spot price of " + pr.getOperand() + " is "+ data[0];
+                break;
+            case TRADING_VOLUME:
+                break;
+            case PERCENT_CHANGE:
+                break;
+            case ABSOLUTE_CHANGE:
+                break;
+            case OPENING_PRICE:
+                break;
+            case CLOSING_PRICE:
+                break;
+            case TREND:
+                break;
+            case NEWS:
+                break;
+            case GROUP_FULL_SUMMARY:
+                break;
+            default:
+            System.out.println("No cases ran in core");
+            break;
+        }
+        return output;
     }
 
    /**
@@ -181,7 +213,7 @@ public class Core extends Application {
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
-    }    
+    }
 
     private void debugNLP() {
         Boolean cont = true;
