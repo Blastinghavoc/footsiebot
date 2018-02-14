@@ -18,8 +18,12 @@
     -fx-background-color: white;
 }
 
-#settings {
+#settings-pane {
     -fx-background-color: derive(white, -4%);
+}
+
+#news-pane {
+    -fx-background-color: floralwhite;
 }
 
 /*==============================================================================
