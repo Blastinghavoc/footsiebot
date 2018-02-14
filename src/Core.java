@@ -76,7 +76,8 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        Article[] news = {new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing")};
+        Article[] news = new Article[1];
+        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
 
         onNewDataAvailable();//Call once on startup
@@ -159,7 +160,7 @@ public class Core extends Application {
 
     //TODO: implement
     private String[] groupNameToCompanyList(String group) {
-        return dbm.getCompaniesInGroup(group);//DEBUG
+        return dbm.getCompaniesInGroup(group);
     }
 
    /**
@@ -173,18 +174,14 @@ public class Core extends Application {
             System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
         }
         System.out.println("Data collected.");
-        //dbm.storeScraperResults(sr);
-        //ic.onUpdatedDatabase();
+        dbm.storeScraperResults(sr);
+        ic.onUpdatedDatabase();
     }
 
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
-    }
-
-    private void timingLoop() {
-        //Functionality of this is in guicore now.
-    }
+    }    
 
     private void debugNLP() {
         Boolean cont = true;
