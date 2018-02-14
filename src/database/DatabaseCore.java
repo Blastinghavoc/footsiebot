@@ -153,7 +153,7 @@ public class DatabaseCore implements IDatabaseManager {
             results = s1.executeQuery(FTSEQuery);
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println(FTSEQuery);//DEBUG
+            System.out.println(FTSEQuery); //DEBUG
             tryClose(s1,results);
         }
 
@@ -206,14 +206,15 @@ public class DatabaseCore implements IDatabaseManager {
             case TREND:
 
             case NEWS:
-
+                query = null;
             case GROUP_FULL_SUMMARY:
+            // 3 array indices - absolute change, perc change, group rising or falling, group member with most rising spot price, group member with most falling spot price
 
         }
 
         // need to make sure you get last record added for current data
         if (isFetchCurrentQuery) {
-            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = " + companyCode + "ORDER BY TimeOfData DESC LIMIT 1";
+            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
         }
 
@@ -221,6 +222,8 @@ public class DatabaseCore implements IDatabaseManager {
 
         return query;
     }
+
+    public getAllD
 
     public ArrayList<Company> getAICompanies() {
       // Get Counts for each intent
