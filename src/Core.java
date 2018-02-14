@@ -76,8 +76,11 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        Article[] news = {new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing")};
+        Article[] news = new Article[1];
+        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
+
+        onNewDataAvailable();//Call once on startup
     }
 
    /**
@@ -143,21 +146,59 @@ public class Core extends Application {
 
             String result;//NOTE: May convert to a different format for the UI
 
-            if (pr.isOperandGroup()) {
-                //Format result based on data
-            } else {
-                //format result based on data
+            if(data == null){
+                System.out.println("NULL DATA!");
             }
 
-            //TODO send result and suggestion to ui
+            if (pr.isOperandGroup()) {
+                //Format result based on data
+                result = formatOutput(data,pr);
+                ui.displayMessage(result,false);
+            } else {
+                result = formatOutput(data,pr);
+                //format result based on data
+                //TODO send suggestion to ui
+                ui.displayMessage(result,false);
+            }
         }
         ui.displayMessage(pr.toString(), false);//DEBUG
     }
 
 
-    //TODO: implement
+
     private String[] groupNameToCompanyList(String group) {
-        return dbm.getCompaniesInGroup(group);//DEBUG
+        return dbm.getCompaniesInGroup(group);
+    }
+
+    private String formatOutput(String[] data,ParseResult pr){
+        String output = "Whoops, something went wrong!";
+        switch(pr.getIntent()){
+            case SPOT_PRICE:
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                break;
+            case TRADING_VOLUME:
+                break;
+            case PERCENT_CHANGE:
+                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened";
+                break;
+            case ABSOLUTE_CHANGE:
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened";
+                break;
+            case OPENING_PRICE:
+                break;
+            case CLOSING_PRICE:
+                break;
+            case TREND:
+                break;
+            case NEWS:
+                break;
+            case GROUP_FULL_SUMMARY:
+                break;
+            default:
+            System.out.println("No cases ran in core");
+            break;
+        }
+        return output;
     }
 
    /**
@@ -167,20 +208,17 @@ public class Core extends Application {
     public void onNewDataAvailable() {
         System.out.println("New data available!");//DEBUG
         ScrapeResult sr = dgc.getData();
-        for(int i = 0; i < 100;i++){
+        for(int i = 0; i < 101;i++){
             System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
         }
-        //dbm.storeScraperResults(sr);
-        //ic.onUpdatedDatabase();
+        System.out.println("Data collected.");
+        dbm.storeScraperResults(sr);
+        ic.onUpdatedDatabase();
     }
 
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
-    }
-
-    private void timingLoop() {
-        //Functionality of this is in guicore now.
     }
 
     private void debugNLP() {
