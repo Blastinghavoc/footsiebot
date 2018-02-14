@@ -227,7 +227,7 @@ public class DatabaseCore implements IDatabaseManager {
         return query;
     }
 
-    public getAllD
+    
 
     public ArrayList<Company> getAICompanies() {
       // Get Counts for each intent
