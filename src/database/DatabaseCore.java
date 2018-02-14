@@ -33,7 +33,7 @@ public class DatabaseCore implements IDatabaseManager {
         try {
             // create a database connection
             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
-            Statement statement = conn.createStatement();
+            Statement statement = conn.createStatement();//NOTE: What is the purpose of this?
             statement.setQueryTimeout(30);  // set timeout to 30 seconds
 
         } catch (SQLException e) {
@@ -53,6 +53,13 @@ public class DatabaseCore implements IDatabaseManager {
 
         String group, name;
 
+        Statement s1 = null;
+        ResultSet companyCheck = null;
+        Statement s2 = null;
+        Statement s3 = null;
+        Statement s4 = null;
+
+
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
             code = sr.getCode(i);
@@ -66,33 +73,43 @@ public class DatabaseCore implements IDatabaseManager {
 
                 // if the company is a new FTSE company, add it to the FTSECompanies and FTSEGroupMappings table
                 String checkNewCompanyQuery = "SELECT * FROM FTSECompanies WHERE CompanyCode = " + code;
-                Statement s1 = conn.createStatement();
-                ResultSet companyCheck = s1.executeQuery(checkNewCompanyQuery);
+                s1 = conn.createStatement();
+                companyCheck = s1.executeQuery(checkNewCompanyQuery);
                 if (!companyCheck.next()) {
                     String addNewCompanyQuery   = "INSERT INTO FTSECompanies\n"
                                                 + "VALUES(" + code + ", " + name + ")";
-                    Statement s2 = conn.createStatement();
+                    s2 = conn.createStatement();
                     s2.executeQuery(addNewCompanyQuery);
 
                     String addCompanyGroupQuery = "INSERT INTO FTSEGroupMappings\n"
                                                 + "VALUES(" + group + ", " + code + ")";
-                    Statement s3 = conn.createStatement();
+                    s3 = conn.createStatement();
                     s3.executeQuery(addCompanyGroupQuery);
                 }
 
                 // add the company data into the FTSECompanySnapshots table
                 String addScrapeResultQuery = "INSERT INTO FTSECompanySnapshots(CompanyCode, SpotPrice, PercentageChange, AbsoluteChange)\n"
                                             + "VALUES(" + code + ", " + price + ", " + percChange + ", " + absChange + ")";
-                Statement s4 = conn.createStatement();
+                s4 = conn.createStatement();
                 s4.executeQuery(addScrapeResultQuery);
 
             } catch (SQLException e) {
                 e.printStackTrace();
                 System.out.println("Couldn't store FTSE data");
+                tryClose(s1);
+                tryClose(companyCheck);
+                tryClose(s2);
+                tryClose(s3);
+                tryClose(s4);
                 return false;
             }
         }
 
+        tryClose(s1);
+        tryClose(companyCheck);
+        tryClose(s2);
+        tryClose(s3);
+        tryClose(s4);
         return true;
     }
 
@@ -103,12 +120,16 @@ public class DatabaseCore implements IDatabaseManager {
     public String[] getFTSE(ParseResult pr) {
 
         String FTSEQuery = convertFTSEQuery(pr);
+        Statement s1 = null;
+        ResultSet results = null;
+
         try {
-            Statement s1 = conn.createStatement();
-            ResultSet results = s1.executeQuery(FTSEQuery);
+            s1 = conn.createStatement();
+            results = s1.executeQuery(FTSEQuery);
         } catch (SQLException e) {
             e.printStackTrace();
             System.out.println(FTSEQuery);//DEBUG
+            tryClose(s1,results);
         }
 
 
@@ -137,17 +158,21 @@ public class DatabaseCore implements IDatabaseManager {
         Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
         String colName = "";
 
+        Statement s1 = null;
+        ResultSet code = null;
+
         // if not the operand is not a group, get the company code
         if (!isGroup) {
             String getCompanyCodeQuery = "SELECT CompanyCode FROM FTSECompanies WHERE CompanyName = " + operand;
             try {
-                Statement s1 = conn.createStatement();
-                ResultSet code = s1.executeQuery(getCompanyCodeQuery);
+                s1 = conn.createStatement();
+                code = s1.executeQuery(getCompanyCodeQuery);
                 while (code.next()) {
                     companyCode = code.getString(1);
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
+                tryClose(s1,code);
             }
         }
 
@@ -186,10 +211,12 @@ public class DatabaseCore implements IDatabaseManager {
 
         }
 
+        tryClose(s1,code);
+
         return query;
     }
 
-    public ArrayList<Company> getAICompanies() throws SQLException {
+    public ArrayList<Company> getAICompanies() {
       // Get Counts for each intent
       String query = "";
       // Fetch company code and counters
@@ -266,10 +293,8 @@ public class DatabaseCore implements IDatabaseManager {
         printSQLException(e);
         return null;
       } finally {
-        if (stmt != null) { stmt.close(); }
+        if (stmt != null) { tryClose(stmt); }
       }
-
-      return null;
     }
 
     public ArrayList<Group> getAIGroups() {
@@ -316,9 +341,7 @@ public class DatabaseCore implements IDatabaseManager {
 
       for (Throwable e : ex) {
           if (e instanceof SQLException) {
-              if (ignoreSQLException(
-                  ((SQLException)e).
-                  getSQLState()) == false) {
+              if (true/*ignoreSQLException(((SQLException)e).getSQLState()) == false*/) {
 
                   e.printStackTrace(System.err);
                   System.err.println("SQLState: " +
@@ -337,6 +360,30 @@ public class DatabaseCore implements IDatabaseManager {
               }
           }
       }
+    }
+
+    //Handy methods to close statements and ResultSets
+    private void tryClose(Statement s){
+        try{
+            s.close();
+        }
+        catch(Exception e){
+            //Do nothing
+        }
+    }
+
+    private void tryClose(ResultSet s){
+        try{
+            s.close();
+        }
+        catch(Exception e){
+            //Do nothing
+        }
+    }
+
+    private void tryClose(Statement s,ResultSet rs){
+        tryClose(s);
+        tryClose(rs);
     }
 
 }

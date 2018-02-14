@@ -20,7 +20,7 @@ public class Core extends Application {
     private IDatabaseManager dbm;
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
-    public static final long DATA_REFRESH_RATE = 10000; //Rate to call onNewDataAvailable in milliseconds
+    public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 50000000; //The time of day in milliseconds to call onTradingHour.
 
    /**
@@ -78,6 +78,8 @@ public class Core extends Application {
 
         Article[] news = {new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing")};
         ui.displayResults(news, true);
+
+        onNewDataAvailable();//Call once on startup
     }
 
    /**

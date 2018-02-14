@@ -34,10 +34,10 @@ public class IntentData implements Comparable<IntentData> {
   }
 
   public Float getLastValue() {
-    Float res = 0.0f;
+    //Float res = 0.0f;
     Float f = values.get(values.size() - 1);
-    res = f.FloatValue();
-    return res;
+    //res = f.FloatValue();
+    return f;//res;
   }
 
   public Float getPriority() {
