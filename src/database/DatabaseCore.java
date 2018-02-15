@@ -288,7 +288,7 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
 
           // Instantiate IntentData List for this company
-          // TODO not haveing values for each intent for now 
+          // TODO not haveing values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
           intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
           intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
@@ -317,9 +317,8 @@ public class DatabaseCore implements IDatabaseManager {
       }
     }
 
-    public ArrayList<Group> getAIGroups() throws SQLException {
-      String query = "";
-
+    public ArrayList<Group> getAIGroups() {
+      return null;
     }
 
     public IntentData getIntentForCompany() {
