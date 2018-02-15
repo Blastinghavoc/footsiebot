@@ -34,13 +34,14 @@ public class Core extends Application {
     }
 
    /**
+    * Launches the application
+    *
     * Nothing else should go here. If you think it needs to go in main,
     * it probably needs to go in start.
     *
     * @param args command-line arguments
     */
     public static void main(String[] args) {
-        //Initialise user interface
         launch(args);
     }
 
@@ -76,9 +77,14 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        Article[] news = new Article[1];
+        Article[] news = new Article[5];
         news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
+        news[1] = new Article("HSBC is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, HSBC, is closing down and all their customers will be left with nothing");
+        news[2] = new Article("Santander is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Santander, is closing down and all their customers will be left with nothing");
+        news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
+        news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
+        ui.displayMessage("AI\nsuggestion", true);
 
         // onNewDataAvailable();//Call once on startup
     }
