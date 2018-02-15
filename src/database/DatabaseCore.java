@@ -67,7 +67,12 @@ public class DatabaseCore implements IDatabaseManager {
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
-            code = sr.getCode(i);
+            code = sr.getCode(i).toLowerCase();
+
+            if(code.endsWith(".")){//Remove punctuation if present
+                code = code.substring(0, code.length() - 1);
+            }
+
             group = sr.getGroup(i).toLowerCase();
             name = sr.getName(i).toLowerCase();
             price = sr.getPrice(i);
@@ -142,18 +147,22 @@ public class DatabaseCore implements IDatabaseManager {
         String FTSEQuery = convertFTSEQuery(pr);
         Statement s1 = null;
         ResultSet results = null;
+        ArrayList<String> output = new ArrayList<String>();
 
         try {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
+            while (results.next()) {
+                output.add(((Float)results.getFloat(1)).toString());
+            }
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println(FTSEQuery);//DEBUG
+            System.out.println(FTSEQuery); //DEBUG
             tryClose(s1,results);
         }
 
 
-        return null;
+        return output.toArray(new String[1]);
     }
 
     public String convertScrapeResult(ScrapeResult sr) {
@@ -167,33 +176,15 @@ public class DatabaseCore implements IDatabaseManager {
     public String convertFTSEQuery(ParseResult pr) {
         footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
-        String operand = pr.getOperand();
+        String companyCode = pr.getOperand();
         Boolean isGroup = pr.isOperandGroup();
 
         String query = "";
         String timeSpecifierSQL = "";
-        String companyCode = "";
         Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
         String colName = "";
 
         PreparedStatement s1 = null;
-        ResultSet code = null;
-
-        // if not the operand is not a group, get the company code
-        if (!isGroup) {
-            String getCompanyCodeQuery = "SELECT CompanyCode FROM FTSECompanies WHERE CompanyName = ?";//NOTE: will be code not name
-            try {
-                s1 = conn.prepareStatement(getCompanyCodeQuery);
-                s1.setString(1,operand);
-                code = s1.executeQuery();
-                while (code.next()) {
-                    companyCode = code.getString(1);
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-                tryClose(s1,code);
-            }
-        }
 
         switch (intent) {
             case SPOT_PRICE:
@@ -213,27 +204,34 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
+                break;
 
             case CLOSING_PRICE:
-
+                break;
             case TREND:
-
+                break;
             case NEWS:
-
+                break;
             case GROUP_FULL_SUMMARY:
+                break;
+            default:
+            System.out.println("No cases ran");
+            break;
 
         }
 
         // need to make sure you get last record added for current data
         if (isFetchCurrentQuery) {
-            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = " + companyCode + "ORDER BY TimeOfData DESC LIMIT 1";
+            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
         }
 
-        tryClose(s1,code);
+        tryClose(s1);
 
         return query;
     }
+
+
 
     public ArrayList<Company> getAICompanies() {
       // Get Counts for each intent
