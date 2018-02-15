@@ -5,7 +5,7 @@ import footsiebot.ai.*;
 import footsiebot.datagathering.*;
 import footsiebot.gui.*;
 import footsiebot.database.*;
-import javafx.application.Application;
+import javafx.application.*;
 import javafx.stage.Stage;
 import java.io.*;
 import java.util.*;
@@ -77,10 +77,10 @@ public class Core extends Application {
         }
 
         Article[] news = new Article[1];
-        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
+        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
 
-        onNewDataAvailable();//Call once on startup
+        // onNewDataAvailable();//Call once on startup
     }
 
    /**
@@ -181,7 +181,7 @@ public class Core extends Application {
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
-    }    
+    }
 
     private void debugNLP() {
         Boolean cont = true;
@@ -199,6 +199,10 @@ public class Core extends Application {
             }
             System.out.println(result);
         }
+    }
+
+    public void openWebpage(String url) {
+        getHostServices().showDocument(url);
     }
 
 }
