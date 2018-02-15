@@ -31,7 +31,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch operand and intent and increment intent priority
      // TODO needs converting to AIIntent
 
-     if(companies == null || groups == null){
+     if(companies == null){
+         System.out.println("companies was null, cannot make suggestion");//DEBUG
          return null;
      }
 
@@ -41,6 +42,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // TODO: UPDATE TALLIES FOR THIS COMPANY LOCALLY
      // If operand is a group
      if(pr.isOperandGroup()) {
+         if(groups == null){
+             System.out.println("groups was null, cannot make suggestion");//DEBUG
+             return null;
+         }
        // search in groups if valid group
        for(Group g: groups) {
          if(g.getGroupCode().equals(companyOrGroup)) {
@@ -73,7 +78,11 @@ public class IntelligenceCore implements IIntelligenceUnit {
            break;
          }
        }
-       if(targetCompany == null) return null;
+       if(targetCompany == null){
+           System.out.println("No company found for suggestion making");//DEBUG
+           return null;
+        }
+
        boolean doSuggestion = false;
        for(int i = 0; i < TOP; i++) {
          if(targetCompany.equals(companies.get(i))) {
@@ -89,6 +98,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
          return lastSuggestion;
          // return Group to Core
        } else {
+           System.out.println("Decided not to make a suggestion");//DEBUG
          return null;
        }
      }
@@ -98,8 +108,13 @@ public class IntelligenceCore implements IIntelligenceUnit {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
-     if(companies == null || groups == null ) return "ERROR";
+     if(companies == null) {
+       return "Companies are null";
+     }
      Collections.sort(companies);
+     if(groups == null) {
+       return "Groups are null";
+     }
      Collections.sort(groups);
      // What to return here ?
      return "";
@@ -112,10 +127,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
    public void onStartUp() {
      // Fetch from database
-     companies = db.getAICompanies();
+     companies = db.getAICompanies();//NOTE: may not be necessary if onNewDataAvailable is called on startup
      groups = db.getAIGroups();
-     if((groups != null) && (companies != null)){
+     if(companies != null){
          Collections.sort(companies);
+     }
+     if(groups  != null){
          Collections.sort(groups);
      }
 
