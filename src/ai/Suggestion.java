@@ -57,6 +57,10 @@ public class Suggestion {
     return reason;
   }
 
+  public String getDescription(){
+      return description;
+  }
+
 
 
 
