@@ -39,9 +39,12 @@ public class GUIcore implements IGraphicalUserInterface {
     private TextField input;
     private Button btnSend;
     private ListProperty<Node> messages;
-    private StackPane settings;
+    private StackPane settingsPane;
     private StackPane newsPane;
+    private FlowPane newsBoard;
+    private ScrollPane newsWrapper;
     private FadeTransition settingsPaneTrans;
+    private FadeTransition newsPaneTrans;
     private RotateTransition settingsTrans;
     private ImageView settingsIcon;
 
@@ -75,8 +78,8 @@ public class GUIcore implements IGraphicalUserInterface {
     * Builds the user interface on the initial stage of the application
     */
     private void setup() {
-        stage.setMinWidth(250);
-        stage.setMinHeight(200);
+        stage.setMinWidth(350);
+        stage.setMinHeight(250);
 
         root = new StackPane();
         root.setId("root");
@@ -171,22 +174,42 @@ public class GUIcore implements IGraphicalUserInterface {
         sidePane.setMinHeight(scene.getHeight() - 45);
         sidePane.setMaxHeight(scene.getHeight() - 45);
 
-        settings = new StackPane();
-        settings.setId("settings-pane");
-        settings.setVisible(false);
+        settingsPane = new StackPane();
+        settingsPane.setId("settings-pane");
+        settingsPane.setVisible(false);
         Insets settingsPadding = new Insets(10, 10, 10, 10);
-        settings.setPadding(settingsPadding);
-        settingsPaneTrans = new FadeTransition(Duration.millis(500), settings);
+        settingsPane.setPadding(settingsPadding);
+        settingsPaneTrans = new FadeTransition(Duration.millis(500), settingsPane);
+
+        newsPane = new StackPane();
+        newsPane.setId("news-pane");
+        newsPane.setVisible(true);
+        newsPaneTrans = new FadeTransition(Duration.millis(500), newsPane);
+
+        newsWrapper = new ScrollPane();
+        newsWrapper.setId("news-wrapper");
+
+        newsBoard = new FlowPane(Orientation.VERTICAL);
+        newsBoard.setId("news-board");
+
+        Button hello = new Button("Say hello!");
+        hello.setOnAction(e -> {
+            System.out.println("Hello world!");
+        });
 
         Button btnStyle = new Button("Update style");
         btnStyle.setOnAction(e -> {
             updateStyle();
         });
-        settings.getChildren().add(btnStyle);
-        settings.setAlignment(btnStyle, Pos.BOTTOM_CENTER);
 
-        sidePane.getChildren().add(settings);
-        sidePane.setAlignment(settings, Pos.CENTER_RIGHT);
+        Insets wrapperPadding = new Insets(0, 0, 0, -1);
+        newsWrapper.setPadding(wrapperPadding);
+        newsWrapper.setContent(newsBoard);
+        settingsPane.getChildren().add(btnStyle);
+        settingsPane.setAlignment(btnStyle, Pos.BOTTOM_CENTER);
+        newsPane.getChildren().add(newsWrapper);
+
+        sidePane.getChildren().addAll(settingsPane, newsPane);
     }
 
    /**
@@ -219,6 +242,8 @@ public class GUIcore implements IGraphicalUserInterface {
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
             chatPane.setMaxHeight(scene.getHeight() - 45);
             chatPane.setMinHeight(scene.getHeight() - 45);
+            sidePane.setMaxHeight(scene.getHeight() - 45);
+            sidePane.setMinHeight(scene.getHeight() - 45);
             stage.setScene(scene);
         });
 
@@ -239,7 +264,14 @@ public class GUIcore implements IGraphicalUserInterface {
             boardWrapper.setMinWidth(chatPane.getWidth());
             messageBoard.setMaxWidth(chatPane.getWidth() - 36);
             messageBoard.setMinWidth(chatPane.getWidth() - 36);
+            newsPane.setMinWidth(sidePane.getWidth());
+            newsPane.setMaxWidth(sidePane.getWidth());
+            newsBoard.setMinWidth(sidePane.getWidth());
+            newsBoard.setMaxWidth(sidePane.getWidth());
+            newsWrapper.setMinWidth(sidePane.getWidth());
+            newsWrapper.setMaxWidth(sidePane.getWidth());
             resizeMessages();
+            resizeNews(sidePane.getWidth());
             stage.setScene(scene);
         });
 
@@ -280,22 +312,42 @@ public class GUIcore implements IGraphicalUserInterface {
         });
 
         settingsIcon.setOnMouseClicked(e -> {
-            if (settings.visibleProperty().getValue() == Boolean.FALSE) {
-                settings.setVisible(true);
+            if (settingsPane.visibleProperty().getValue() == Boolean.FALSE) {
+                newsPaneTrans.setFromValue(1);
+                newsPaneTrans.setToValue(0);
+                newsPaneTrans.setOnFinished(event -> {
+                    newsPane.setVisible(false);
+                });
+
+                settingsPane.setVisible(true);
                 settingsPaneTrans.setFromValue(0);
                 settingsPaneTrans.setToValue(1);
                 settingsPaneTrans.setOnFinished(event -> {
-                    settings.setVisible(true);
+                    settingsPane.setVisible(true);
                 });
+                newsPane.setDisable(true);
+                newsPaneTrans.play();
                 settingsPaneTrans.play();
+                settingsPane.setDisable(false);
             } else {
-                settings.setVisible(true);
+                newsPane.setVisible(true);
+                newsPaneTrans.setFromValue(0);
+                newsPaneTrans.setToValue(1);
+                newsPaneTrans.setOnFinished(event -> {
+                    newsPane.setVisible(true);
+                });
+
+                settingsPane.setVisible(true);
                 settingsPaneTrans.setFromValue(1);
                 settingsPaneTrans.setToValue(0);
                 settingsPaneTrans.setOnFinished(event -> {
-                    settings.setVisible(false);
+                    settingsPane.setVisible(false);
                 });
+
+                settingsPane.setDisable(true);
+                newsPaneTrans.play();
                 settingsPaneTrans.play();
+                newsPane.setDisable(false);
             }
         });
     }
@@ -343,7 +395,7 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     private void onUserInput() {
         if (checkInput()) {
-            messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), stage, true, false, this));
+            messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), true, false, this));
             core.onUserInput(input.getText().trim());
             messages.setValue(messageBoard.getChildren());
             input.clear();
@@ -376,14 +428,9 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public void displayMessage(String msg, boolean isAI) {
         if (msg != null) {
-            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), stage, false, isAI, this));
+            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, isAI, this));
             messages.setValue(messageBoard.getChildren());
         }
-    }
-
-
-    public void displayResults(String data, boolean isAI) {
-
     }
 
    /**
@@ -395,8 +442,7 @@ public class GUIcore implements IGraphicalUserInterface {
     public void displayResults(Article[] news, boolean isAI) {
         if (news != null) {
             for (Article a: news) {
-                String msg = a.getHeadline() + "\n" + a.getDigest() + "\n" + a.getUrl();
-                displayMessage(msg, isAI);
+                newsBoard.getChildren().add(new NewsBlock(a, sidePane.getWidth(), core));
             }
         }
 
@@ -410,6 +456,15 @@ public class GUIcore implements IGraphicalUserInterface {
             if (messageBoard.getChildren().get(i) instanceof Message) {
                 Message tmp = (Message) messageBoard.getChildren().get(i);
                 tmp.resize(stage);
+            }
+        }
+    }
+
+    private void resizeNews(double width) {
+        for (int i = 0; i < newsBoard.getChildren().size(); i++) {
+            if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
+                NewsBlock tmp = (NewsBlock) newsBoard.getChildren().get(i);
+                tmp.resize(width);
             }
         }
     }
@@ -429,11 +484,18 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Getter for the message board
+    * Accessor for the message board
     *
     * @return the message board of the GUI
     */
     public FlowPane getMessageBoard() {
         return messageBoard;
+    }
+
+   /**
+    * Accessor for stage
+    */
+    public Stage getStage() {
+        return stage;
     }
 }
