@@ -20,6 +20,8 @@ import java.util.ArrayList;
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
 
+
+
     public DatabaseCore() {
 
         // load the sqlite-JDBC driver
@@ -67,7 +69,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
-            code = sr.getCode(i);
+            code = sr.getCode(i).toLowerCase();
 
             if(code.endsWith(".")){//Remove punctuation if present
                 code = code.substring(0, code.length() - 1);
@@ -169,7 +171,7 @@ public class DatabaseCore implements IDatabaseManager {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
             while (results.next()) {
-                output.add(results.getString(1));
+                output.add(((Float)results.getFloat(1)).toString());
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -178,7 +180,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
 
-        return output.toArray();
+        return output.toArray(new String[1]);
     }
 
     public String convertScrapeResult(ScrapeResult sr) {
@@ -288,6 +290,8 @@ public class DatabaseCore implements IDatabaseManager {
 
 
     public ArrayList<Company> getAICompanies() {
+
+      ArrayList<Company> companies = new ArrayList<Company>();
       // Get Counts for each intent
       String query = "";
       // Fetch company code and counters
@@ -308,11 +312,9 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
       query+= "NATURAL JOIN PercentageChangeCount ";
-
+      System.out.println(query);
       Statement stmt = null;
       ResultSet rs = null;
-
-      ArrayList<Company> companies = new ArrayList<>();
 
       try {
         stmt = conn.createStatement();
@@ -331,15 +333,16 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChange = (float) rs.getInt("percentageChangeCount");
           // Now the  adjustments
           // for news
-          float newsAdj = (float) rs.getFloat("newsAdjustment");
+          float newsAdj =  rs.getFloat("newsAdjustment");
           // and for intents
-          float spotAdj = (float) rs.getFloat("SpotPriceAdjustment");
-          float openingAdj = (float) rs.getFloat("OpeningPriceAdjustment");
-          float absoluteChangeAdj = (float) rs.getFloat("AbsoluteChangeAdjustment");
-          float closingPriceAdj = (float) rs.getFloat("ClosingPriceAdjustment");
-          float percentageChangeAdj = (float) rs.getFloat("percentageChangeAdjustment");
+          float spotAdj =  rs.getFloat("SpotPriceAdjustment");
+          float openingAdj =  rs.getFloat("OpeningPriceAdjustment");
+          float absoluteChangeAdj =  rs.getFloat("AbsoluteChangeAdjustment");
+          float closingPriceAdj =  rs.getFloat("ClosingPriceAdjustment");
+          float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
 
           // Instantiate IntentData List for this company
+          // TODO not haveing values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
           intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
           intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
@@ -357,6 +360,7 @@ public class DatabaseCore implements IDatabaseManager {
         if(companies.size() != 0) {
           return companies;
         } else {
+          System.out.println("No companies found, getAICompanies returning null");
           return null;
         }
 
@@ -368,7 +372,9 @@ public class DatabaseCore implements IDatabaseManager {
       }
     }
 
+    //None of these functions should throw anything, they should handle exceptions properly
     public ArrayList<Group> getAIGroups() {
+        String query = "";
         return null;
     }
 
