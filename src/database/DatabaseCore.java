@@ -138,8 +138,24 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
+    /*Probably doesn't actually need the time. The database can do that
+    automatically
+    */
     public boolean storeQuery(ParseResult pr, LocalDateTime date) {
-        return false;
+        String companyCode = pr.getOperand();
+        String intent = pr.getIntent().toString();
+        String timeSpecifier = pr.getTimeSpecifier().toString();
+
+        String query = "INSERT INTO Queries VALUES('"+companyCode+"',,'"+intent+"','"+timeSpecifier+"')";
+        Statement s1 = null;
+        try{
+            s1 = conn.createStatement();
+            s1.executeUpdate(query);
+        }catch(SQLException e){
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     public String[] getFTSE(ParseResult pr) {
@@ -186,7 +202,55 @@ public class DatabaseCore implements IDatabaseManager {
 
         PreparedStatement s1 = null;
 
-        switch (intent) {
+        colName = intentToColumnName(intent);
+        // switch (intent) {
+        //     case SPOT_PRICE:
+        //         isFetchCurrentQuery = true;
+        //         colName = "SpotPrice";
+        //         break;
+        //     case TRADING_VOLUME: // haven't got this column yet so won't work
+        //         isFetchCurrentQuery = true;
+        //         colName = "TradingVolume";
+        //         break;
+        //     case PERCENT_CHANGE:
+        //         isFetchCurrentQuery = true;
+        //         colName = "PercentageChange";
+        //         break;
+        //     case ABSOLUTE_CHANGE:
+        //         isFetchCurrentQuery = true;
+        //         colName = "AbsoluteChange";
+        //         break;
+        //     case OPENING_PRICE:
+        //         break;
+        //
+        //     case CLOSING_PRICE:
+        //         break;
+        //     case TREND:
+        //         break;
+        //     case NEWS:
+        //         break;
+        //     case GROUP_FULL_SUMMARY:
+        //         break;
+        //     default:
+        //     System.out.println("No cases ran");
+        //     break;
+        //
+        // }
+
+        // need to make sure you get last record added for current data
+        if (isFetchCurrentQuery) {
+            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
+
+        }
+
+        tryClose(s1);
+
+        return query;
+    }
+
+    private String intentToColumnName(Intent i){
+        String colName = null;
+        switch (i) {
             case SPOT_PRICE:
                 isFetchCurrentQuery = true;
                 colName = "SpotPrice";
@@ -215,23 +279,13 @@ public class DatabaseCore implements IDatabaseManager {
             case GROUP_FULL_SUMMARY:
                 break;
             default:
-            System.out.println("No cases ran");
+            System.out.println("Could not resolve intent to column name");
             break;
-
         }
-
-        // need to make sure you get last record added for current data
-        if (isFetchCurrentQuery) {
-            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
-
-        }
-
-        tryClose(s1);
-
-        return query;
+        return  colName;
     }
 
-    
+
 
     public ArrayList<Company> getAICompanies() {
       // Get Counts for each intent

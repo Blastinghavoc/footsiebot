@@ -35,11 +35,10 @@ CREATE TABLE FTSEGroupMappings (
 
 CREATE TABLE Queries (
 	CompanyCode varchar(10),
-	TimeOfData DateTime,
-	SpotPrice decimal(5,2),
-	PercentageChange decimal(2,2),
-	AbsoluteChange decimal(4,2),
-	primary key(CompanyCode, TimeOfData),
+	TimeOfQuery TimeStamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
+	Intent varchar(30),
+	TimeSpecifier varchar(30),
+	primary key(CompanyCode, TimeOfQuery),
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
 
