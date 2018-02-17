@@ -205,7 +205,6 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
             case OPENING_PRICE:
                 break;
-
             case CLOSING_PRICE:
                 break;
             case TREND:
@@ -215,12 +214,12 @@ public class DatabaseCore implements IDatabaseManager {
             case GROUP_FULL_SUMMARY:
                 break;
             default:
-            System.out.println("No cases ran");
+                System.out.println("No cases ran");
             break;
 
         }
 
-        // need to make sure you get last record added for current data
+        // get current data requested from database
         if (isFetchCurrentQuery) {
             query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
