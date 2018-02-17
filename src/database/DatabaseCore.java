@@ -144,19 +144,37 @@ public class DatabaseCore implements IDatabaseManager {
     automatically
     */
     public boolean storeQuery(ParseResult pr, LocalDateTime date) {
+
+        if("DEBUG".equals("DEBUG")){
+            return false;//DEBUG
+        }
         String companyCode = pr.getOperand();
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
         String query = "INSERT INTO Queries VALUES('"+companyCode+"',,'"+intent+"','"+timeSpecifier+"')";
         Statement s1 = null;
+        String table = intentToTableName(pr.getIntent());
+        if(table == null){
+            return false;
+        }
+        String rowName = table.replace("Company","");//The count row in the tables has the same name as the table, minus the prefix "Company"
         try{
             s1 = conn.createStatement();
             s1.executeUpdate(query);
+            /*
+            TODO: check if a row with the relevant CompanyCode exists in the relevant
+            count table. If not, create that row.
+            If it does, increment the value of the relevant count row (rowName)
+            */
+            query = "";
+
         }catch(SQLException e){
             e.printStackTrace();
+            tryClose(s1);
             return false;
         }
+        tryClose(s1);
         return true;
     }
 
@@ -204,55 +222,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         PreparedStatement s1 = null;
 
-        colName = intentToColumnName(intent);
-        // switch (intent) {
-        //     case SPOT_PRICE:
-        //         isFetchCurrentQuery = true;
-        //         colName = "SpotPrice";
-        //         break;
-        //     case TRADING_VOLUME: // haven't got this column yet so won't work
-        //         isFetchCurrentQuery = true;
-        //         colName = "TradingVolume";
-        //         break;
-        //     case PERCENT_CHANGE:
-        //         isFetchCurrentQuery = true;
-        //         colName = "PercentageChange";
-        //         break;
-        //     case ABSOLUTE_CHANGE:
-        //         isFetchCurrentQuery = true;
-        //         colName = "AbsoluteChange";
-        //         break;
-        //     case OPENING_PRICE:
-        //         break;
-        //
-        //     case CLOSING_PRICE:
-        //         break;
-        //     case TREND:
-        //         break;
-        //     case NEWS:
-        //         break;
-        //     case GROUP_FULL_SUMMARY:
-        //         break;
-        //     default:
-        //     System.out.println("No cases ran");
-        //     break;
-        //
-        // }
-
-        // need to make sure you get last record added for current data
-        if (isFetchCurrentQuery) {
-            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
-
-        }
-
-        tryClose(s1);
-
-        return query;
-    }
-
-    private String intentToColumnName(Intent i){
-        String colName = null;
-        switch (i) {
+        switch (intent) {
             case SPOT_PRICE:
                 isFetchCurrentQuery = true;
                 colName = "SpotPrice";
@@ -281,10 +251,57 @@ public class DatabaseCore implements IDatabaseManager {
             case GROUP_FULL_SUMMARY:
                 break;
             default:
+            System.out.println("No cases ran");
+            break;
+
+        }
+
+        // need to make sure you get last record added for current data
+        if (isFetchCurrentQuery) {
+            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
+
+        }
+
+        tryClose(s1);
+
+        return query;
+    }
+
+    private String intentToTableName(Intent i){
+        String name = null;
+        switch (i) {
+            case SPOT_PRICE:
+                name = "CompanySpotPriceCount";
+                break;
+            case TRADING_VOLUME:
+                name = null;//Not implemented yet
+                break;
+            case PERCENT_CHANGE:
+                name = "CompanyPercentageChangeCount";
+                break;
+            case ABSOLUTE_CHANGE:
+                name = "CompanyAbsoluteChangeCount";
+                break;
+            case OPENING_PRICE:
+                name = "CompanyOpeningPriceCount";
+                break;
+            case CLOSING_PRICE:
+                name = "CompanyClosingPriceCount";
+                break;
+            case TREND://May need a table for this
+                name = null;
+                break;
+            case NEWS:
+                name = "CompanyNewsCount";
+                break;
+            case GROUP_FULL_SUMMARY://No table for this, return null;
+                name = null;
+                break;
+            default:
             System.out.println("Could not resolve intent to column name");
             break;
         }
-        return  colName;
+        return  name;
     }
 
 
@@ -312,7 +329,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
       query+= "NATURAL JOIN PercentageChangeCount ";
-      System.out.println(query);
+      //System.out.println(query);
       Statement stmt = null;
       ResultSet rs = null;
 

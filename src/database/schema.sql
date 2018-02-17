@@ -82,10 +82,10 @@ CREATE TABLE CompanyClosingPriceCount (
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
 
-CREATE TABLE PercentageChangeCount (
+CREATE TABLE CompanyPercentageChangeCount (
 	CompanyCode varchar(10),
-	percentageChangeCount integer,
-	percentageChangeAdjustment decimal(2,2),
+	PercentageChangeCount integer,
+	PercentageChangeAdjustment decimal(2,2),
 	primary key(CompanyCode),
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
