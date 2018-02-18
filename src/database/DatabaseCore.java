@@ -141,8 +141,58 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
+    /*Probably doesn't actually need the time. The database can do that
+    automatically
+    */
     public boolean storeQuery(ParseResult pr, LocalDateTime date) {
-        return false;
+
+        // if("DEBUG".equals("DEBUG")){
+        //     return false;//DEBUG
+        // }
+        String companyCode = pr.getOperand();
+        String intent = pr.getIntent().toString();
+        String timeSpecifier = pr.getTimeSpecifier().toString();
+
+        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
+        Statement s1 = null;
+        ResultSet r1 = null;
+        String table = intentToTableName(pr.getIntent());
+        if(table == null){
+            return false;
+        }
+        String rowName = table.replace("Company","");//The count row in the tables has the same name as the table, minus the prefix "Company"
+        trySetAutoCommit(false);
+        try{
+            s1 = conn.createStatement();
+            s1.executeUpdate(query);
+            /*
+            check if a row with the relevant CompanyCode exists in the relevant
+            count table. If not, create that row.
+            If it does, increment the value of the relevant count row (rowName)
+            */
+            query = "SELECT * FROM "+table+" WHERE CompanyCode = '" + companyCode+"'";
+            r1 = s1.executeQuery(query);
+            //If the row does not exist, create it.
+            if(!r1.next()){
+                query = "INSERT INTO "+table+" VALUES ('"+companyCode+"',1,0)";
+                s1.executeUpdate(query);
+            }
+            else{
+                //Row does exist, so just increment the count.
+                query = "UPDATE "+table+" SET "+rowName+" = "+rowName+" + 1 WHERE CompanyCode = '"+companyCode+"'";
+                s1.executeUpdate(query);
+            }
+            tryCommit();
+        }catch(SQLException e){
+            e.printStackTrace();
+            tryClose(s1,r1);
+            tryRollback();
+            trySetAutoCommit(true);
+            return false;
+        }
+        tryClose(s1,r1);
+        trySetAutoCommit(true);
+        return true;
     }
 
     public String[] getFTSE(ParseResult pr) {
@@ -234,32 +284,60 @@ public class DatabaseCore implements IDatabaseManager {
         return query;
     }
 
+    private String intentToTableName(Intent i){
+        String name = null;
+        switch (i) {
+            case SPOT_PRICE:
+                name = "CompanySpotPriceCount";
+                break;
+            case TRADING_VOLUME:
+                name = null;//Not implemented yet
+                break;
+            case PERCENT_CHANGE:
+                name = "CompanyPercentageChangeCount";
+                break;
+            case ABSOLUTE_CHANGE:
+                name = "CompanyAbsoluteChangeCount";
+                break;
+            case OPENING_PRICE:
+                name = "CompanyOpeningPriceCount";
+                break;
+            case CLOSING_PRICE:
+                name = "CompanyClosingPriceCount";
+                break;
+            case TREND://May need a table for this
+                name = null;
+                break;
+            case NEWS:
+                name = "CompanyNewsCount";
+                break;
+            case GROUP_FULL_SUMMARY://No table for this, return null;
+                name = null;
+                break;
+            default:
+            System.out.println("Could not resolve intent to column name");
+            break;
+        }
+        return  name;
+    }
+
 
 
     public ArrayList<Company> getAICompanies() {
 
       ArrayList<Company> companies = new ArrayList<Company>();
       // Get Counts for each intent
-      String query = "";
-      // Fetch company code and counters
-      query+= "SELECT CompanyCode,NewsCount,SpotPriceCount,OpeningPriceCount,";
-      query+= "AbsoluteChangeCount,ClosingPriceCount,percentageChangeCount,";
-      // and also adjustments
-      query+= "newsAdjustment,";
-      query+= "SpotPriceAdjustment,";
-      query+= "OpeningPriceAdjustment,";
-      query+= "AbsoluteChangeAdjustment,";
-      query+= "ClosingPriceAdjustment,";
-      query+= "percentageChangeAdjustment ";
-      // Join
-      query+= "FROM FTSECompanies ";
-      query+= "NATURAL JOIN CompanyNewsCount ";
-      query+= "NATURAL JOIN CompanySpotPriceCount ";
-      query+= "NATURAL JOIN CompanyOpeningPriceCount ";
-      query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
-      query+= "NATURAL JOIN CompanyClosingPriceCount ";
-      query+= "NATURAL JOIN PercentageChangeCount ";
-      System.out.println(query);
+      String query = ""
+        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0) "
+        + "FROM FTSECompanies ftc "
+        + "LEFT OUTER JOIN CompanyNewsCount cnc ON (cnc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanySpotPriceCount csc ON (csc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+
+
       Statement stmt = null;
       ResultSet rs = null;
 
@@ -271,22 +349,22 @@ public class DatabaseCore implements IDatabaseManager {
           // Create list of intents for each company
           ArrayList<IntentData> intents = new ArrayList<>();
           // News counter
-          float newsCount = (float) rs.getInt("NewsCount");
+          float newsCount = (float) rs.getInt("coalesce(NewsCount,0)");
           // Intents
-          float spot = (float) rs.getInt("SpotPriceCount");
-          float opening = (float) rs.getInt("OpeningPriceCount");
-          float absoluteChange = (float) rs.getInt("AbsoluteChangeCount");
-          float closing = (float) rs.getInt("ClosingPriceCount");
-          float percentageChange = (float) rs.getInt("percentageChangeCount");
+          float spot = (float) rs.getInt("coalesce(SpotPriceCount,0)");
+          float opening = (float) rs.getInt("coalesce(OpeningPriceCount,0)");
+          float absoluteChange = (float) rs.getInt("coalesce(AbsoluteChangeCount,0)");
+          float closing = (float) rs.getInt("coalesce(ClosingPriceCount,0)");
+          float percentageChange = (float) rs.getInt("coalesce(percentageChangeCount,0)");
           // Now the  adjustments
           // for news
-          float newsAdj =  rs.getFloat("newsAdjustment");
+          float newsAdj =  rs.getFloat("coalesce(newsAdjustment,0)");
           // and for intents
-          float spotAdj =  rs.getFloat("SpotPriceAdjustment");
-          float openingAdj =  rs.getFloat("OpeningPriceAdjustment");
-          float absoluteChangeAdj =  rs.getFloat("AbsoluteChangeAdjustment");
-          float closingPriceAdj =  rs.getFloat("ClosingPriceAdjustment");
-          float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
+          float spotAdj =  rs.getFloat("coalesce(SpotPriceAdjustment,0)");
+          float openingAdj =  rs.getFloat("coalesce(OpeningPriceAdjustment,0)");
+          float absoluteChangeAdj =  rs.getFloat("coalesce(AbsoluteChangeAdjustment,0)");
+          float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
+          float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
 
           // Instantiate IntentData List for this company
           // TODO not having values for each intent for now
