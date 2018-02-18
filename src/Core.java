@@ -23,6 +23,12 @@ public class Core extends Application {
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 50000000; //The time of day in milliseconds to call onTradingHour.
 
+    public static long DOWNLOAD_RATE = 60000;//Download new data every 60 seconds
+    private volatile ScrapeResult lastestScrape;
+    private Boolean freshData = false;
+    private Boolean readingScrape = false;
+    private Boolean writingScrape = false;
+
    /**
     * Constructor for the core
     */
@@ -86,7 +92,7 @@ public class Core extends Application {
         ui.displayResults(news, true);
         ui.displayMessage("AI\nsuggestion", true);
 
-        onNewDataAvailable();//Call once on startup
+        //onNewDataAvailable();//Call once on startup
     }
 
    /**
@@ -97,6 +103,7 @@ public class Core extends Application {
     public void stop() {
         //TODO store the trading hour somewhere
         //TODO write volatile data to the Database
+        ui.stopDataDownload();
         ic.onShutdown();
         System.out.println("Safely closed the program.");
     }
@@ -124,6 +131,7 @@ public class Core extends Application {
     * @param raw the String input by the user
     */
     public void onUserInput(String raw) {
+        onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
         System.out.println(pr); //DEBUG
         Suggestion suggestion;
@@ -231,18 +239,64 @@ public class Core extends Application {
         ui.displayResults(result, wasSuggestion);
     }
 
+    /*
+    Must only be called asynchronously from the GUIcore.
+    Downloads new data to a local variable in the background.
+    */
+    public void downloadNewData(){
+        System.out.println("Downloading new data");
+        while(readingScrape){
+            System.out.println("Waiting for data to be read");
+            try{
+                Thread.sleep(1000);
+            }catch(Exception e){
+
+            }
+        }
+        writingScrape = true;
+        ScrapeResult temp = dgc.getData();
+        if((lastestScrape == null)){
+            lastestScrape = temp;
+            freshData = true;
+        }
+        else if(temp.equals(lastestScrape)){
+            freshData = false;
+        }
+        else{
+            synchronized (lastestScrape){//Eliminates potential race conditions on setting/reading lastestScrape
+                lastestScrape = temp;
+                freshData = true;
+            }
+        }
+
+        System.out.println("Data downloaded successfully");
+        writingScrape = false;
+    }
+
    /**
     * Fetches and stores the latest data, then calls onUpdatedDatabase() from
     * the IC
     */
     public void onNewDataAvailable() {
+        if(freshData == false){
+            return;
+        }
         System.out.println("New data available!");//DEBUG
-        ScrapeResult sr = dgc.getData();
-        // for(int i = 0; i < 101;i++){
-        //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
-        // }
-        System.out.println("Data collected.");
-        dbm.storeScraperResults(sr);
+        if(writingScrape){
+            System.out.println("Couldn't retrieve new data, as it was being written");
+            return;
+        }
+        readingScrape = true;
+        synchronized (lastestScrape){//Should make this section safe
+            ScrapeResult sr = lastestScrape;
+            // for(int i = 0; i < 101;i++){
+            //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
+            // }
+            System.out.println("Data collected.");
+            dbm.storeScraperResults(sr);
+        }
+        freshData = false;
+        readingScrape = false;
         ic.onUpdatedDatabase();
     }
 
