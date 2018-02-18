@@ -211,7 +211,7 @@ public class DatabaseCore implements IDatabaseManager {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            System.out.println(FTSEQuery); //DEBUG
+            //System.out.println(FTSEQuery); //DEBUG
             tryClose(s1,results);
         }
 
@@ -330,7 +330,7 @@ public class DatabaseCore implements IDatabaseManager {
     	}
     	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
 
-    	System.out.println(query);
+    	//System.out.println(query);//DEBUG
 
     	// execute and store query results
     	try {

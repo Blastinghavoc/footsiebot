@@ -148,28 +148,7 @@ public class Core extends Application {
         if (pr.getIntent() == Intent.NEWS) {
             outputNews(pr,false);
         } else {
-            /*
-            NOTE: may wish to branch for groups, using an overloaded/modified method
-            of getFTSE(ParseResult,Boolean).
-            */
-            String[] data = dbm.getFTSE(pr);
-
-            String result;//NOTE: May convert to a different format for the UI
-
-            if(data == null){
-                System.out.println("NULL DATA!");
-            }
-
-            if (pr.isOperandGroup()) {
-                //Format result based on data
-                result = formatOutput(data,pr);
-                ui.displayMessage(result,false);
-            } else {
-                result = formatOutput(data,pr);
-                //format result based on data
-                //TODO send suggestion to ui
-                ui.displayMessage(result,false);
-            }
+            outputFTSE(pr,false);
         }
 
         suggestion = ic.getSuggestion(pr);
@@ -227,7 +206,9 @@ public class Core extends Application {
             outputNews(pr,true);
         }
         else{
-            //System.out.println(suggestion.getDescription());
+            //System.out.println(suggestion.getParseResult());//DEBUG
+            outputFTSE(suggestion.getParseResult(),true);
+            System.out.println("Displayed suggestion for pr = "+suggestion.getParseResult().toString());//DEBUG
         }
     }
 
@@ -241,6 +222,28 @@ public class Core extends Application {
             result = dgc.getNews(pr.getOperand());
         }
         ui.displayResults(result, wasSuggestion);
+    }
+
+    private void outputFTSE(ParseResult pr,Boolean wasSuggestion){
+        /*
+        NOTE: may wish to branch for groups, using an overloaded/modified method
+        of getFTSE(ParseResult,Boolean).
+        */
+        String[] data = dbm.getFTSE(pr);
+
+        String result;//NOTE: May convert to a different format for the UI
+
+        if(data == null){
+            System.out.println("NULL DATA!");
+        }
+
+        if (pr.isOperandGroup()) {
+            result = formatOutput(data,pr);
+            ui.displayMessage(result,wasSuggestion);
+        } else {
+            result = formatOutput(data,pr);
+            ui.displayMessage(result,wasSuggestion);
+        }
     }
 
     /*

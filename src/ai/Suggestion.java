@@ -23,7 +23,7 @@ public class Suggestion {
     isNews = true;
     this.pr = pr;
   }
-  
+
   public void update() {
 
   }
@@ -47,6 +47,10 @@ public class Suggestion {
 
   public String getReason() {
     return reason;
+  }
+
+  public ParseResult getParseResult(){
+      return pr;
   }
 
 }
