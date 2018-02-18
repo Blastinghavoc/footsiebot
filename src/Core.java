@@ -88,11 +88,9 @@ public class Core extends Application {
         news[1] = new Article("HSBC is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, HSBC, is closing down and all their customers will be left with nothing");
         news[2] = new Article("Santander is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Santander, is closing down and all their customers will be left with nothing");
         news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
-        news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
+        // news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
-        ui.displayMessage("AI\nsuggestion", true);
-
-        //onNewDataAvailable();//Call once on startup
+        ui.displayMessage("AI suggestion", true);
     }
 
    /**
@@ -178,12 +176,16 @@ public class Core extends Application {
 
     }
 
-
-
+   /**
+    *
+    */
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
     }
 
+   /**
+    *
+    */
     private String formatOutput(String[] data,ParseResult pr){
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
@@ -227,6 +229,9 @@ public class Core extends Application {
         }
     }
 
+   /**
+    *
+    */
     private void outputNews(ParseResult pr,Boolean wasSuggestion){
         Article[] result;
         if (pr.isOperandGroup()) {
@@ -239,7 +244,7 @@ public class Core extends Application {
         ui.displayResults(result, wasSuggestion);
     }
 
-    /*
+   /*
     Must only be called asynchronously from the GUIcore.
     Downloads new data to a local variable in the background.
     */
@@ -300,11 +305,17 @@ public class Core extends Application {
         ic.onUpdatedDatabase();
     }
 
+   /**
+    *
+    */
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
         ic.onNewsTime();
     }
 
+   /**
+    *
+    */
     private void debugNLP() {
         Boolean cont = true;
         while (cont) {

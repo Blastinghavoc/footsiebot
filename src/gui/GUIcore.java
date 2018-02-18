@@ -375,9 +375,9 @@ public class GUIcore implements IGraphicalUserInterface {
         });
     }
 
-    /*
-    Creation of a background thread to scrape the LSE website
-    regularly, so that data is available when needed.
+   /**
+    * Creation of a background thread to scrape the LSE website
+    * regularly, so that data is available when needed.
     */
     private void startDataDownload(){
         dataDownload = new Thread(() -> {
@@ -397,9 +397,9 @@ public class GUIcore implements IGraphicalUserInterface {
 
     public void stopDataDownload(){
         closing = true;
-        try{
+        try {
             dataDownload.join();
-        }catch(Exception e){
+        } catch(Exception e) {
             e.printStackTrace();
         }
         System.out.println("Stopped download thread");
@@ -512,7 +512,8 @@ public class GUIcore implements IGraphicalUserInterface {
     public void displayResults(Article[] news, boolean isAI) {
         if (news != null) {
             for (Article a : news) {
-                newsBoard.getChildren().add(new NewsBlock(a, (sidePane.getWidth() - 15), core));
+                if (a != null)
+                    newsBoard.getChildren().add(new NewsBlock(a, (sidePane.getWidth() - 15), core));
             }
             this.news.setValue(newsBoard.getChildren());
         }
@@ -545,6 +546,8 @@ public class GUIcore implements IGraphicalUserInterface {
 
    /**
     * Verifies the input
+    *
+    * @return true if the input is valid, false if not
     */
     private boolean checkInput() {
         String in = input.getText();
