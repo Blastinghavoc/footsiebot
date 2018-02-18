@@ -255,13 +255,20 @@ public class Core extends Application {
         }
         writingScrape = true;
         ScrapeResult temp = dgc.getData();
-        if((lastestScrape!= null)&&temp.equals(lastestScrape)){
-            freshData = false;
-        }
-        else{
+        if((lastestScrape == null)){
             lastestScrape = temp;
             freshData = true;
         }
+        else if(temp.equals(lastestScrape)){
+            freshData = false;
+        }
+        else{
+            synchronized (lastestScrape){//Eliminates potential race conditions on setting/reading lastestScrape
+                lastestScrape = temp;
+                freshData = true;
+            }
+        }
+
         System.out.println("Data downloaded successfully");
         writingScrape = false;
     }
@@ -280,14 +287,14 @@ public class Core extends Application {
             return;
         }
         readingScrape = true;
-        ScrapeResult sr = lastestScrape;
-        //ScrapeResult sr = dgc.getData();
-        // for(int i = 0; i < 101;i++){
-        //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
-        // }
-
-        System.out.println("Data collected.");
-        dbm.storeScraperResults(sr);
+        synchronized (lastestScrape){//Should make this section safe
+            ScrapeResult sr = lastestScrape;
+            // for(int i = 0; i < 101;i++){
+            //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
+            // }
+            System.out.println("Data collected.");
+            dbm.storeScraperResults(sr);
+        }
         freshData = false;
         readingScrape = false;
         ic.onUpdatedDatabase();

@@ -20,7 +20,7 @@ import javafx.application.Platform;
 
 public class GUIcore implements IGraphicalUserInterface {
     private String style;
-    
+
     private Timeline newDataTimeline;
     private Timeline tradingHourTimeline;
 
@@ -389,6 +389,7 @@ public class GUIcore implements IGraphicalUserInterface {
             } catch (Exception e) {
                 // should not be able to get here...
                 System.out.println("Error in thread");
+                e.printStackTrace();
             }
         });
         dataDownload.start();
