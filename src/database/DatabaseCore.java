@@ -326,25 +326,16 @@ public class DatabaseCore implements IDatabaseManager {
 
       ArrayList<Company> companies = new ArrayList<Company>();
       // Get Counts for each intent
-      String query = "";
-      // Fetch company code and counters
-      query+= "SELECT CompanyCode,NewsCount,SpotPriceCount,OpeningPriceCount,";
-      query+= "AbsoluteChangeCount,ClosingPriceCount,percentageChangeCount,";
-      // and also adjustments
-      query+= "newsAdjustment,";
-      query+= "SpotPriceAdjustment,";
-      query+= "OpeningPriceAdjustment,";
-      query+= "AbsoluteChangeAdjustment,";
-      query+= "ClosingPriceAdjustment,";
-      query+= "percentageChangeAdjustment ";
-      // Join
-      query+= "FROM FTSECompanies ";
-      query+= "NATURAL JOIN CompanyNewsCount ";
-      query+= "NATURAL JOIN CompanySpotPriceCount ";
-      query+= "NATURAL JOIN CompanyOpeningPriceCount ";
-      query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
-      query+= "NATURAL JOIN CompanyClosingPriceCount ";
-      query+= "NATURAL JOIN CompanyPercentageChangeCount ";
+      String query = ""
+        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0) "
+        + "FROM FTSECompanies ftc "
+        + "LEFT OUTER JOIN CompanyNewsCount cnc ON (cnc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanySpotPriceCount csc ON (csc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+
 
       Statement stmt = null;
       ResultSet rs = null;
@@ -357,22 +348,22 @@ public class DatabaseCore implements IDatabaseManager {
           // Create list of intents for each company
           ArrayList<IntentData> intents = new ArrayList<>();
           // News counter
-          float newsCount = (float) rs.getInt("NewsCount");
+          float newsCount = (float) rs.getInt("coalesce(NewsCount,0)");
           // Intents
-          float spot = (float) rs.getInt("SpotPriceCount");
-          float opening = (float) rs.getInt("OpeningPriceCount");
-          float absoluteChange = (float) rs.getInt("AbsoluteChangeCount");
-          float closing = (float) rs.getInt("ClosingPriceCount");
-          float percentageChange = (float) rs.getInt("percentageChangeCount");
+          float spot = (float) rs.getInt("coalesce(SpotPriceCount,0)");
+          float opening = (float) rs.getInt("coalesce(OpeningPriceCount,0)");
+          float absoluteChange = (float) rs.getInt("coalesce(AbsoluteChangeCount,0)");
+          float closing = (float) rs.getInt("coalesce(ClosingPriceCount,0)");
+          float percentageChange = (float) rs.getInt("coalesce(percentageChangeCount,0)");
           // Now the  adjustments
           // for news
-          float newsAdj =  rs.getFloat("newsAdjustment");
+          float newsAdj =  rs.getFloat("coalesce(newsAdjustment,0)");
           // and for intents
-          float spotAdj =  rs.getFloat("SpotPriceAdjustment");
-          float openingAdj =  rs.getFloat("OpeningPriceAdjustment");
-          float absoluteChangeAdj =  rs.getFloat("AbsoluteChangeAdjustment");
-          float closingPriceAdj =  rs.getFloat("ClosingPriceAdjustment");
-          float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
+          float spotAdj =  rs.getFloat("coalesce(SpotPriceAdjustment,0)");
+          float openingAdj =  rs.getFloat("coalesce(OpeningPriceAdjustment,0)");
+          float absoluteChangeAdj =  rs.getFloat("coalesce(AbsoluteChangeAdjustment,0)");
+          float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
+          float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
 
           // Instantiate IntentData List for this company
           // TODO not haveing values for each intent for now
