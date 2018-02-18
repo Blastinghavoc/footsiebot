@@ -328,7 +328,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyOpeningPriceCount ";
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
-      query+= "NATURAL JOIN PercentageChangeCount ";
+      query+= "NATURAL JOIN CompanyPercentageChangeCount ";
 
       Statement stmt = null;
       ResultSet rs = null;
