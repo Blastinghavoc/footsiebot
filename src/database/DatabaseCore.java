@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 // import java.sql.SQLException;
 // import java.sql.Statement;
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.lang.*;
 
 public class DatabaseCore implements IDatabaseManager {
@@ -353,6 +353,7 @@ public class DatabaseCore implements IDatabaseManager {
         for(Map.Entry<String,Group> g: entrySet) {
           String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = " + g.getKey();
           ResultSet rs0 = null;
+
           try {
             rs0 = stmt.executeQuery(query2);
             ArrayList<Company> companiesForThisGroup = new ArrayList<>();
@@ -367,18 +368,20 @@ public class DatabaseCore implements IDatabaseManager {
             result.add(g.getValue());
           } catch(SQLException e) {
             printSQLException(e);
+          } finally {
+            if(rs0 != null) {tryClose(rs0); }
           }
         }
 
         // now add the remaining values to each group
         for(Group g: result) {
-          ArrayList<Company> companies = g.getCompanies();
-          int numberOfCompanies = companies.size();
+          ArrayList<Company> com = g.getCompanies();
+          int numberOfCompanies = com.size();
 
           Float priority = 0.0f;
           Float irrelevantSuggestionWeight = 0.0f;
 
-          for(Company c: companies) {
+          for(Company c: com) {
             priority+= c.getPriority();
             irrelevantSuggestionWeight+= c.getIrrelevantSuggestionWeight();
           }
@@ -388,14 +391,11 @@ public class DatabaseCore implements IDatabaseManager {
           g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
         }
 
-
-
       } catch (SQLException ex) {
         printSQLException(ex);
       } finally {
         if (stmt != null) { tryClose(stmt); }
         if(rs != null) {tryClose(rs); }
-        if(rs0 != null) {tryClose(rs0); }
       }
 
       return result;
