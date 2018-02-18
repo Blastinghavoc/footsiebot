@@ -286,7 +286,7 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
-    	
+
     	Statement s1 = null;
     	ResultSet results = null;
     	ArrayList<String> rs = new ArrayList<String>();
@@ -329,9 +329,9 @@ public class DatabaseCore implements IDatabaseManager {
     		}
     	}
     	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
-    	
+
     	System.out.println(query);
-    	
+
     	// execute and store query results
     	try {
     		s1 = conn.createStatement();
@@ -476,7 +476,7 @@ public class DatabaseCore implements IDatabaseManager {
         companiesMap.put(c.getCode(),c);
       }
 
-      String query1 = "SELECT  GroupName";
+      String query1 = "SELECT  GroupName ";
       query1+= "FROM FTSEGroupMappings ";
 
       Statement stmt = null;
@@ -497,7 +497,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         // retrieve all companies for each group
         for(Map.Entry<String,Group> g: entrySet) {
-          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = " + g.getKey();
+          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
           ResultSet rs0 = null;
 
           try {
