@@ -329,11 +329,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
       query+= "NATURAL JOIN PercentageChangeCount ";
-<<<<<<< HEAD
-      //System.out.println(query);
-=======
-      //System.out.println(query);//DEBUG
->>>>>>> origin
+
       Statement stmt = null;
       ResultSet rs = null;
 
