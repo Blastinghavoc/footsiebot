@@ -388,10 +388,16 @@ public class DatabaseCore implements IDatabaseManager {
           g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
         }
 
+
+
       } catch (SQLException ex) {
         printSQLException(ex);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+        if(rs != null) {tryClose(rs); }
+        if(rs0 != null) {tryClose(rs0); }
       }
-      
+
       return result;
     }
 
@@ -399,6 +405,10 @@ public class DatabaseCore implements IDatabaseManager {
         return null;
     }
 
+    // This is potentially not needed couple of methods as
+    // the database will always be updated i.e.
+    // the only changes the intelligence core makes locally
+    // are on tallies and it will update the database accordingly immediately
     public void storeAICompanies(ArrayList<Company> companies) {
 
     }
