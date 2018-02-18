@@ -207,7 +207,7 @@ public class Core extends Application {
         return output;
     }
 
-    /*
+   /**
     * Decodes a Suggestion and performs relevant output
     */
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
@@ -269,6 +269,11 @@ public class Core extends Application {
         }
     }
 
+   /**
+    * Opens the webpage at the url given on the user's default browser
+    *
+    * @param url the url of the webpage
+    */
     public void openWebpage(String url) {
         getHostServices().showDocument(url);
     }
