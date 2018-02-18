@@ -12,6 +12,7 @@ import javafx.scene.shape.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
+import javafx.scene.text.TextAlignment;
 import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.beans.property.*;
@@ -51,6 +52,7 @@ public class GUIcore implements IGraphicalUserInterface {
     private FadeTransition settingsPaneTrans;
     private FadeTransition newsPaneTrans;
     private RotateTransition settingsIconTrans;
+    private Label noNews;
 
    /**
     * Constructor for the user interface using default styling
@@ -203,13 +205,18 @@ public class GUIcore implements IGraphicalUserInterface {
             updateStyle();
         });
 
+        noNews = new Label("Oh no! It looks like we don't\nhave any news for you right now!");
+        noNews.setId("no-news");
+        noNews.setWrapText(true);
+        noNews.setTextAlignment(TextAlignment.CENTER);
+
         Insets wrapperPadding = new Insets(0, 0, 0, -1);
         newsWrapper.setPadding(wrapperPadding);
         newsWrapper.setContent(newsBoard);
 
         settingsPane.getChildren().add(btnStyle);
         settingsPane.setAlignment(btnStyle, Pos.BOTTOM_CENTER);
-        newsPane.getChildren().add(newsWrapper);
+        newsPane.getChildren().addAll(newsWrapper, noNews);
         sidePane.getChildren().addAll(settingsPane, newsPane);
     }
 
@@ -303,6 +310,10 @@ public class GUIcore implements IGraphicalUserInterface {
         });
 
         news.addListener((obs, oldVal, newVal) -> {
+            if (news.size() == 0)
+                noNews.setVisible(true);
+            else
+                noNews.setVisible(false);
             resizeNews(sidePane.getWidth());
         });
     }
@@ -395,6 +406,9 @@ public class GUIcore implements IGraphicalUserInterface {
         dataDownload.start();
     }
 
+   /**
+    * Stops the data gathering background thread when the application is closing
+    */
     public void stopDataDownload(){
         closing = true;
         try {
@@ -513,7 +527,7 @@ public class GUIcore implements IGraphicalUserInterface {
         if (news != null) {
             for (Article a : news) {
                 if (a != null)
-                    newsBoard.getChildren().add(new NewsBlock(a, (sidePane.getWidth() - 15), core));
+                    newsBoard.getChildren().add(new NewsBlock(a, (sidePane.getWidth() - 15), core, this));
             }
             this.news.setValue(newsBoard.getChildren());
         }
@@ -567,6 +581,15 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public FlowPane getMessageBoard() {
         return messageBoard;
+    }
+
+   /**
+    * Accessor for the news board
+    *
+    * @return the news board of the GUI
+    */
+    public FlowPane getNewsBoard() {
+        return newsBoard;
     }
 
    /**

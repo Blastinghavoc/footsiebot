@@ -67,24 +67,24 @@ public class Message extends FlowPane {
             btnWrapper = new StackPane();
             Insets btnPadding = new Insets(0, 5, 2, 5);
             btnWrapper.setPadding(btnPadding);
-            Label lbl2 = new Label("x");
-            lbl2.getStyleClass().add("remove-button");
-            lbl2.setTooltip(removeNote);
+            Label close = new Label("x");
+            close.getStyleClass().add("remove-message");
+            close.setTooltip(removeNote);
             Text lblSize = new Text("?");
-            Label lbl = new Label("?");
-            lbl.setTooltip(aiNote);
-            lbl.setAlignment(Pos.CENTER);
-            lbl.setMinWidth(lblSize.getLayoutBounds().getHeight());
-            lbl.getStyleClass().add("options-button");
-            btnWrapper.getChildren().addAll(lbl, lbl2);
-            btnWrapper.setAlignment(lbl2, Pos.TOP_CENTER);
-            btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
+            Label why = new Label("?");
+            why.setTooltip(aiNote);
+            why.setAlignment(Pos.CENTER);
+            why.setMinWidth(lblSize.getLayoutBounds().getHeight());
+            why.getStyleClass().add("options-button");
+            btnWrapper.getChildren().addAll(why, close);
+            btnWrapper.setAlignment(close, Pos.TOP_CENTER);
+            btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
 
-            lbl.setOnMouseClicked(e -> {
+            why.setOnMouseClicked(e -> {
                 ui.displayMessage("This is why", false, this);
             });
 
-            lbl2.setOnMouseClicked(e -> {
+            close.setOnMouseClicked(e -> {
                 for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
                     if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
                         Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
@@ -154,24 +154,24 @@ public class Message extends FlowPane {
             btnWrapper = new StackPane();
             Insets btnPadding = new Insets(0, 5, 2, 5);
             btnWrapper.setPadding(btnPadding);
-            Label lbl2 = new Label("x");
-            lbl2.getStyleClass().add("remove-button");
-            lbl2.setTooltip(removeNote);
+            Label close = new Label("x");
+            close.getStyleClass().add("remove-message");
+            close.setTooltip(removeNote);
             Text lblSize = new Text("?");
-            Label lbl = new Label("?");
-            lbl.setTooltip(aiNote);
-            lbl.setAlignment(Pos.CENTER);
-            lbl.setMinWidth(lblSize.getLayoutBounds().getHeight());
-            lbl.getStyleClass().add("options-button");
-            btnWrapper.getChildren().addAll(lbl, lbl2);
-            btnWrapper.setAlignment(lbl2, Pos.TOP_CENTER);
-            btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
+            Label why = new Label("?");
+            why.setTooltip(aiNote);
+            why.setAlignment(Pos.CENTER);
+            why.setMinWidth(lblSize.getLayoutBounds().getHeight());
+            why.getStyleClass().add("options-button");
+            btnWrapper.getChildren().addAll(why, close);
+            btnWrapper.setAlignment(close, Pos.TOP_CENTER);
+            btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
 
-            lbl.setOnMouseClicked(e -> {
+            why.setOnMouseClicked(e -> {
                 ui.displayMessage("This is why", false, this);
             });
 
-            lbl2.setOnMouseClicked(e -> {
+            close.setOnMouseClicked(e -> {
                 for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
                     if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
                         Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
