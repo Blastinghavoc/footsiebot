@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 // import java.sql.SQLException;
 // import java.sql.Statement;
 import java.sql.*;
-import java.util.ArrayList;
+import java.util.*;
+import java.lang.*;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
@@ -394,25 +395,16 @@ public class DatabaseCore implements IDatabaseManager {
 
       ArrayList<Company> companies = new ArrayList<Company>();
       // Get Counts for each intent
-      String query = "";
-      // Fetch company code and counters
-      query+= "SELECT CompanyCode,NewsCount,SpotPriceCount,OpeningPriceCount,";
-      query+= "AbsoluteChangeCount,ClosingPriceCount,percentageChangeCount,";
-      // and also adjustments
-      query+= "newsAdjustment,";
-      query+= "SpotPriceAdjustment,";
-      query+= "OpeningPriceAdjustment,";
-      query+= "AbsoluteChangeAdjustment,";
-      query+= "ClosingPriceAdjustment,";
-      query+= "percentageChangeAdjustment ";
-      // Join
-      query+= "FROM FTSECompanies ";
-      query+= "NATURAL JOIN CompanyNewsCount ";
-      query+= "NATURAL JOIN CompanySpotPriceCount ";
-      query+= "NATURAL JOIN CompanyOpeningPriceCount ";
-      query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
-      query+= "NATURAL JOIN CompanyClosingPriceCount ";
-      query+= "NATURAL JOIN CompanyPercentageChangeCount ";
+      String query = ""
+        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0) "
+        + "FROM FTSECompanies ftc "
+        + "LEFT OUTER JOIN CompanyNewsCount cnc ON (cnc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanySpotPriceCount csc ON (csc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
+        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+
 
       Statement stmt = null;
       ResultSet rs = null;
@@ -425,25 +417,25 @@ public class DatabaseCore implements IDatabaseManager {
           // Create list of intents for each company
           ArrayList<IntentData> intents = new ArrayList<>();
           // News counter
-          float newsCount = (float) rs.getInt("NewsCount");
+          float newsCount = (float) rs.getInt("coalesce(NewsCount,0)");
           // Intents
-          float spot = (float) rs.getInt("SpotPriceCount");
-          float opening = (float) rs.getInt("OpeningPriceCount");
-          float absoluteChange = (float) rs.getInt("AbsoluteChangeCount");
-          float closing = (float) rs.getInt("ClosingPriceCount");
-          float percentageChange = (float) rs.getInt("percentageChangeCount");
+          float spot = (float) rs.getInt("coalesce(SpotPriceCount,0)");
+          float opening = (float) rs.getInt("coalesce(OpeningPriceCount,0)");
+          float absoluteChange = (float) rs.getInt("coalesce(AbsoluteChangeCount,0)");
+          float closing = (float) rs.getInt("coalesce(ClosingPriceCount,0)");
+          float percentageChange = (float) rs.getInt("coalesce(percentageChangeCount,0)");
           // Now the  adjustments
           // for news
-          float newsAdj =  rs.getFloat("newsAdjustment");
+          float newsAdj =  rs.getFloat("coalesce(newsAdjustment,0)");
           // and for intents
-          float spotAdj =  rs.getFloat("SpotPriceAdjustment");
-          float openingAdj =  rs.getFloat("OpeningPriceAdjustment");
-          float absoluteChangeAdj =  rs.getFloat("AbsoluteChangeAdjustment");
-          float closingPriceAdj =  rs.getFloat("ClosingPriceAdjustment");
-          float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
+          float spotAdj =  rs.getFloat("coalesce(SpotPriceAdjustment,0)");
+          float openingAdj =  rs.getFloat("coalesce(OpeningPriceAdjustment,0)");
+          float absoluteChangeAdj =  rs.getFloat("coalesce(AbsoluteChangeAdjustment,0)");
+          float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
+          float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
 
           // Instantiate IntentData List for this company
-          // TODO not haveing values for each intent for now
+          // TODO not having values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
           intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
           intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
@@ -473,16 +465,96 @@ public class DatabaseCore implements IDatabaseManager {
       }
     }
 
-    //None of these functions should throw anything, they should handle exceptions properly
     public ArrayList<Group> getAIGroups() {
-        String query = "";
-        return null;
+      ArrayList<Company> companies = this.getAICompanies();
+      ArrayList<Group> result = new ArrayList<>();
+      if(companies == null) return null;
+
+      // put all companies in a Map
+      HashMap<String, Company> companiesMap = new HashMap<>();
+      for(Company c: companies) {
+        companiesMap.put(c.getCode(),c);
+      }
+
+      String query1 = "SELECT  GroupName";
+      query1+= "FROM FTSEGroupMappings ";
+
+      Statement stmt = null;
+      ResultSet rs = null;
+      // groups map
+      HashMap<String, Group> groupsMap = new HashMap<>();
+
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query1);
+        // getting all the group names
+        while (rs.next()) {
+          String gName = rs.getString("GroupName");
+          groupsMap.put(gName, new Group(gName));
+        }
+        // entry set iterator
+        Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
+
+        // retrieve all companies for each group
+        for(Map.Entry<String,Group> g: entrySet) {
+          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = " + g.getKey();
+          ResultSet rs0 = null;
+
+          try {
+            rs0 = stmt.executeQuery(query2);
+            ArrayList<Company> companiesForThisGroup = new ArrayList<>();
+            // put all the companies for this group in its list
+            while(rs0.next()) {
+              Company c = companiesMap.get(rs0.getString("CompanyCode"));
+              companiesForThisGroup.add(c);
+            }
+            g.getValue().addCompanies(companiesForThisGroup);
+
+            // add to final list
+            result.add(g.getValue());
+          } catch(SQLException e) {
+            printSQLException(e);
+          } finally {
+            if(rs0 != null) {tryClose(rs0); }
+          }
+        }
+
+        // now add the remaining values to each group
+        for(Group g: result) {
+          ArrayList<Company> com = g.getCompanies();
+          int numberOfCompanies = com.size();
+
+          Float priority = 0.0f;
+          Float irrelevantSuggestionWeight = 0.0f;
+
+          for(Company c: com) {
+            priority+= c.getPriority();
+            irrelevantSuggestionWeight+= c.getIrrelevantSuggestionWeight();
+          }
+          irrelevantSuggestionWeight/= numberOfCompanies;
+
+          g.setPriority(priority);
+          g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
+        }
+
+      } catch (SQLException ex) {
+        printSQLException(ex);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+        if(rs != null) {tryClose(rs); }
+      }
+
+      return result;
     }
 
     public IntentData getIntentForCompany() {
         return null;
     }
 
+    // This is potentially not needed couple of methods as
+    // the database will always be updated i.e.
+    // the only changes the intelligence core makes locally
+    // are on tallies and it will update the database accordingly immediately
     public void storeAICompanies(ArrayList<Company> companies) {
 
     }
@@ -494,12 +566,14 @@ public class DatabaseCore implements IDatabaseManager {
     public String[] getCompaniesInGroup(String groupName){
         groupName.toLowerCase();
         ArrayList<String> companies = new ArrayList<String>();
+        ResultSet r1 = null;
+        Statement s1 = null;
         try {
             String query = "SELECT CompanyName from FTSECompanies ";
             query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
             query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
-            Statement s1 = conn.createStatement();
-            ResultSet r1 = s1.executeQuery(query);
+            s1 = conn.createStatement();
+            r1 = s1.executeQuery(query);
             while(r1.next()){
                 companies.add(r1.getString(1));
             }
@@ -507,6 +581,9 @@ public class DatabaseCore implements IDatabaseManager {
             e.printStackTrace();
             System.out.println("Couldn't resolve group name");
             return null;
+        } finally {
+          if (s1 != null) { tryClose(s1); }
+          if(r1 != null) {tryClose(r1); }
         }
         return companies.toArray(new String[1]);
     }
@@ -519,7 +596,7 @@ public class DatabaseCore implements IDatabaseManager {
 
       for (Throwable e : ex) {
           if (e instanceof SQLException) {
-              if (true/*ignoreSQLException(((SQLException)e).getSQLState()) == false*/) {
+              if (ignoreSQLException(((SQLException)e).getSQLState()) == false) {
 
                   e.printStackTrace(System.err);
                   System.err.println("SQLState: " +
@@ -539,6 +616,24 @@ public class DatabaseCore implements IDatabaseManager {
           }
       }
     }
+
+    public static boolean ignoreSQLException(String sqlState) {
+
+      if (sqlState == null) {
+          System.out.println("The SQL state is not defined!");
+          return false;
+      }
+
+      // X0Y32: Jar file already exists in schema
+      if (sqlState.equalsIgnoreCase("X0Y32"))
+          return true;
+
+      // 42Y55: Table already exists in schema
+      if (sqlState.equalsIgnoreCase("42Y55"))
+          return true;
+
+      return false;
+  }
 
     //Handy methods to close statements and ResultSets
     private void tryClose(Statement s){

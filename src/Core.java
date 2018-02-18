@@ -227,7 +227,7 @@ public class Core extends Application {
             outputNews(pr,true);
         }
         else{
-            System.out.println(suggestion.getDescription());
+            //System.out.println(suggestion.getDescription());
         }
     }
 

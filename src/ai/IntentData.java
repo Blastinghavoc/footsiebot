@@ -9,36 +9,26 @@ public class IntentData implements Comparable<IntentData> {
 
   private AIIntent intent;
   // This could be changed to a linked list if we only ever acces the last value
-  private ArrayList<Float> values;
   private Float priority;
   private Float irrelevantSuggestionWeight;
 
   public IntentData(AIIntent intent, Float priority, Float irrelevantSuggestionWeight) {
     this.intent = intent;
-    this.values = values;
     this.priority = priority;
     this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
   }
 
 
   public AIIntent getIntent() {
-	   return null;
+	   return intent;
   }
 
-  public void setValues(ArrayList<Float> list) {
-    values = list;
-  }
-
-  public ArrayList<Float> getValues() {
-    return values;
-  }
-
-  public Float getLastValue() {
-    //Float res = 0.0f;
-    Float f = values.get(values.size() - 1);
-    //res = f.FloatValue();
-    return f;//res;
-  }
+  // public Float getLastValue() {
+  //   //Float res = 0.0f;
+  //   Float f = values.get(values.size() - 1);
+  //   //res = f.FloatValue();
+  //   return f;//res;
+  // }
 
   public Float getPriority() {
     return priority;

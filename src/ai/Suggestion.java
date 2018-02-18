@@ -1,4 +1,5 @@
 package footsiebot.ai;
+import footsiebot.nlp.ParseResult;
 
 public class Suggestion {
 
@@ -6,32 +7,23 @@ public class Suggestion {
   private Group group;
   private boolean isNews;
   private String reason;
-  private String description;
+  private ParseResult pr;
 
 
-  public Suggestion(String r, Company c, boolean isNews) {
+  public Suggestion(String r, Company c, boolean isNews, ParseResult pr) {
     reason = r;
     company = c;
     this.isNews = isNews;
-  }
-  // with description (for intents)
-  public Suggestion(String r, Company c, boolean isNews, String desc) {
-    reason = r;
-    company = c;
-    this.isNews = isNews;
-    description = desc;
+    this.pr = pr;
   }
 
-  public Suggestion(String r, Group g) {
+  public Suggestion(String r, Group g, ParseResult pr) {
     reason = r;
     group = g;
     isNews = true;
+    this.pr = pr;
   }
-
-  public void setDesc(String d) {
-    description = d;
-  }
-
+  
   public void update() {
 
   }
@@ -56,13 +48,5 @@ public class Suggestion {
   public String getReason() {
     return reason;
   }
-
-  public String getDescription(){
-      return description;
-  }
-
-
-
-
 
 }
