@@ -323,48 +323,76 @@ public class DatabaseCore implements IDatabaseManager {
       ArrayList<Company> companies = this.getAICompanies();
       ArrayList<Group> result = new ArrayList<>();
       if(companies == null) return null;
+
+      // put all companies in a Map
+      HashMap<String, Company> companiesMap = new HashMap<>();
+      for(Company c: companies) {
+        companiesMap.put(c.getCode(),c);
+      }
+
       String query1 = "SELECT  GroupName";
       query1+= "FROM FTSEGroupMappings ";
 
       Statement stmt = null;
       ResultSet rs = null;
-
-
-      ArrayList<String> names = new ArrayList<>();
+      // groups map
+      HashMap<String, Group> groupsMap = new HashMap<>();
 
       try {
         stmt = conn.createStatement();
         rs = stmt.executeQuery(query1);
-
+        // getting all the group names
         while (rs.next()) {
-          names.add(rs.getString("GroupName"));
+          String gName = rs.getString("GroupName");
+          groupsMap.put(gName, new Group(gName));
         }
+        // entry set iterator
+        Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
 
-        for(String g: names) {
-          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = " + g;
+        // retrieve all companies for each group
+        for(Map.Entry<String,Group> g: entrySet) {
+          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = " + g.getKey();
           ResultSet rs0 = null;
           try {
             rs0 = stmt.executeQuery(query2);
-            while(rs.next()) {
-
+            ArrayList<Company> companiesForThisGroup = new ArrayList<>();
+            // put all the companies for this group in its list
+            while(rs0.next()) {
+              Company c = companiesMap.get(rs0.getString("CompanyCode"));
+              companiesForThisGroup.add(c);
             }
+            g.getValue().addCompanies(companiesForThisGroup);
+
+            // add to final list
+            result.add(g.getValue());
           } catch(SQLException e) {
             printSQLException(e);
           }
-
         }
 
+        // now add the remaining values to each group
+        for(Group g: result) {
+          ArrayList<Company> companies = g.getCompanies();
+          int numberOfCompanies = companies.size();
 
+          Float priority = 0.0f;
+          Float irrelevantSuggestionWeight = 0.0f;
 
+          for(Company c: companies) {
+            priority+= c.getPriority();
+            irrelevantSuggestionWeight+= c.getIrrelevantSuggestionWeight();
+          }
+          irrelevantSuggestionWeight/= numberOfCompanies;
 
+          g.setPriority(priority);
+          g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
+        }
 
       } catch (SQLException ex) {
         printSQLException(ex);
       }
-
-
-
-      return null;
+      
+      return result;
     }
 
     public IntentData getIntentForCompany() {
