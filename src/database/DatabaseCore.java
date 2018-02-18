@@ -145,36 +145,52 @@ public class DatabaseCore implements IDatabaseManager {
     */
     public boolean storeQuery(ParseResult pr, LocalDateTime date) {
 
-        if("DEBUG".equals("DEBUG")){
-            return false;//DEBUG
-        }
+        // if("DEBUG".equals("DEBUG")){
+        //     return false;//DEBUG
+        // }
         String companyCode = pr.getOperand();
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
-        String query = "INSERT INTO Queries VALUES('"+companyCode+"',,'"+intent+"','"+timeSpecifier+"')";
+        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
         Statement s1 = null;
+        ResultSet r1 = null;
         String table = intentToTableName(pr.getIntent());
         if(table == null){
             return false;
         }
         String rowName = table.replace("Company","");//The count row in the tables has the same name as the table, minus the prefix "Company"
+        trySetAutoCommit(false);
         try{
             s1 = conn.createStatement();
             s1.executeUpdate(query);
             /*
-            TODO: check if a row with the relevant CompanyCode exists in the relevant
+            check if a row with the relevant CompanyCode exists in the relevant
             count table. If not, create that row.
             If it does, increment the value of the relevant count row (rowName)
             */
-            query = "";
-
+            query = "SELECT * FROM "+table+" WHERE CompanyCode = '" + companyCode+"'";
+            r1 = s1.executeQuery(query);
+            //If the row does not exist, create it.
+            if(!r1.next()){
+                query = "INSERT INTO "+table+" VALUES ('"+companyCode+"',1,0)";
+                s1.executeUpdate(query);
+            }
+            else{
+                //Row does exist, so just increment the count.
+                query = "UPDATE "+table+" SET "+rowName+" = "+rowName+" + 1 WHERE CompanyCode = '"+companyCode+"'";
+                s1.executeUpdate(query);
+            }
+            tryCommit();
         }catch(SQLException e){
             e.printStackTrace();
-            tryClose(s1);
+            tryClose(s1,r1);
+            tryRollback();
+            trySetAutoCommit(true);
             return false;
         }
-        tryClose(s1);
+        tryClose(s1,r1);
+        trySetAutoCommit(true);
         return true;
     }
 
@@ -397,7 +413,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
       query+= "NATURAL JOIN CompanyPercentageChangeCount ";
-      //System.out.println(query);
+
       Statement stmt = null;
       ResultSet rs = null;
 

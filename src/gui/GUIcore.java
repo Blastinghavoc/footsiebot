@@ -16,11 +16,17 @@ import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.beans.property.*;
 import javafx.util.Duration;
+import javafx.application.Platform;
 
 public class GUIcore implements IGraphicalUserInterface {
     private String style;
+
     private Timeline newDataTimeline;
     private Timeline tradingHourTimeline;
+
+    private Thread dataDownload;
+    private volatile Boolean closing = false;
+
     private ListProperty<Node> messages;
     private ListProperty<Node> news;
 
@@ -92,8 +98,9 @@ public class GUIcore implements IGraphicalUserInterface {
         initTop();
         setupListeners();
         setupActions();
+        startDataDownload();
         startNewDataTimeline();
-        startNewTradingHourTimeline();
+        startTradingHourTimeline();
 
         root.getChildren().addAll(chatPane, sidePane, topBar);
         root.setAlignment(topBar, Pos.TOP_LEFT);
@@ -368,6 +375,36 @@ public class GUIcore implements IGraphicalUserInterface {
         });
     }
 
+    /*
+    Creation of a background thread to scrape the LSE website
+    regularly, so that data is available when needed.
+    */
+    private void startDataDownload(){
+        dataDownload = new Thread(() -> {
+            try {
+                while(!closing){
+                    core.downloadNewData();
+                    Thread.sleep(core.DOWNLOAD_RATE);
+                }
+            } catch (Exception e) {
+                // should not be able to get here...
+                System.out.println("Error in thread");
+                e.printStackTrace();
+            }
+        });
+        dataDownload.start();
+    }
+
+    public void stopDataDownload(){
+        closing = true;
+        try{
+            dataDownload.join();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        System.out.println("Stopped download thread");
+    }
+
    /**
     * Starts the newDataTimeline to run the core action regularly
     * REF: http://tomasmikula.github.io/blog/2014/06/04/timers-in-javafx-and-reactfx.html
@@ -377,13 +414,13 @@ public class GUIcore implements IGraphicalUserInterface {
             Duration.millis(core.DATA_REFRESH_RATE),
             ae -> core.onNewDataAvailable()));
         newDataTimeline.setCycleCount(Animation.INDEFINITE);
-        newDataTimeline.play(); //Running the core function at regular times.
+        newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
    /**
     * Starts the tradingHourTimeline to run the core action regularly
     */
-    private void startNewTradingHourTimeline() {
+    private void startTradingHourTimeline() {
         tradingHourTimeline = new Timeline(new KeyFrame(
             Duration.millis(86400000),//24 hour refresh time
             ae -> core.onTradingHour()));
