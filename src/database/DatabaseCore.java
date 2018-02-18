@@ -289,7 +289,7 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChangeAdj =  rs.getFloat("percentageChangeAdjustment");
 
           // Instantiate IntentData List for this company
-          // TODO not haveing values for each intent for now
+          // TODO not having values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
           intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
           intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
@@ -420,12 +420,14 @@ public class DatabaseCore implements IDatabaseManager {
     public String[] getCompaniesInGroup(String groupName){
         groupName.toLowerCase();
         ArrayList<String> companies = new ArrayList<String>();
+        ResultSet r1 = null;
+        Statement s1 = null;
         try {
             String query = "SELECT CompanyName from FTSECompanies ";
             query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
             query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
-            Statement s1 = conn.createStatement();
-            ResultSet r1 = s1.executeQuery(query);
+            s1 = conn.createStatement();
+            r1 = s1.executeQuery(query);
             while(r1.next()){
                 companies.add(r1.getString(1));
             }
@@ -433,6 +435,9 @@ public class DatabaseCore implements IDatabaseManager {
             e.printStackTrace();
             System.out.println("Couldn't resolve group name");
             return null;
+        } finally {
+          if (s1 != null) { tryClose(s1); }
+          if(r1 != null) {tryClose(r1); }
         }
         return companies.toArray(new String[1]);
     }
