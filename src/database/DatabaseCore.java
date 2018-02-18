@@ -185,6 +185,7 @@ public class DatabaseCore implements IDatabaseManager {
         ResultSet results = null;
         ArrayList<String> output = new ArrayList<String>();
 
+        // add asked for data to first index of array
         try {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
@@ -197,6 +198,8 @@ public class DatabaseCore implements IDatabaseManager {
             tryClose(s1,results);
         }
 
+        // add other data about company to 2nd index of array
+        output.addAll(getAllCompanyInfo(pr));
 
         return output.toArray(new String[1]);
     }
@@ -251,8 +254,7 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
             default:
                 System.out.println("No cases ran");
-            break;
-
+            	break;
         }
 
         // get current data requested from database
@@ -264,6 +266,73 @@ public class DatabaseCore implements IDatabaseManager {
         tryClose(s1);
 
         return query;
+    }
+
+    private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
+    	
+    	Statement s1 = null;
+    	ResultSet results = null;
+    	ArrayList<String> rs = new ArrayList<String>();
+
+    	String companyCode = pr.getOperand();
+    	footsiebot.nlp.Intent intent = pr.getIntent();
+    	ArrayList<String> columns = new ArrayList<String>();
+
+    	// get columns needed in query
+    	if (intent == footsiebot.nlp.Intent.SPOT_PRICE) {
+    		columns.add("PercentageChange");
+    		// columns.add("TradingVolume");
+    		columns.add("AbsoluteChange");
+    	} else if (intent == footsiebot.nlp.Intent.TRADING_VOLUME) {
+    		columns.add("SpotPrice");
+    		columns.add("PercentageChange");
+    		columns.add("AbsoluteChange");
+    	} else if (intent == footsiebot.nlp.Intent.PERCENT_CHANGE) {
+    		columns.add("SpotPrice");
+    		//columns.add("TradingVolume");
+    		columns.add("AbsoluteChange");
+    	} else if (intent == footsiebot.nlp.Intent.ABSOLUTE_CHANGE) {
+    		columns.add("SpotPrice");
+    		//columns.add("TradingVolume");
+    		columns.add("PercentageChange");
+    	} else if (intent == footsiebot.nlp.Intent.CLOSING_PRICE || intent == footsiebot.nlp.Intent.OPENING_PRICE) {
+    		columns.add("SpotPrice");
+    		// columns.add("TradingVolume");
+    		columns.add("PercentageChange");
+    		columns.add("AbsoluteChange");
+    	}
+
+    	// create query
+    	String query = "SELECT ";
+    	for (int i = 0; i < columns.size(); i++) {
+    		query += columns.get(i);
+    		// don't add comma after last column
+    		if (i != columns.size() -1) {
+    			query += ", ";
+    		}
+    	}
+    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
+    	
+    	System.out.println(query);
+    	
+    	// execute and store query results
+    	try {
+    		s1 = conn.createStatement();
+    		results = s1.executeQuery(query);
+    		ResultSetMetaData rsmd = results.getMetaData();
+    		int columnCount = rsmd.getColumnCount();
+
+    		for (int i = 1; i <= columnCount; i++) {
+    			String colName = rsmd.getColumnName(i);
+    			rs.add(colName + ", " + ((Float)results.getFloat(i)).toString());
+    		}
+
+    	} catch (SQLException e) {
+    		e.printStackTrace();
+    		tryClose(s1, results);
+    	}
+
+    	return rs;
     }
 
     private String intentToTableName(Intent i){
@@ -327,7 +396,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyOpeningPriceCount ";
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
-      query+= "NATURAL JOIN PercentageChangeCount ";
+      query+= "NATURAL JOIN CompanyPercentageChangeCount ";
       //System.out.println(query);
       Statement stmt = null;
       ResultSet rs = null;
