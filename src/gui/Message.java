@@ -14,6 +14,8 @@ import javafx.geometry.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.lang.Math;
+import javafx.animation.*;
+import javafx.util.Duration;
 
 public class Message extends FlowPane {
     private Label msg;
@@ -27,9 +29,9 @@ public class Message extends FlowPane {
     private GUIcore ui;
     private boolean isAI;
 
-    public Message(String text, LocalDateTime timestamp, Stage stage, boolean sent, boolean isAI, GUIcore ui) {
+    public Message(String text, LocalDateTime timestamp, boolean sent, boolean isAI, GUIcore ui) {
         super();
-        double chatPaneWidth = stage.getScene().getWidth() * 0.6875;
+        double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
 
         this.timestamp = timestamp;
         this.sent = sent;
@@ -137,7 +139,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for msg
+    * Accessor for msg
     *
     * @return returns msg
     */
@@ -146,7 +148,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for the text of msg
+    * Accessor for the text of msg
     *
     * @return returns a String representation of msg
     */
@@ -155,7 +157,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for sent
+    * Accessor for sent
     *
     * @return returns sent
     */
@@ -164,7 +166,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for visual
+    * Accessor for visual
     *
     * @return returns visual
     */
@@ -173,7 +175,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for timestamp
+    * Accessor for timestamp
     *
     * @return returns timestamp
     */

@@ -16,12 +16,11 @@ import java.time.LocalDateTime;
 // import java.sql.Statement;
 import java.sql.*;
 import java.util.ArrayList;
+import java.lang.*;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
-    // Will declare as a global variable
-    // so that
-    private ArrayList<Company> companies = new ArrayList<>();
+
 
 
     public DatabaseCore() {
@@ -238,6 +237,8 @@ public class DatabaseCore implements IDatabaseManager {
 
 
     public ArrayList<Company> getAICompanies() {
+
+      ArrayList<Company> companies = new ArrayList<Company>();
       // Get Counts for each intent
       String query = "";
       // Fetch company code and counters
@@ -258,7 +259,7 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
       query+= "NATURAL JOIN PercentageChangeCount ";
-
+      System.out.println(query);
       Statement stmt = null;
       ResultSet rs = null;
 
@@ -306,6 +307,7 @@ public class DatabaseCore implements IDatabaseManager {
         if(companies.size() != 0) {
           return companies;
         } else {
+          System.out.println("No companies found, getAICompanies returning null");
           return null;
         }
 
@@ -318,6 +320,50 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     public ArrayList<Group> getAIGroups() {
+      ArrayList<Company> companies = this.getAICompanies();
+      ArrayList<Group> result = new ArrayList<>();
+      if(companies == null) return null;
+      String query1 = "SELECT  GroupName";
+      query1+= "FROM FTSEGroupMappings ";
+
+      Statement stmt = null;
+      ResultSet rs = null;
+
+
+      ArrayList<String> names = new ArrayList<>();
+
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query1);
+
+        while (rs.next()) {
+          names.add(rs.getString("GroupName"));
+        }
+
+        for(String g: names) {
+          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = " + g;
+          ResultSet rs0 = null;
+          try {
+            rs0 = stmt.executeQuery(query2);
+            while(rs.next()) {
+
+            }
+          } catch(SQLException e) {
+            printSQLException(e);
+          }
+
+        }
+
+
+
+
+
+      } catch (SQLException ex) {
+        printSQLException(ex);
+      }
+
+
+
       return null;
     }
 
@@ -361,7 +407,7 @@ public class DatabaseCore implements IDatabaseManager {
 
       for (Throwable e : ex) {
           if (e instanceof SQLException) {
-              if (true/*ignoreSQLException(((SQLException)e).getSQLState()) == false*/) {
+              if (ignoreSQLException(((SQLException)e).getSQLState()) == false) {
 
                   e.printStackTrace(System.err);
                   System.err.println("SQLState: " +
@@ -381,6 +427,24 @@ public class DatabaseCore implements IDatabaseManager {
           }
       }
     }
+
+    public static boolean ignoreSQLException(String sqlState) {
+
+      if (sqlState == null) {
+          System.out.println("The SQL state is not defined!");
+          return false;
+      }
+
+      // X0Y32: Jar file already exists in schema
+      if (sqlState.equalsIgnoreCase("X0Y32"))
+          return true;
+
+      // 42Y55: Table already exists in schema
+      if (sqlState.equalsIgnoreCase("42Y55"))
+          return true;
+
+      return false;
+  }
 
     //Handy methods to close statements and ResultSets
     private void tryClose(Statement s){

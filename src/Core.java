@@ -5,7 +5,7 @@ import footsiebot.ai.*;
 import footsiebot.datagathering.*;
 import footsiebot.gui.*;
 import footsiebot.database.*;
-import javafx.application.Application;
+import javafx.application.*;
 import javafx.stage.Stage;
 import java.io.*;
 import java.util.*;
@@ -77,7 +77,7 @@ public class Core extends Application {
         }
 
         Article[] news = new Article[1];
-        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
+        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
 
         onNewDataAvailable();//Call once on startup
@@ -120,29 +120,21 @@ public class Core extends Application {
     public void onUserInput(String raw) {
         ParseResult pr = nlp.parse(raw);
         System.out.println(pr); //DEBUG
+        Suggestion suggestion;
 
+        Boolean managedToStoreQuery = dbm.storeQuery(pr,LocalDateTime.now());
+        if(!managedToStoreQuery){
+            System.out.println("Failed to store query!");
+        }
         //Branch based on whether the intent is for news or data.
         if (pr.getIntent() == Intent.NEWS) {
-            Article[] result;
-            if (pr.isOperandGroup()) {
-                String[] companies = groupNameToCompanyList(pr.getOperand());
-                //TODO resolve a group name into a list of companies
-                result = dgc.getNews(companies);
-            } else {
-                result = dgc.getNews(pr.getOperand());
-            }
-            dbm.storeQuery(pr,LocalDateTime.now());
-            Suggestion suggestion = ic.getSuggestion(pr);
-            //TODO send result and suggestion to ui
-            ui.displayResults(result, false);
+            outputNews(pr,false);
         } else {
             /*
             NOTE: may wish to branch for groups, using an overloaded/modified method
             of getFTSE(ParseResult,Boolean).
             */
             String[] data = dbm.getFTSE(pr);
-            dbm.storeQuery(pr,LocalDateTime.now());
-            Suggestion suggestion = ic.getSuggestion(pr);
 
             String result;//NOTE: May convert to a different format for the UI
 
@@ -161,7 +153,15 @@ public class Core extends Application {
                 ui.displayMessage(result,false);
             }
         }
-        ui.displayMessage(pr.toString(), false);//DEBUG
+
+        suggestion = ic.getSuggestion(pr);
+        if(suggestion != null){
+            handleSuggestion(suggestion,pr);
+        }
+        else{
+            System.out.println("Null suggestion");
+        }
+
     }
 
 
@@ -201,6 +201,30 @@ public class Core extends Application {
         return output;
     }
 
+    /*
+    * Decodes a Suggestion and performs relevant output
+    */
+    private void handleSuggestion(Suggestion suggestion,ParseResult pr){
+        if(suggestion.isNews()){
+            outputNews(pr,true);
+        }
+        else{
+            System.out.println(suggestion.getDescription());
+        }
+    }
+
+    private void outputNews(ParseResult pr,Boolean wasSuggestion){
+        Article[] result;
+        if (pr.isOperandGroup()) {
+            String[] companies = groupNameToCompanyList(pr.getOperand());
+            //TODO resolve a group name into a list of companies
+            result = dgc.getNews(companies);
+        } else {
+            result = dgc.getNews(pr.getOperand());
+        }
+        ui.displayResults(result, wasSuggestion);
+    }
+
    /**
     * Fetches and stores the latest data, then calls onUpdatedDatabase() from
     * the IC
@@ -208,9 +232,9 @@ public class Core extends Application {
     public void onNewDataAvailable() {
         System.out.println("New data available!");//DEBUG
         ScrapeResult sr = dgc.getData();
-        for(int i = 0; i < 101;i++){
-            System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
-        }
+        // for(int i = 0; i < 101;i++){
+        //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
+        // }
         System.out.println("Data collected.");
         dbm.storeScraperResults(sr);
         ic.onUpdatedDatabase();
@@ -237,6 +261,10 @@ public class Core extends Application {
             }
             System.out.println(result);
         }
+    }
+
+    public void openWebpage(String url) {
+        getHostServices().showDocument(url);
     }
 
 }
