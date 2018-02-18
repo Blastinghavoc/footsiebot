@@ -131,6 +131,10 @@ public class Core extends Application {
     public void onUserInput(String raw) {
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
+        if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
+            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that",false);
+            return;
+        }
         System.out.println(pr); //DEBUG
         Suggestion suggestion;
 

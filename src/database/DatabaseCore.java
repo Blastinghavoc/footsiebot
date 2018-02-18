@@ -140,8 +140,42 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
+    /*Probably doesn't actually need the time. The database can do that
+    automatically
+    */
     public boolean storeQuery(ParseResult pr, LocalDateTime date) {
-        return false;
+
+        if("DEBUG".equals("DEBUG")){
+            return false;//DEBUG
+        }
+        String companyCode = pr.getOperand();
+        String intent = pr.getIntent().toString();
+        String timeSpecifier = pr.getTimeSpecifier().toString();
+
+        String query = "INSERT INTO Queries VALUES('"+companyCode+"',,'"+intent+"','"+timeSpecifier+"')";
+        Statement s1 = null;
+        String table = intentToTableName(pr.getIntent());
+        if(table == null){
+            return false;
+        }
+        String rowName = table.replace("Company","");//The count row in the tables has the same name as the table, minus the prefix "Company"
+        try{
+            s1 = conn.createStatement();
+            s1.executeUpdate(query);
+            /*
+            TODO: check if a row with the relevant CompanyCode exists in the relevant
+            count table. If not, create that row.
+            If it does, increment the value of the relevant count row (rowName)
+            */
+            query = "";
+
+        }catch(SQLException e){
+            e.printStackTrace();
+            tryClose(s1);
+            return false;
+        }
+        tryClose(s1);
+        return true;
     }
 
     public String[] getFTSE(ParseResult pr) {
@@ -233,6 +267,43 @@ public class DatabaseCore implements IDatabaseManager {
         return query;
     }
 
+    private String intentToTableName(Intent i){
+        String name = null;
+        switch (i) {
+            case SPOT_PRICE:
+                name = "CompanySpotPriceCount";
+                break;
+            case TRADING_VOLUME:
+                name = null;//Not implemented yet
+                break;
+            case PERCENT_CHANGE:
+                name = "CompanyPercentageChangeCount";
+                break;
+            case ABSOLUTE_CHANGE:
+                name = "CompanyAbsoluteChangeCount";
+                break;
+            case OPENING_PRICE:
+                name = "CompanyOpeningPriceCount";
+                break;
+            case CLOSING_PRICE:
+                name = "CompanyClosingPriceCount";
+                break;
+            case TREND://May need a table for this
+                name = null;
+                break;
+            case NEWS:
+                name = "CompanyNewsCount";
+                break;
+            case GROUP_FULL_SUMMARY://No table for this, return null;
+                name = null;
+                break;
+            default:
+            System.out.println("Could not resolve intent to column name");
+            break;
+        }
+        return  name;
+    }
+
 
 
     public ArrayList<Company> getAICompanies() {
@@ -257,8 +328,8 @@ public class DatabaseCore implements IDatabaseManager {
       query+= "NATURAL JOIN CompanyOpeningPriceCount ";
       query+= "NATURAL JOIN CompanyAbsoluteChangeCount ";
       query+= "NATURAL JOIN CompanyClosingPriceCount ";
-      query+= "NATURAL JOIN PercentageChangeCount ";
-      //System.out.println(query);//DEBUG
+      query+= "NATURAL JOIN CompanyPercentageChangeCount ";
+
       Statement stmt = null;
       ResultSet rs = null;
 
