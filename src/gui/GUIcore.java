@@ -89,7 +89,7 @@ public class GUIcore implements IGraphicalUserInterface {
         root = new StackPane();
         root.setId("root");
 
-        scene = new Scene(root, 800, 700);
+        scene = new Scene(root, 800, 600);
         scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
 
         messages = new SimpleListProperty<Node>();

@@ -90,7 +90,7 @@ public class Core extends Application {
         news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
         news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
-        ui.displayMessage("AI suggestion", true);
+        ui.displayMessage("AI\nsuggestion", true);
     }
 
    /**
