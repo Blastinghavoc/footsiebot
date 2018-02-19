@@ -136,7 +136,7 @@
     -fx-cursor: hand;
 }
 
-.remove-button:hover {
+.remove-message:hover {
     -fx-text-fill: derive(#edecea, -40%);
 }
 
@@ -256,7 +256,6 @@
 }
 
 .news-block {
-    /*-fx-cursor: hand;*/
     -fx-background-color: derive(#6699CC, 95%);
     -fx-border-color: derive(#6699CC, 85%);
     -fx-border-width: 0 0 1 0;
@@ -266,7 +265,6 @@
 
 .news-block:hover {
     -fx-background-color: derive(#6699CC, 85%);
-    /*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 20, 0, 5, 0);*/
 }
 
 .headline {

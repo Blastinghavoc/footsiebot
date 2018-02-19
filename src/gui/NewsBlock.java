@@ -46,7 +46,15 @@ public class NewsBlock extends BorderPane {
         ImageView close = new ImageView("file:src/img/close.png");
         close.getStyleClass().add("remove-news");
         close.setPreserveRatio(true);
-        close.setFitWidth(10);
+        close.setFitWidth(12);
+
+        setOnMouseEntered(e -> {
+            close.setImage(new Image("file:src/img/close-2.png"));
+        });
+
+        setOnMouseExited(e -> {
+            close.setImage(new Image("file:src/img/close.png"));
+        });
 
         close.setOnMouseEntered(e -> {
             close.setImage(new Image("file:src/img/close-hover.png"));
