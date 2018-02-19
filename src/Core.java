@@ -29,6 +29,8 @@ public class Core extends Application {
     private Boolean readingScrape = false;
     private Boolean writingScrape = false;
 
+    private Intent[] extraDataAddedToLastOutput;
+
    /**
     * Constructor for the core
     */
@@ -90,7 +92,7 @@ public class Core extends Application {
         news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
         news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
-        ui.displayMessage("AI\nsuggestion", true);
+        ui.displayMessage("AI suggestion", true);
 
         //onNewDataAvailable();//Call once on startup
     }
@@ -137,6 +139,12 @@ public class Core extends Application {
             ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that",false);
             return;
         }
+
+        if(!checkParseResultValid(pr)){
+            ui.displayMessage("Sorry, that was not a valid query.",false);
+            return;
+        }
+
         System.out.println(pr); //DEBUG
         Suggestion suggestion;
 
@@ -171,15 +179,24 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " .";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case TRADING_VOLUME:
                 break;
             case PERCENT_CHANGE:
-                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened";
+                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened.";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case OPENING_PRICE:
                 break;
@@ -255,6 +272,73 @@ public class Core extends Application {
             result = formatOutput(data,pr,wasSuggestion);
             ui.displayMessage(result,wasSuggestion);
         }
+    }
+
+    private String addExtraDataToOutput(String output,String[] data){
+        output += "\n";
+        if (data.length > 1){
+            output += "Related data about this company:";
+            String[] temp;
+            for(int i = 1; i < data.length;i++){
+                temp = data[i].split(",");//relying on data being in csv form
+                output += "\n" + temp[0] + " = " + temp[1];
+            }
+        }
+        //TODO: add entries to extraDataAddedToLastOutput so that an AI suggestion suggesting this info can be ignored.
+        return output;
+    }
+
+    private Boolean checkParseResultValid(ParseResult pr){
+        switch (pr.getIntent()){
+            case SPOT_PRICE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
+                    return false;
+                }
+            break;
+            case TRADING_VOLUME:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case OPENING_PRICE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case CLOSING_PRICE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    return false;
+                }
+            break;
+            case PERCENT_CHANGE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case ABSOLUTE_CHANGE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case TREND:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case NEWS:
+            break;
+            case GROUP_FULL_SUMMARY:
+            break;
+            default:
+            return false;
+        }
+        return true;
     }
 
     /*
