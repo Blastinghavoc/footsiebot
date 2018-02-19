@@ -215,7 +215,7 @@ public class DatabaseCore implements IDatabaseManager {
             tryClose(s1,results);
         }
 
-        // add other data about company to 2nd index of array
+        // add other data about company to other indexes of the array
         output.addAll(getAllCompanyInfo(pr));
 
         return output.toArray(new String[1]);
@@ -296,28 +296,37 @@ public class DatabaseCore implements IDatabaseManager {
     	ArrayList<String> columns = new ArrayList<String>();
 
     	// get columns needed in query
-    	if (intent == footsiebot.nlp.Intent.SPOT_PRICE) {
-    		columns.add("PercentageChange");
-    		// columns.add("TradingVolume");
-    		columns.add("AbsoluteChange");
-    	} else if (intent == footsiebot.nlp.Intent.TRADING_VOLUME) {
-    		columns.add("SpotPrice");
-    		columns.add("PercentageChange");
-    		columns.add("AbsoluteChange");
-    	} else if (intent == footsiebot.nlp.Intent.PERCENT_CHANGE) {
-    		columns.add("SpotPrice");
-    		//columns.add("TradingVolume");
-    		columns.add("AbsoluteChange");
-    	} else if (intent == footsiebot.nlp.Intent.ABSOLUTE_CHANGE) {
-    		columns.add("SpotPrice");
-    		//columns.add("TradingVolume");
-    		columns.add("PercentageChange");
-    	} else if (intent == footsiebot.nlp.Intent.CLOSING_PRICE || intent == footsiebot.nlp.Intent.OPENING_PRICE) {
-    		columns.add("SpotPrice");
-    		// columns.add("TradingVolume");
-    		columns.add("PercentageChange");
-    		columns.add("AbsoluteChange");
-    	}
+        switch(intent) {
+            case SPOT_PRICE:
+                columns.add("PercentageChange");
+                // columns.add("TradingVolume");
+                columns.add("AbsoluteChange");
+                break;
+            case TRADING_VOLUME:
+                columns.add("SpotPrice");
+                columns.add("PercentageChange");
+                columns.add("AbsoluteChange");
+                break;
+            case PERCENT_CHANGE:
+                columns.add("SpotPrice");
+                //columns.add("TradingVolume");
+                columns.add("AbsoluteChange");
+                break;
+            case ABSOLUTE_CHANGE:
+                columns.add("SpotPrice");
+                //columns.add("TradingVolume");
+                columns.add("PercentageChange");
+                break;
+            case OPENING_PRICE:
+            case CLOSING_PRICE:
+                columns.add("SpotPrice");
+                // columns.add("TradingVolume");
+                columns.add("PercentageChange");
+                columns.add("AbsoluteChange");
+                break;
+            default:
+                break;
+        }
 
     	// create query
     	String query = "SELECT ";
@@ -330,7 +339,7 @@ public class DatabaseCore implements IDatabaseManager {
     	}
     	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
 
-    	//System.out.println(query);//DEBUG
+    	System.out.println(query);//DEBUG
 
     	// execute and store query results
     	try {
