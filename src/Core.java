@@ -160,6 +160,8 @@ public class Core extends Application {
             outputFTSE(pr,false);
         }
 
+        lastOperandOutput = pr.getOperand();
+
         suggestion = ic.getSuggestion(pr);
         if(suggestion != null){
             handleSuggestion(suggestion,pr);
@@ -167,7 +169,6 @@ public class Core extends Application {
         else{
             System.out.println("Null suggestion");
         }
-        lastOperandOutput = pr.getOperand();
     }
 
 
@@ -377,18 +378,19 @@ public class Core extends Application {
         if((lastestScrape == null)){
             lastestScrape = temp;
             freshData = true;
+            System.out.println("Data downloaded successfully");
         }
         else if(temp.equals(lastestScrape)){
-            freshData = false;
+            System.out.println("Data hasn't changed since last download");
         }
         else{
             synchronized (lastestScrape){//Eliminates potential race conditions on setting/reading lastestScrape
                 lastestScrape = temp;
                 freshData = true;
             }
+            System.out.println("Data downloaded successfully");
         }
 
-        System.out.println("Data downloaded successfully");
         writingScrape = false;
     }
 
@@ -416,7 +418,9 @@ public class Core extends Application {
             //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
             // }
             System.out.println("Data collected.");
-            dbm.storeScraperResults(sr);
+            if(!dbm.storeScraperResults(sr)){
+                System.out.println("Couldn't store data to database");
+            }
         }
         freshData = false;
         readingScrape = false;

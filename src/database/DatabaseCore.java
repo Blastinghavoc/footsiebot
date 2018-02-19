@@ -337,7 +337,7 @@ public class DatabaseCore implements IDatabaseManager {
     			query += ", ";
     		}
     	}
-    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
+    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
     	System.out.println(query);//DEBUG
 
