@@ -29,6 +29,9 @@ public class Core extends Application {
     private Boolean readingScrape = false;
     private Boolean writingScrape = false;
 
+    private ArrayList<Intent> extraDataAddedToLastOutput;
+    private String lastOperandOutput;
+
    /**
     * Constructor for the core
     */
@@ -90,7 +93,9 @@ public class Core extends Application {
         news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
         news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
         ui.displayResults(news, true);
-        ui.displayMessage("AI\nsuggestion", true);
+        ui.displayMessage("AI suggestion", true);
+
+        //onNewDataAvailable();//Call once on startup
     }
 
    /**
@@ -135,6 +140,12 @@ public class Core extends Application {
             ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that",false);
             return;
         }
+
+        if(!checkParseResultValid(pr)){
+            ui.displayMessage("Sorry, that was not a valid query.",false);
+            return;
+        }
+
         System.out.println(pr); //DEBUG
         Suggestion suggestion;
 
@@ -149,6 +160,8 @@ public class Core extends Application {
             outputFTSE(pr,false);
         }
 
+        lastOperandOutput = pr.getOperand();
+
         suggestion = ic.getSuggestion(pr);
         if(suggestion != null){
             handleSuggestion(suggestion,pr);
@@ -156,7 +169,6 @@ public class Core extends Application {
         else{
             System.out.println("Null suggestion");
         }
-
     }
 
    /**
@@ -170,15 +182,24 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " .";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case TRADING_VOLUME:
                 break;
             case PERCENT_CHANGE:
-                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened";
+                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened.";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case OPENING_PRICE:
                 break;
@@ -206,13 +227,21 @@ public class Core extends Application {
     * Decodes a Suggestion and performs relevant output
     */
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
+
         if(suggestion.isNews()){
             outputNews(pr,true);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
-            outputFTSE(suggestion.getParseResult(),true);
-            System.out.println("Displayed suggestion for pr = "+suggestion.getParseResult().toString());//DEBUG
+            ParseResult suggPr = suggestion.getParseResult();
+            if((extraDataAddedToLastOutput != null)&& lastOperandOutput.equals(suggPr.getOperand())){
+                if((suggPr.getIntent() == pr.getIntent()) ||extraDataAddedToLastOutput.contains(suggPr.getIntent())){
+                    //The intent suggested has already been displayed to the user.
+                    return;
+                }
+            }
+            outputFTSE(suggPr,true);
+            System.out.println("Displayed suggestion for pr = "+suggPr.toString());//DEBUG
         }
     }
 
@@ -223,7 +252,7 @@ public class Core extends Application {
         Article[] result;
         if (pr.isOperandGroup()) {
             String[] companies = groupNameToCompanyList(pr.getOperand());
-            //TODO resolve a group name into a list of companies
+
             result = dgc.getNews(companies);
         } else {
             result = dgc.getNews(pr.getOperand());
@@ -260,6 +289,81 @@ public class Core extends Application {
         }
     }
 
+    private String addExtraDataToOutput(String output,String[] data){
+        extraDataAddedToLastOutput = null;
+        if (data.length > 1){
+            output += "\n";
+            extraDataAddedToLastOutput = new ArrayList<Intent>();
+            output += "Related data about this company:";
+            String[] temp;
+            for(int i = 1; i < data.length;i++){
+                temp = data[i].split(",");//relying on data being in csv form
+                output += "\n" + temp[0] + " = " + temp[1];
+                extraDataAddedToLastOutput.add(convertColumnNameToIntent(temp[0]));//NOTE: NEEDS TESTING
+            }
+        }
+        return output;
+    }
+
+    private Intent convertColumnNameToIntent(String s){
+        //NOTE: probably highly inefficient, may not even work! Needs testing.
+        Intent in = nlp.parse(s).getIntent();
+        return in;
+    }
+
+    private Boolean checkParseResultValid(ParseResult pr){
+        switch (pr.getIntent()){
+            case SPOT_PRICE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
+                    return false;
+                }
+            break;
+            case TRADING_VOLUME:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case OPENING_PRICE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case CLOSING_PRICE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    return false;
+                }
+            break;
+            case PERCENT_CHANGE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case ABSOLUTE_CHANGE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case TREND:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case NEWS:
+            break;
+            case GROUP_FULL_SUMMARY:
+            break;
+            default:
+            return false;
+        }
+        return true;
+    }
+
     /*
     Must only be called asynchronously from the GUIcore.
     Downloads new data to a local variable in the background.
@@ -279,18 +383,19 @@ public class Core extends Application {
         if((lastestScrape == null)){
             lastestScrape = temp;
             freshData = true;
+            System.out.println("Data downloaded successfully");
         }
         else if(temp.equals(lastestScrape)){
-            freshData = false;
+            System.out.println("Data hasn't changed since last download");
         }
         else{
             synchronized (lastestScrape){//Eliminates potential race conditions on setting/reading lastestScrape
                 lastestScrape = temp;
                 freshData = true;
             }
+            System.out.println("Data downloaded successfully");
         }
 
-        System.out.println("Data downloaded successfully");
         writingScrape = false;
     }
 
@@ -303,6 +408,7 @@ public class Core extends Application {
             return;
         }
         System.out.println("New data available!");//DEBUG
+
         if(writingScrape){
             System.out.println("Couldn't retrieve new data, as it was being written");
             return;
@@ -317,7 +423,9 @@ public class Core extends Application {
             //     System.out.println("Entry " + i+ " is "+sr.getName(i) + " with code " + sr.getCode(i));
             // }
             System.out.println("Data collected.");
-            dbm.storeScraperResults(sr);
+            if(!dbm.storeScraperResults(sr)){
+                System.out.println("Couldn't store data to database");
+            }
         }
         freshData = false;
         readingScrape = false;
