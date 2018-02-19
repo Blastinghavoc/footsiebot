@@ -15,8 +15,9 @@ import javafx.scene.shape.*;
 import javafx.geometry.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import java.lang.Math;
+import javafx.animation.*;
 import javafx.scene.image.*;
+import javafx.util.Duration;
 
 public class NewsBlock extends BorderPane {
     private Label headline;
@@ -64,7 +65,13 @@ public class NewsBlock extends BorderPane {
         });
 
         close.setOnMouseClicked(e -> {
-            ui.getNewsBoard().getChildren().removeAll(this);
+            FadeTransition removalTrans = new FadeTransition(Duration.millis(500), this);
+            removalTrans.setFromValue(1);
+            removalTrans.setToValue(0);
+            removalTrans.setOnFinished(event -> {
+                ui.getNewsBoard().getChildren().removeAll(this);
+            });
+            removalTrans.play();
         });
 
         StackPane topPane = new StackPane();
