@@ -1,27 +1,18 @@
 package footsiebot.database;
 
 import footsiebot.nlp.*;
-// import footsiebot.nlp.ParseResult;
-// import footsiebot.nlp.Intent;
-// import footsiebot.nlp.TimeSpecifier;
-
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
-
-// import java.sql.Connection;
-// import java.sql.DriverManager;
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
 import java.sql.*;
 import java.util.*;
 import java.lang.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.DayOfWeek;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
-
-
 
     public DatabaseCore() {
 
@@ -46,10 +37,7 @@ public class DatabaseCore implements IDatabaseManager {
 
     public boolean storeScraperResults(ScrapeResult sr) {
 
-        // need to delete old FTSE data
-
         int numCompanies = 100;//Constant
-        LocalDateTime currentTime = LocalDateTime.now();
         String code = " ";
         Float price, absChange, percChange = 0.0f;
 
@@ -67,6 +55,8 @@ public class DatabaseCore implements IDatabaseManager {
         String addScrapeResultQuery = null;
 
         trySetAutoCommit(false);//Will treat the following as a transaction, so that it can be rolled back if it fails
+
+        deleteOldFTSEData();
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
@@ -139,6 +129,28 @@ public class DatabaseCore implements IDatabaseManager {
         tryClose(s3);
         tryClose(s4);
         return true;
+    }
+
+    /* Deletes FTSE data from over 5 trading days ago */
+    private void deleteOldFTSEData() {
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        String comparisonTime = getComparisonTime(currentTime);
+        Statement s1 = null;
+
+        try {
+            s1 = conn.createStatement();
+            String query = "DELETE FROM FTSECompanySnapshots WHERE DATETIME(TimeOfData, '+7 days') <= '" + comparisonTime + "'";
+            s1.executeUpdate(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            tryClose(s1);
+            //return false;
+        }
+
+        tryClose(s1);
+
+        //return true;
     }
 
     /*Probably doesn't actually need the time. The database can do that
@@ -214,7 +226,7 @@ public class DatabaseCore implements IDatabaseManager {
             //System.out.println(FTSEQuery); //DEBUG
             tryClose(s1,results);
         }
-
+        tryClose(s1, results);
         // add other data about company to other indexes of the array
         output.addAll(getAllCompanyInfo(pr));
 
@@ -239,8 +251,8 @@ public class DatabaseCore implements IDatabaseManager {
         String timeSpecifierSQL = "";
         Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
         String colName = "";
-
-        PreparedStatement s1 = null;
+        LocalDateTime currentTime = LocalDateTime.now();
+        String comparisonTime = "";
 
         switch (intent) {
             case SPOT_PRICE:
@@ -260,8 +272,16 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
+                comparisonTime = getComparisonTime(currentTime);
+                query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                        + "WHERE CompanyCode = '" + companyCode + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                        + "ORDER BY TimeOfData ASC LIMIT 1";
                 break;
             case CLOSING_PRICE:
+                comparisonTime = getComparisonTime(currentTime);
+                query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                        + "WHERE CompanyCode = '" + companyCode + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                        + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
             case TREND:
                 break;
@@ -277,12 +297,28 @@ public class DatabaseCore implements IDatabaseManager {
         // get current data requested from database
         if (isFetchCurrentQuery) {
             query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
-
         }
 
-        tryClose(s1);
-
         return query;
+    }
+
+    /* Returns the comparison time for the queries for getting the opening and closing price of a company */
+    private String getComparisonTime(LocalDateTime currentTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String comparisonTime;
+        switch (currentTime.getDayOfWeek()) {
+            case SATURDAY:
+                comparisonTime = (currentTime.minusDays(1)).format(formatter);
+                break;
+            case SUNDAY:
+                comparisonTime = (currentTime.minusDays(2)).format(formatter);
+                break;
+            default:
+                comparisonTime = currentTime.format(formatter);
+                break;
+        }
+
+        return comparisonTime;
     }
 
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
@@ -357,6 +393,8 @@ public class DatabaseCore implements IDatabaseManager {
     		e.printStackTrace();
     		tryClose(s1, results);
     	}
+
+        tryClose(s1, results);
 
     	return rs;
     }
