@@ -61,7 +61,7 @@ public class NewsBlock extends BorderPane {
         });
 
         close.setOnMouseExited(e -> {
-            close.setImage(new Image("file:src/img/close.png"));
+            close.setImage(new Image("file:src/img/close-2.png"));
         });
 
         close.setOnMouseClicked(e -> {
