@@ -7,12 +7,12 @@ public class Company implements Comparable<Company> {
 
   private String code;
   private ArrayList<IntentData> intents;
-  private float newsCounter;
-  private float priority;
-  private float irrelevantSuggestionWeight;
+  private Float newsCounter;
+  private Float priority;
+  private Float irrelevantSuggestionWeight;
 
 
-  public Company(String code, ArrayList<IntentData> intents, float newsCounter, float priority, float irrelevantSuggestionWeight) {
+  public Company(String code, ArrayList<IntentData> intents, Float newsCounter, Float priority, Float irrelevantSuggestionWeight) {
     this.code = code;
     this.intents = intents;
     this.newsCounter = newsCounter;
@@ -21,7 +21,7 @@ public class Company implements Comparable<Company> {
 
   }
 
-  public float getIrrelevantSuggestionWeight() {
+  public Float getIrrelevantSuggestionWeight() {
 	return irrelevantSuggestionWeight;
   }
 
@@ -34,25 +34,25 @@ public class Company implements Comparable<Company> {
 	  return intents.get(0);
   }
 
-  public float getNewsCount() {
-	return newsCounter;
+  public Float getNewsCount() {
+	   return newsCounter;
   }
 
-  public float getPriority() {
+  public Float getPriority() {
 	return priority;
   }
 
-  public void incrementPriority(float increment) {
+  public void incrementPriority(Float increment) {
     priority+= increment;
   }
 
-  public void decrementPriority(float decrement) {
+  public void decrementPriority(Float decrement) {
     priority-= decrement;
   }
 
   @Override
   public int compareTo(Company c) {
-    float r = c.getPriority() - this.getPriority();
+    Float r = c.getPriority() - this.getPriority();
     if(r < 0) {
       return -1;
     } else if (r == 0) {

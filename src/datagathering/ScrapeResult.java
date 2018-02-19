@@ -42,8 +42,33 @@ public class ScrapeResult {
         return percChange[index];
     }
 
+
     public int getSize() {
         return names.length;
+    }
+
+    public Boolean equals(ScrapeResult sr){
+        Boolean areEqual = true;
+        if(!this.codes.equals(sr.codes)){
+            areEqual = false;
+        }
+        if(!this.names.equals(sr.names)){
+            areEqual = false;
+        }
+        if(!this.groups.equals(sr.groups)){
+            areEqual = false;
+        }
+        if(!this.prices.equals(sr.prices)){
+            areEqual = false;
+        }
+        if(!this.absChange.equals(sr.absChange)){
+            areEqual = false;
+        }
+        if(!this.percChange.equals(sr.percChange)){
+            areEqual = false;
+        }
+        return areEqual;
+
     }
 
 }

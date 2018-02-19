@@ -2,6 +2,7 @@ package footsiebot.ai;
 
 import footsiebot.nlp.ParseResult;
 import footsiebot.nlp.Intent;
+import footsiebot.nlp.TimeSpecifier;
 import footsiebot.database.*;
 
 import java.util.*;
@@ -31,15 +32,21 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // Fetch operand and intent and increment intent priority
      // TODO needs converting to AIIntent
 
-     if(companies == null || groups == null){
+     if(companies == null){
+         System.out.println("companies was null, cannot make suggestion");//DEBUG
          return null;
      }
 
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
      Company targetCompany = null;
+     // TODO: UPDATE TALLIES FOR THIS COMPANY LOCALLY
      // If operand is a group
      if(pr.isOperandGroup()) {
+         if(groups == null){
+             System.out.println("groups was null, cannot make suggestion");//DEBUG
+             return null;
+         }
        // search in groups if valid group
        for(Group g: groups) {
          if(g.getGroupCode().equals(companyOrGroup)) {
@@ -72,7 +79,11 @@ public class IntelligenceCore implements IIntelligenceUnit {
            break;
          }
        }
-       if(targetCompany == null) return null;
+       if(targetCompany == null){
+           System.out.println("No company found for suggestion making");//DEBUG
+           return null;
+        }
+
        boolean doSuggestion = false;
        for(int i = 0; i < TOP; i++) {
          if(targetCompany.equals(companies.get(i))) {
@@ -88,6 +99,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
          return lastSuggestion;
          // return Group to Core
        } else {
+           System.out.println("Decided not to make a suggestion");//DEBUG
          return null;
        }
      }
@@ -97,9 +109,15 @@ public class IntelligenceCore implements IIntelligenceUnit {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
-     if(companies == null || groups == null ) return "ERROR";
+     if(companies == null) {
+       return "Companies are null";
+     }
      Collections.sort(companies);
+     if(groups == null) {
+       return "Groups are null";
+     }
      Collections.sort(groups);
+     // What to return here ?
      return "";
    }
 
@@ -110,10 +128,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
    public void onStartUp() {
      // Fetch from database
-     companies = db.getAICompanies();
+     companies = db.getAICompanies();//NOTE: may not be necessary if onNewDataAvailable is called on startup
      groups = db.getAIGroups();
-     if((groups != null) && (companies != null)){
+     if(companies != null){
          Collections.sort(companies);
+     }
+     if(groups  != null){
          Collections.sort(groups);
      }
 
@@ -173,26 +193,52 @@ public class IntelligenceCore implements IIntelligenceUnit {
     */
    private Suggestion suggestIntent(Company company) {
      String reason = "Company is in top 5";
-     String description = "Suggesting ";
+     // String description = "Suggesting ";
 
      IntentData topIntent = company.getTopIntentData();
-     float topIntentValue = topIntent.getLastValue();
+     //Float topIntentValue = topIntent.getLastValue();
 
-     description += topIntent.toString() + "has value " + topIntentValue;
+     // Create IParseResult
+     TimeSpecifier tm = footsiebot.nlp.TimeSpecifier.TODAY;
+     if(topIntent.getIntent() == AIIntent.CLOSING_PRICE) {
+       tm = footsiebot.nlp.TimeSpecifier.YESTERDAY;
+     }
+
+     Intent i = null;
+
+     switch(topIntent.getIntent()) {
+       case SPOT_PRICE : i = footsiebot.nlp.Intent.SPOT_PRICE;
+       break;
+       case OPENING_PRICE : i = footsiebot.nlp.Intent.OPENING_PRICE;
+       break;
+       case CLOSING_PRICE : i = footsiebot.nlp.Intent.CLOSING_PRICE;
+       break;
+       case PERCENT_CHANGE : i = footsiebot.nlp.Intent.PERCENT_CHANGE;
+       break;
+       case ABSOLUTE_CHANGE : i = footsiebot.nlp.Intent.ABSOLUTE_CHANGE;
+       break;
+     }
+
+     if(i == null) return null;
+
+     ParseResult pr = new ParseResult(i, "", company.getCode(), false, tm);
+
      // false == suggestion is not news
-     Suggestion result = new Suggestion(reason, company, false, description);
+     Suggestion result = new Suggestion(reason, company, false, pr);
      return result;
    }
 
    private Suggestion suggestNews(Company company) {
      String reason = "Company is in top 5";
-     Suggestion result = new Suggestion(reason, company, true);
+     ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", company.getCode(), false, footsiebot.nlp.TimeSpecifier.TODAY);
+     Suggestion result = new Suggestion(reason, company, true, pr);
      return result;
    }
 
    private Suggestion suggestNews(Group group) {
      String reason = "Group is in top 5";
-     Suggestion result = new Suggestion(reason, group);
+     ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", group.getGroupCode(), true,footsiebot.nlp.TimeSpecifier.TODAY );
+     Suggestion result = new Suggestion(reason, group, pr );
      return result;
    }
 
