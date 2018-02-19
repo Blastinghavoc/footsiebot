@@ -146,28 +146,7 @@ public class Core extends Application {
         if (pr.getIntent() == Intent.NEWS) {
             outputNews(pr,false);
         } else {
-            /*
-            NOTE: may wish to branch for groups, using an overloaded/modified method
-            of getFTSE(ParseResult,Boolean).
-            */
-            String[] data = dbm.getFTSE(pr);
-
-            String result;//NOTE: May convert to a different format for the UI
-
-            if(data == null){
-                System.out.println("NULL DATA!");
-            }
-
-            if (pr.isOperandGroup()) {
-                //Format result based on data
-                result = formatOutput(data,pr);
-                ui.displayMessage(result,false);
-            } else {
-                result = formatOutput(data,pr);
-                //format result based on data
-                //TODO send suggestion to ui
-                ui.displayMessage(result,false);
-            }
+            outputFTSE(pr,false);
         }
 
         suggestion = ic.getSuggestion(pr);
@@ -187,10 +166,7 @@ public class Core extends Application {
         return dbm.getCompaniesInGroup(group);
     }
 
-   /**
-    *
-    */
-    private String formatOutput(String[] data,ParseResult pr){
+    private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
@@ -218,6 +194,11 @@ public class Core extends Application {
             System.out.println("No cases ran in core");
             break;
         }
+
+        if (wasSuggestion){
+            output = "You may also want to know:\n" + output;
+        }
+
         return output;
     }
 
@@ -229,7 +210,9 @@ public class Core extends Application {
             outputNews(pr,true);
         }
         else{
-            System.out.println(suggestion.getDescription());
+            //System.out.println(suggestion.getParseResult());//DEBUG
+            outputFTSE(suggestion.getParseResult(),true);
+            System.out.println("Displayed suggestion for pr = "+suggestion.getParseResult().toString());//DEBUG
         }
     }
 
@@ -248,7 +231,36 @@ public class Core extends Application {
         ui.displayResults(result, wasSuggestion);
     }
 
-   /*
+
+    private void outputFTSE(ParseResult pr,Boolean wasSuggestion){
+        /*
+        NOTE: may wish to branch for groups, using an overloaded/modified method
+        of getFTSE(ParseResult,Boolean).
+        */
+        String[] data = dbm.getFTSE(pr);
+
+        String result;//NOTE: May convert to a different format for the UI
+
+        if(data == null){
+            System.out.println("NULL DATA!");
+            if(wasSuggestion){
+                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query",false);
+            }else{
+                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query",false);
+            }
+            return;
+        }
+
+        if (pr.isOperandGroup()) {
+            result = formatOutput(data,pr,wasSuggestion);
+            ui.displayMessage(result,wasSuggestion);
+        } else {
+            result = formatOutput(data,pr,wasSuggestion);
+            ui.displayMessage(result,wasSuggestion);
+        }
+    }
+
+    /*
     Must only be called asynchronously from the GUIcore.
     Downloads new data to a local variable in the background.
     */
@@ -293,6 +305,9 @@ public class Core extends Application {
         System.out.println("New data available!");//DEBUG
         if(writingScrape){
             System.out.println("Couldn't retrieve new data, as it was being written");
+            return;
+        }
+        if(lastestScrape == null){
             return;
         }
         readingScrape = true;

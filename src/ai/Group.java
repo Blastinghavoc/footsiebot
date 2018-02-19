@@ -10,6 +10,10 @@ public class Group implements Comparable<Group> {
   private Float irrelevantSuggestionWeight;
 
 
+  public Group(String code) {
+    this.code = code;
+  }
+
   public Group(ArrayList<Company> companies, String code, Float priority, Float irrelevantSuggestionWeight) {
     this.companies = companies;
     this.code = code;
@@ -18,8 +22,24 @@ public class Group implements Comparable<Group> {
 
   }
 
+  public void addCompanies(ArrayList<Company> companies) {
+    this.companies = companies;
+  }
+
+  public ArrayList<Company> getCompanies() {
+    return companies;
+  }
+
   public String getGroupCode() {
 	   return code;
+  }
+
+  public void setPriority(Float priority) {
+    this.priority = priority;
+  }
+
+  public void setIrrelevantSuggestionWeight(Float irrelevantSuggestionWeights) {
+    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
   }
 
   public Float getPriority() {
