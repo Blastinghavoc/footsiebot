@@ -29,6 +29,8 @@ public class Core extends Application {
     private Boolean readingScrape = false;
     private Boolean writingScrape = false;
 
+    private Intent[] extraDataAddedToLastOutput;
+
    /**
     * Constructor for the core
     */
@@ -171,15 +173,24 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " .";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case TRADING_VOLUME:
                 break;
             case PERCENT_CHANGE:
-                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened";
+                output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened.";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case OPENING_PRICE:
                 break;
@@ -255,6 +266,20 @@ public class Core extends Application {
             result = formatOutput(data,pr,wasSuggestion);
             ui.displayMessage(result,wasSuggestion);
         }
+    }
+
+    private String addExtraDataToOutput(String output,String[] data){
+        output += "\n";
+        if (data.length > 1){
+            output += "Related data about this company:";
+            String[] temp;
+            for(int i = 1; i < data.length;i++){
+                temp = data[i].split(",");//relying on data being in csv form
+                output += "\n" + temp[0] + " = " + temp[1];
+            }
+        }
+        //TODO: add entries to extraDataAddedToLastOutput so that an AI suggestion suggesting this info can be ignored.
+        return output;
     }
 
     /*
