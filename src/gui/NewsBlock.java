@@ -2,21 +2,13 @@ package footsiebot.gui;
 
 import footsiebot.Core;
 import footsiebot.datagathering.Article;
-import java.time.LocalDateTime;
-import javafx.application.*;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.stage.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.*;
 import javafx.geometry.*;
-import javafx.scene.text.Font;
-import javafx.scene.text.Text;
 import javafx.animation.*;
 import javafx.scene.image.*;
+import javafx.scene.layout.*;
+import javafx.scene.control.*;
 import javafx.util.Duration;
 
 public class NewsBlock extends BorderPane {
@@ -65,7 +57,7 @@ public class NewsBlock extends BorderPane {
         });
 
         close.setOnMouseClicked(e -> {
-            FadeTransition removalTrans = new FadeTransition(Duration.millis(500), this);
+            FadeTransition removalTrans = new FadeTransition(Duration.millis(400), this);
             removalTrans.setFromValue(1);
             removalTrans.setToValue(0);
             removalTrans.setOnFinished(event -> {

@@ -1,19 +1,14 @@
 package footsiebot.gui;
 
 import java.time.LocalDateTime;
-import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.stage.Stage;
 import javafx.scene.layout.*;
-import javafx.stage.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.*;
-import javafx.geometry.*;
-import javafx.scene.text.Font;
+import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import java.lang.Math;
+import javafx.scene.shape.Rectangle;
+import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.util.Duration;
 
