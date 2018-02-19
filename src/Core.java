@@ -167,7 +167,7 @@ public class Core extends Application {
         return dbm.getCompaniesInGroup(group);
     }
 
-    private String formatOutput(String[] data,ParseResult pr){
+    private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
@@ -195,6 +195,11 @@ public class Core extends Application {
             System.out.println("No cases ran in core");
             break;
         }
+
+        if (wasSuggestion){
+            output = "You may also want to know:\n" + output;
+        }
+
         return output;
     }
 
@@ -235,13 +240,19 @@ public class Core extends Application {
 
         if(data == null){
             System.out.println("NULL DATA!");
+            if(wasSuggestion){
+                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query",false);
+            }else{
+                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query",false);
+            }
+            return;
         }
 
         if (pr.isOperandGroup()) {
-            result = formatOutput(data,pr);
+            result = formatOutput(data,pr,wasSuggestion);
             ui.displayMessage(result,wasSuggestion);
         } else {
-            result = formatOutput(data,pr);
+            result = formatOutput(data,pr,wasSuggestion);
             ui.displayMessage(result,wasSuggestion);
         }
     }
@@ -291,6 +302,9 @@ public class Core extends Application {
         System.out.println("New data available!");//DEBUG
         if(writingScrape){
             System.out.println("Couldn't retrieve new data, as it was being written");
+            return;
+        }
+        if(lastestScrape == null){
             return;
         }
         readingScrape = true;
