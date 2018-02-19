@@ -29,7 +29,7 @@ public class WebScraper {
         ArrayList<Float> pricelist = new ArrayList<Float>();
         ArrayList<Float> abslist = new ArrayList<Float>();
         ArrayList<Float> perclist = new ArrayList<Float>();
-        
+
         // int i = 0;
         // int j = 0;
 
@@ -57,7 +57,7 @@ public class WebScraper {
             try {
                 page = Jsoup.connect(url + i).get();
             } catch (IOException e) {
-                e.printStackTrace();    
+                e.printStackTrace();
                 return null;
             }
 
@@ -66,7 +66,7 @@ public class WebScraper {
 
             for (Element entry : entries) {
                 Elements columns = entry.select("td");
-                int j = 1;            
+                int j = 1;
                 elementloop: for (Element column : columns) {
                     switch (j) {
                         case 1: codelist.add(column.text());
@@ -74,14 +74,14 @@ public class WebScraper {
                         case 2:
                             namelist.add("nametest");
                             grouplist.add("grouptest");
-                            Document summary;
-                            String surl;
-                            try {
-                                summary = Jsoup.connection(surl).get();
-                            } catch (IOException e) {
-                                e.printStackTrace();    
-                                return null;
-                            }    
+                            // Document summary;
+                            // String surl;
+                            // try {
+                            //     summary = Jsoup.connect(surl).get();
+                            // } catch (IOException e) {
+                            //     e.printStackTrace();
+                            //     return null;
+                            // }
                             break;
                         case 3: break;
                         case 4: pricelist.add(Float.parseFloat(column.text().replace(",", "")));
