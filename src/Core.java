@@ -29,7 +29,8 @@ public class Core extends Application {
     private Boolean readingScrape = false;
     private Boolean writingScrape = false;
 
-    private Intent[] extraDataAddedToLastOutput;
+    private ArrayList<Intent> extraDataAddedToLastOutput;
+    private String lastOperandOutput;
 
    /**
     * Constructor for the core
@@ -166,7 +167,7 @@ public class Core extends Application {
         else{
             System.out.println("Null suggestion");
         }
-
+        lastOperandOutput = pr.getOperand();
     }
 
 
@@ -224,13 +225,21 @@ public class Core extends Application {
     * Decodes a Suggestion and performs relevant output
     */
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
+
         if(suggestion.isNews()){
             outputNews(pr,true);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
-            outputFTSE(suggestion.getParseResult(),true);
-            System.out.println("Displayed suggestion for pr = "+suggestion.getParseResult().toString());//DEBUG
+            ParseResult suggPr = suggestion.getParseResult();
+            if((extraDataAddedToLastOutput != null)&& lastOperandOutput.equals(suggPr.getOperand())){
+                if((suggPr.getIntent() == pr.getIntent()) ||extraDataAddedToLastOutput.contains(suggPr.getIntent())){
+                    //The intent suggested has already been displayed to the user.
+                    return;
+                }
+            }
+            outputFTSE(suggPr,true);
+            System.out.println("Displayed suggestion for pr = "+suggPr.toString());//DEBUG
         }
     }
 
@@ -238,7 +247,7 @@ public class Core extends Application {
         Article[] result;
         if (pr.isOperandGroup()) {
             String[] companies = groupNameToCompanyList(pr.getOperand());
-            //TODO resolve a group name into a list of companies
+
             result = dgc.getNews(companies);
         } else {
             result = dgc.getNews(pr.getOperand());
@@ -275,17 +284,25 @@ public class Core extends Application {
     }
 
     private String addExtraDataToOutput(String output,String[] data){
-        output += "\n";
+        extraDataAddedToLastOutput = null;
         if (data.length > 1){
+            output += "\n";
+            extraDataAddedToLastOutput = new ArrayList<Intent>();
             output += "Related data about this company:";
             String[] temp;
             for(int i = 1; i < data.length;i++){
                 temp = data[i].split(",");//relying on data being in csv form
                 output += "\n" + temp[0] + " = " + temp[1];
+                extraDataAddedToLastOutput.add(convertColumnNameToIntent(temp[0]));//NOTE: NEEDS TESTING
             }
         }
-        //TODO: add entries to extraDataAddedToLastOutput so that an AI suggestion suggesting this info can be ignored.
         return output;
+    }
+
+    private Intent convertColumnNameToIntent(String s){
+        //NOTE: probably highly inefficient, may not even work! Needs testing.
+        Intent in = nlp.parse(s).getIntent();
+        return in;
     }
 
     private Boolean checkParseResultValid(ParseResult pr){
