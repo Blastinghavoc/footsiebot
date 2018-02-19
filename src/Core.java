@@ -133,6 +133,7 @@ public class Core extends Application {
     * @param raw the String input by the user
     */
     public void onUserInput(String raw) {
+        //TODO: Check if user input valid
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
         if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
