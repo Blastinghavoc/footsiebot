@@ -386,7 +386,11 @@ public class GUIcore implements IGraphicalUserInterface {
                     core.downloadNewData();
                     Thread.sleep(core.DOWNLOAD_RATE);
                 }
-            } catch (Exception e) {
+            }
+            catch (InterruptedException e){
+                closing = true;
+            }
+            catch (Exception e) {
                 // should not be able to get here...
                 System.out.println("Error in thread");
                 e.printStackTrace();
@@ -398,6 +402,7 @@ public class GUIcore implements IGraphicalUserInterface {
     public void stopDataDownload(){
         closing = true;
         try{
+            dataDownload.interrupt();
             dataDownload.join();
         }catch(Exception e){
             e.printStackTrace();
