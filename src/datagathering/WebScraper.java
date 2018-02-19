@@ -6,6 +6,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.lang.Float;
+import java.lang.Integer;
 import java.util.ArrayList;
 
 public class WebScraper {
@@ -14,43 +15,13 @@ public class WebScraper {
 
     public ScrapeResult scrape() {
         Document page;
-
-        // try {
-        //     page = Jsoup.connect("https://arcane-citadel-48781.herokuapp.com/").get();
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        //     return null;
-        // }
-
-        // Elements entries = page.select("item").select("description");
         ArrayList<String> codelist = new ArrayList<String>();
         ArrayList<String> namelist = new ArrayList<String>();
         ArrayList<String> grouplist = new ArrayList<String>();
         ArrayList<Float> pricelist = new ArrayList<Float>();
         ArrayList<Float> abslist = new ArrayList<Float>();
         ArrayList<Float> perclist = new ArrayList<Float>();
-        
-        // int i = 0;
-        // int j = 0;
-
-        // for (Element entry : entries) {
-        //     // System.out.println("entry " + i);
-        //     // System.out.println(entry.text());
-        //     String[] content = entry.text().split(",");
-        //     codes[i] = content[j++];
-        //     names[i] = content[j++];
-        //     j++;
-        //     groups[i] = "grouptest";
-        //     if (content[j].contains(".")) prices[i] = Float.parseFloat(content[j++]);
-        //     else {
-        //         prices[i] = Float.parseFloat(content[j] + content[j+1]);
-        //         j+=2;
-        //     }
-        //     absChange[i] = Float.parseFloat(content[j++]);
-        //     percChange[i] = Float.parseFloat(content[j++]);
-        //     j = 0;
-        //     i++;
-        // }
+        ArrayList<Integer> vollist = new ArrayList<Integer>();
 
         String url = "http://www.londonstockexchange.com/exchange/prices-and-markets/stocks/indices/summary/summary-indices-constituents.html?index=UKX&page=";
         for (int i = 1; i < 7; i++) {
@@ -72,16 +43,38 @@ public class WebScraper {
                         case 1: codelist.add(column.text());
                             break;
                         case 2:
-                            namelist.add("nametest");
-                            grouplist.add("grouptest");
+                            // namelist.add("nametest");
+                            // grouplist.add("grouptest");
+                            // vollist.add(null);
                             Document summary;
-                            String surl;
+                            String surl = column.select("a").first().attr("abs:href");
+                            // String name, group, volume; 
                             try {
-                                summary = Jsoup.connection(surl).get();
+                                summary = Jsoup.connect(surl).get();
                             } catch (IOException e) {
-                                e.printStackTrace();    
+                                e.printStackTrace();
                                 return null;
-                            }    
+                            }
+                            String nametext = summary.select(".tesummary").first().ownText();
+                            int index = nametext.indexOf(" ORD");
+                            if (index == -1) {
+                                index = nametext.indexOf(" $");
+                            }
+                            if (index == -1) {
+                                namelist.add(nametext);
+                                // name = nametext;
+                            } else {
+                                // name = nametext.substring(0, index);
+                                namelist.add(nametext.substring(0, index));
+                            }
+
+                            // group = summary.select("td:contains(sector) ~ td").first().text();
+                            // volume = summary.select("td:contains(volume) ~ td").first().text().replace(",", "");
+                            grouplist.add(summary.select("td:contains(sector) ~ td").first().text());
+                            vollist.add(Integer.parseInt(summary.select("td:contains(volume) ~ td").first().text().replace(",", "")));
+                            // System.out.println("name: " + name);
+                            // System.out.println("group: " + group);
+                            // System.out.println("trading volume: " + volume);                            
                             break;
                         case 3: break;
                         case 4: pricelist.add(Float.parseFloat(column.text().replace(",", "")));
@@ -103,7 +96,8 @@ public class WebScraper {
         Float[] prices = pricelist.toArray(new Float[0]);
         Float[] absChange = abslist.toArray(new Float[0]);
         Float[] percChange = perclist.toArray(new Float[0]);
+        Integer[] tradeVolume = vollist.toArray(new Integer[0]);
 
-        return new ScrapeResult(codes, names, groups, prices, absChange, percChange);
+        return new ScrapeResult(codes, names, groups, prices, absChange, percChange, tradeVolume);
     }
 }
