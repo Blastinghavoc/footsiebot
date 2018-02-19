@@ -42,6 +42,11 @@ public class ScrapeResult {
         return percChange[index];
     }
 
+
+    public int getSize() {
+        return names.length;
+    }
+
     public Boolean equals(ScrapeResult sr){
         Boolean areEqual = true;
         if(!this.codes.equals(sr.codes)){
@@ -63,6 +68,7 @@ public class ScrapeResult {
             areEqual = false;
         }
         return areEqual;
+
     }
 
 }

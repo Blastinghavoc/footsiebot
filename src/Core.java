@@ -384,6 +384,7 @@ public class Core extends Application {
             return;
         }
         System.out.println("New data available!");//DEBUG
+
         if(writingScrape){
             System.out.println("Couldn't retrieve new data, as it was being written");
             return;
