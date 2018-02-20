@@ -86,16 +86,6 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        // Article[] news = new Article[5];
-        // news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
-        // news[1] = new Article("HSBC is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, HSBC, is closing down and all their customers will be left with nothing");
-        // news[2] = new Article("Santander is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Santander, is closing down and all their customers will be left with nothing");
-        // news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
-        // news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
-        // ui.displayResults(news, true);
-        // ui.displayMessage("AI suggestion", true);
-
-        //onNewDataAvailable();//Call once on startup
     }
 
    /**
@@ -201,12 +191,29 @@ public class Core extends Application {
                 }
                 break;
             case OPENING_PRICE:
+                output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ");
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case CLOSING_PRICE:
+                output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ");
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case TREND:
+                /*TODO:
+                    Will ouput whether or not the given company rose or fell on the given day, based on opening and closing prices.
+                    If the day is today, will base it on opening price and current price.
+                    Additional data will be opening and closing prices if not for today,
+                    else will be opening price and most recent price.
+
+                    Possibly add "microtrend": analysis of last two snapshots.
+                */
                 break;
             case NEWS:
+                //Nothing to do here, should never run, TODO remove
                 break;
             case GROUP_FULL_SUMMARY:
                 break;
