@@ -1,6 +1,24 @@
+@font-face {
+    src: url("fonts/CookieMonster.ttf");
+}
+
 .root {
     -fx-background-color: white;
     -fx-accent: derive(#6699CC, 50%);
+}
+
+#name-label {
+    -fx-font-family: "CookieMonster";
+    -fx-font-size: 23pt;
+}
+
+#chat-pane {
+    /**/
+}
+
+#top-bar {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
+    -fx-background-color: white;
 }
 
 /*==============================================================================
@@ -11,26 +29,50 @@
     -fx-background-color: transparent;
 }
 
-/*#message-board {
-    -fx-background-color: blue;
-}*/
+#message-board {
+    -fx-background-color: transparent;
+}
 
-.scroll-bar .thumb {
-    -fx-background-color: black;
-    -fx-opacity: 0.5;
+#board-wrapper > .scroll-bar {
+    -fx-opacity: 1;
+    -fx-background-color: transparent;
+}
+
+#board-wrapper > .scroll-bar > .thumb {
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.3;
     -fx-background-radius: 2em;
-    /*-fx-background-insets: 2, 0;*/
 }
 
-.scroll-bar .track-background {
-    -fx-background-color: white;
+#board-wrapper > .scroll-bar > .thumb:pressed {
+    /*derive(#6699CC, -15%)*/
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.4;
 }
 
-.scroll-bar .increment-arrow,
-.scroll-bar .decrement-arrow {
-    /*-fx-shape: " ";*/
+#board-wrapper > .scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+#board-wrapper > .scroll-bar > .increment-button,
+#board-wrapper > .scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+}
+
+#board-wrapper > .scroll-bar > .increment-button > .increment-arrow,
+#board-wrapper > .scroll-bar > .decrement-button > .decrement-arrow {
     -fx-background-color: black;
-    -fx-opacity: 0.5;
+    -fx-opacity: 0.4;
+}
+
+#board-wrapper > .scroll-bar > .increment-button > .increment-arrow:pressed,
+#board-wrapper > .scroll-bar > .decrement-button > .decrement-arrow:pressed {
+    -fx-background-color: black;
+    -fx-opacity: 0.55;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
 }
 
 /*==============================================================================
@@ -112,6 +154,8 @@
 ==============================================================================*/
 
 #input-wrapper {
+    -fx-border-color: derive(white, -7%);
+    -fx-border-width: 1 0 0 0;
     -fx-background-color: derive(white, -4%);
 }
 
@@ -137,4 +181,106 @@
 
 #send-button:hover {
     -fx-background-color: #5783af;
+}
+
+#settings-icon {
+    -fx-cursor: hand;
+}
+
+/*==============================================================================
+=================================== Side Pane ==================================
+==============================================================================*/
+
+#side-pane {
+    -fx-border-color: derive(white, -10%);
+    -fx-border-width: 0 0 0 1;
+    -fx-background-color: white;
+}
+
+#settings-pane {
+    -fx-background-color: derive(white, -4%);
+}
+
+#news-pane {
+    -fx-background-color: transparent;
+}
+
+#news-wrapper {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+}
+
+#news-wrapper > .scroll-bar {
+    -fx-opacity: 1;
+    -fx-background-color: derive(#6699CC, 95%);
+}
+
+#news-wrapper > .scroll-bar > .thumb {
+    -fx-background-color: transparent, derive(#6699CC, -15%), transparent;
+    -fx-opacity: 0.3;
+    -fx-background-radius: 2em;
+}
+
+#news-wrapper > .scroll-bar > .thumb:pressed {
+    /*derive(#6699CC, -15%)*/
+    -fx-background-color: transparent, derive(#6699CC, -15%), transparent;
+    -fx-opacity: 0.5;
+}
+
+#news-wrapper > .scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+#news-wrapper > .scroll-bar > .increment-button,
+#news-wrapper > .scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+}
+
+#news-wrapper > .scroll-bar > .increment-button > .increment-arrow,
+#news-wrapper > .scroll-bar > .decrement-button > .decrement-arrow {
+    /*-fx-shape: " ";*/
+    -fx-background-color: derive(#6699CC, -15%);
+    -fx-opacity: 0.4;
+}
+
+#news-wrapper > .scroll-bar > .increment-button > .increment-arrow:pressed,
+#news-wrapper > .scroll-bar > .decrement-button > .decrement-arrow:pressed {
+    /*-fx-shape: " ";*/
+    -fx-background-color: derive(#6699CC, -15%);
+    -fx-opacity: 0.7;
+}
+
+#news-board {
+    -fx-background-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
+}
+
+.news-block {
+    -fx-cursor: hand;
+    -fx-background-color: derive(#6699CC, 95%);
+    -fx-border-color: derive(#6699CC, 85%);
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: solid outside;
+    -fx-text-fill: black;
+}
+
+.news-block:hover {
+    -fx-background-color: derive(#6699CC, 85%);
+    /*-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 20, 0, 5, 0);*/
+}
+
+.headline {
+    /*-fx-font-style: italic;*/
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.digest {
+    -fx-text-fill: black;
+    -fx-font-size: 8pt;
+}
+
+.url {
+    -fx-font-size: 8.5pt;
+    -fx-text-fill: navy;
 }

@@ -14,6 +14,8 @@ import javafx.geometry.*;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import java.lang.Math;
+import javafx.animation.*;
+import javafx.util.Duration;
 
 public class Message extends FlowPane {
     private Label msg;
@@ -26,17 +28,21 @@ public class Message extends FlowPane {
     private double height;
     private GUIcore ui;
     private boolean isAI;
+    private Message parent;
 
-    public Message(String text, LocalDateTime timestamp, Stage stage, boolean sent, boolean isAI, GUIcore ui) {
+    public Message(String text, LocalDateTime timestamp, boolean sent, boolean isAI, GUIcore ui) {
         super();
+        double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
+
         this.timestamp = timestamp;
         this.sent = sent;
         this.ui = ui;
         this.isAI = isAI;
-        setPrefWidth(stage.getScene().getWidth() - 36);
-        setMaxWidth(stage.getScene().getWidth() - 36);
+        parent = null;
+        setPrefWidth(chatPaneWidth - 36);
+        setMaxWidth(chatPaneWidth - 36);
 
-        final double maxWidth = (stage.getScene().getWidth() - 36) * 0.55;
+        final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
@@ -75,10 +81,105 @@ public class Message extends FlowPane {
             btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
 
             lbl.setOnMouseClicked(e -> {
-                ui.displayMessage("This is why", false);
+                ui.displayMessage("This is why", false, this);
             });
 
             lbl2.setOnMouseClicked(e -> {
+                for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
+                    if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
+                        Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
+                        if (tmp.getParentMsg() == this)
+                            ui.getMessageBoard().getChildren().removeAll(tmp);
+                    }
+                }
+                ui.getMessageBoard().getChildren().removeAll(this);
+            });
+        }
+
+        if (sent) {
+            if (isAI)
+                getChildren().add(btnWrapper);
+            getChildren().add(msgWrapper);
+            msg.getStyleClass().add("user-label");
+            visual.getStyleClass().add("user-visual");
+            getStyleClass().add("user-message");
+            msg.setAlignment(Pos.CENTER_RIGHT);
+            setAlignment(Pos.CENTER_RIGHT);
+        } else {
+            getChildren().addAll(msgWrapper);
+            if (isAI)
+                getChildren().add(btnWrapper);
+            msg.getStyleClass().add("system-label");
+            visual.getStyleClass().add("system-visual");
+            getStyleClass().add("system-message");
+            msg.setAlignment(Pos.CENTER_LEFT);
+            setAlignment(Pos.CENTER_LEFT);
+        }
+    }
+
+    public Message(String text, LocalDateTime timestamp, GUIcore ui, Message parent) {
+        super();
+        double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
+
+        this.timestamp = timestamp;
+        sent = false;
+        this.ui = ui;
+        isAI = false;
+        this.parent = parent;
+        setPrefWidth(chatPaneWidth - 36);
+        setMaxWidth(chatPaneWidth - 36);
+
+        final double maxWidth = (chatPaneWidth - 36) * 0.55;
+        Text sizing = new Text(text);
+        if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
+            sizing.setWrappingWidth(maxWidth);
+
+        width = Math.ceil(sizing.getLayoutBounds().getWidth());
+        height = Math.ceil(sizing.getLayoutBounds().getHeight());
+        msg = new Label(text);
+        msg.setMaxWidth(width);
+        msg.setMinHeight(height);
+        msg.setWrapText(true);
+
+        visual = new Rectangle((width + 14), (height + 8));
+        msgWrapper = new StackPane();
+        msgWrapper.setMinWidth(visual.getWidth());
+        msgWrapper.setMaxWidth(visual.getWidth());
+        msgWrapper.getChildren().addAll(visual, msg);
+
+        Tooltip aiNote = new Tooltip("Why am I seeing this?");
+        Tooltip removeNote = new Tooltip("Remove message");
+
+        if (isAI) {
+            btnWrapper = new StackPane();
+            Insets btnPadding = new Insets(0, 5, 2, 5);
+            btnWrapper.setPadding(btnPadding);
+            Label lbl2 = new Label("x");
+            lbl2.getStyleClass().add("remove-button");
+            lbl2.setTooltip(removeNote);
+            Text lblSize = new Text("?");
+            Label lbl = new Label("?");
+            lbl.setTooltip(aiNote);
+            lbl.setAlignment(Pos.CENTER);
+            lbl.setMinWidth(lblSize.getLayoutBounds().getHeight());
+            lbl.getStyleClass().add("options-button");
+            btnWrapper.getChildren().addAll(lbl, lbl2);
+            btnWrapper.setAlignment(lbl2, Pos.TOP_CENTER);
+            btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
+
+            lbl.setOnMouseClicked(e -> {
+                ui.displayMessage("This is why", false, this);
+            });
+
+            lbl2.setOnMouseClicked(e -> {
+                for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
+                    if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
+                        Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
+
+                        if (tmp.getParentMsg() == this)
+                            ui.getMessageBoard().getChildren().removeAll(tmp);
+                    }
+                }
                 ui.getMessageBoard().getChildren().removeAll(this);
             });
         }
@@ -110,10 +211,11 @@ public class Message extends FlowPane {
     * @param stage the stage used to calculate widths
     */
     public void resize(Stage stage) {
-        setPrefWidth(stage.getScene().getWidth() - 36);
-        setMaxWidth(stage.getScene().getWidth() - 36);
+        double chatPaneWidth = stage.getScene().getWidth() * 0.6875;
+        setMinWidth(chatPaneWidth - 36);
+        setMaxWidth(chatPaneWidth - 36);
 
-        final double maxWidth = (stage.getScene().getWidth() - 36) * 0.55;
+        final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(msg.getText());
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
@@ -129,12 +231,21 @@ public class Message extends FlowPane {
         if (isAI)
             btnWrapper.setMaxHeight(visual.getHeight());
 
-        setMinHeight(getVisual().getHeight() + 10);
-        setMaxHeight(getVisual().getHeight() + 10);
+        setMinHeight(visual.getHeight() + 10);
+        setMaxHeight(visual.getHeight() + 10);
     }
 
    /**
-    * Getter for msg
+    * Accessor for parent
+    *
+    * @return the parent of this Message
+    */
+    public Message getParentMsg() {
+        return parent;
+    }
+
+   /**
+    * Accessor for msg
     *
     * @return returns msg
     */
@@ -143,7 +254,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for the text of msg
+    * Accessor for the text of msg
     *
     * @return returns a String representation of msg
     */
@@ -152,7 +263,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for sent
+    * Accessor for sent
     *
     * @return returns sent
     */
@@ -161,7 +272,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for visual
+    * Accessor for visual
     *
     * @return returns visual
     */
@@ -170,7 +281,7 @@ public class Message extends FlowPane {
     }
 
    /**
-    * Getter for timestamp
+    * Accessor for timestamp
     *
     * @return returns timestamp
     */
