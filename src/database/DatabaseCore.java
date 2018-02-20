@@ -201,6 +201,10 @@ public class DatabaseCore implements IDatabaseManager {
         Statement s1 = null;
         ResultSet results = null;
         ArrayList<String> output = new ArrayList<String>();
+        if(FTSEQuery == null || FTSEQuery.isEmpty()){
+            System.out.println("Null query");//DEBUG
+            return null;
+        }
 
         // add asked for data to first index of array
         try {
@@ -240,8 +244,6 @@ public class DatabaseCore implements IDatabaseManager {
         Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
         String colName = "";
 
-        PreparedStatement s1 = null;
-
         switch (intent) {
             case SPOT_PRICE:
                 isFetchCurrentQuery = true;
@@ -279,8 +281,6 @@ public class DatabaseCore implements IDatabaseManager {
             query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
         }
-
-        tryClose(s1);
 
         return query;
     }
