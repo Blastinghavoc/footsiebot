@@ -299,6 +299,8 @@ public class GUIcore implements IGraphicalUserInterface {
             resizeMessages();
             resizeNews(newsBoard.getWidth());
             stage.setScene(scene);
+            messageBoard.applyCss();
+            messageBoard.layout();
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
@@ -546,9 +548,16 @@ public class GUIcore implements IGraphicalUserInterface {
         for (int i = 0; i < messages.size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
                 Message tmp = (Message) messageBoard.getChildren().get(i);
+                System.out.println("Message: " + tmp.getText());
+                System.out.println("Initial visual: " + tmp.getVisual().getHeight());
+                System.out.println("Initial label: " + tmp.getLabel().getHeight());
                 tmp.resize(stage);
+                System.out.println("Updated visual: " + tmp.getVisual().getHeight());
+                System.out.println("Updated label: " + tmp.getLabel().getHeight());
+                System.out.println("=======================================");
             }
         }
+        System.out.println("//////////////////////////////");
     }
 
    /**

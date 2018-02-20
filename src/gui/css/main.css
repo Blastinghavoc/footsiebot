@@ -110,7 +110,7 @@
 }
 
 .system-label {
-    /*-fx-background-color: transparent;*/
+    /*-fx-background-color: lightblue;*/
     -fx-padding: 0;
     -fx-text-fill: black;
     /*-fx-cursor: text;*/

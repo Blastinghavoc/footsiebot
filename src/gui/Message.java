@@ -104,7 +104,6 @@ public class Message extends FlowPane {
             finishSetup("system");
             setAlignment(Pos.CENTER_LEFT);
         }
-
     }
 
     private void initMessage(String text) {
@@ -171,21 +170,26 @@ public class Message extends FlowPane {
         setMaxWidth(chatPaneWidth - 36);
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
+        // System.out.println("Message max width: " + maxWidth);
         Text sizing = new Text(msg.getText());
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
-        width = Math.ceil(sizing.getLayoutBounds().getWidth());
-        height = Math.ceil(sizing.getLayoutBounds().getHeight());
-        msgWrapper.setMinWidth(visual.getWidth());
-        msgWrapper.setMaxWidth(visual.getWidth());
+        width = sizing.getLayoutBounds().getWidth();
+        height = sizing.getLayoutBounds().getHeight();
+
         msg.setMaxWidth(width);
+        msg.setMaxHeight(height);
         visual.setWidth(width + 14);
         visual.setHeight(height + 8);
 
         if (isAI)
             btnWrapper.setMaxHeight(visual.getHeight());
 
+        msgWrapper.setMinWidth(visual.getWidth());
+        msgWrapper.setMaxWidth(visual.getWidth());
+        msgWrapper.setMinHeight(visual.getHeight() + 10);
+        msgWrapper.setMaxHeight(visual.getHeight() + 10);
         setMinHeight(visual.getHeight() + 10);
         setMaxHeight(visual.getHeight() + 10);
     }
