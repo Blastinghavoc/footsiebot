@@ -44,7 +44,8 @@ public class NewsScraper {
 
 	public Article[] scrapeNews(String company) {
 		//Get URL for the RSS feed specific for that company
-		String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + company;
+		String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + company+".L";//NOTE: appending .L to signify that the ticker used is the LSE meaning of the ticker
+		System.out.println(url);//DEBUG
 		return scrape(url);
 	}
 
@@ -83,7 +84,7 @@ public class NewsScraper {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(rssURL.openStream()));
 
 			/*
-			
+
 			The result of the Yahoo! RSS feed is as follows:
 
 			A series of <item>s, containing:
