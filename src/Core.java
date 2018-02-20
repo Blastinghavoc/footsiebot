@@ -21,7 +21,7 @@ public class Core extends Application {
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
-    public static long TRADING_TIME = 50000000; //The time of day in milliseconds to call onTradingHour.
+    public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
     public static long DOWNLOAD_RATE = 60000;//Download new data every 60 seconds
     private volatile ScrapeResult lastestScrape;
@@ -63,10 +63,14 @@ public class Core extends Application {
     public void start(Stage primaryStage) {
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
+        Boolean runTradingHourTest = false;
         if (args.size() > 0) {
             if (args.get(0).equals("nlp")) {
                 debugNLP();
                 System.exit(0);
+            }
+            else if (args.get(0).equals("tradinghour")){
+                runTradingHourTest = true;
             }
         }
 
@@ -85,7 +89,14 @@ public class Core extends Application {
             // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
-
+        
+        if(runTradingHourTest){
+            try{
+                onTradingHour();//DEBUG
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
    /**
@@ -436,7 +447,43 @@ public class Core extends Application {
 
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
-        ic.onNewsTime();
+        Company[] companies = ic.onNewsTime();
+        String[] companyCodes = new String[companies.length];
+        String output = "Hi Dave, it's time for your daily summary!\nI've detected the following companies as important to you:";
+        if((companies == null) || (companies.length < 1)){
+            return;
+        }
+        output += "\ncode  : spot     abs      perc     ";//"open  ";
+        for(int i = 0;i < companies.length;i++){
+            Company c = companies[i];
+            String resizedCode = c.getCode();
+            companyCodes[i] = resizedCode;
+            while(resizedCode.length() <= 5){
+                resizedCode += " ";
+            }
+            output += "\n"+resizedCode + " : ";
+            String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
+            String[] temp;
+            for(String s:data){
+                temp = s.split(",");
+                String val;
+                if(temp.length < 2){
+                    val = temp[0];
+                }
+                else{
+                    val = temp[1];
+                }
+
+                while(val.length() < 8){
+                    val += " ";
+                }
+                output += val+" ";
+            }
+        }
+        output += "\n\nYou may also view the latest news for these companies in the news pane";
+        Article[] news = dgc.getNews(companyCodes);
+        ui.displayResults(news,false);
+        ui.displayMessage(output,false);
     }
 
     public void suggestionIrrelevant(String msg){
