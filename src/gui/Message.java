@@ -93,6 +93,7 @@ public class Message extends FlowPane {
                     }
                 }
                 ui.getMessageBoard().getChildren().removeAll(this);
+                ui.suggestionIrrelevant(msg.getText());
             });
         }
 
