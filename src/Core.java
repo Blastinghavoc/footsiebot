@@ -432,6 +432,20 @@ public class Core extends Application {
         ic.onNewsTime();
     }
 
+    public void suggestionIrrelevant(String msg){
+        //Extract company or group name from message.
+        ParseResult tempPr = nlp.parse(msg);
+        if((tempPr != null)&& (tempPr.getOperand() != null)){
+            System.out.println("Extracted operand: "+ tempPr.getOperand() + " from message: "+ msg);//DEBUG
+            ic.onSuggestionIrrelevant(tempPr.getOperand());
+            //TODO: make onSuggestionIrrelevant update the priorities in the database
+        }
+        else{
+            System.out.println("Couldn't extract operand from message: "+msg);//DEBUG
+        }
+
+    }
+
     private void debugNLP() {
         Boolean cont = true;
         while (cont) {

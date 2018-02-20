@@ -410,6 +410,10 @@ public class GUIcore implements IGraphicalUserInterface {
         System.out.println("Stopped download thread");
     }
 
+    public void suggestionIrrelevant(String msg){
+        core.suggestionIrrelevant(msg);
+    }
+
    /**
     * Starts the newDataTimeline to run the core action regularly
     * REF: http://tomasmikula.github.io/blog/2014/06/04/timers-in-javafx-and-reactfx.html
