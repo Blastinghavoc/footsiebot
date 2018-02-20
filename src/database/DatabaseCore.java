@@ -556,8 +556,43 @@ public class DatabaseCore implements IDatabaseManager {
       return result;
     }
 
+    private boolean detectedImportantChange() {
+      String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
+
+      ResultSet rs = null;
+      Statement stmt = null;
+
+      HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
+
+      Float treshold =0.0f;
+
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query);
+
+        while(rs.next()) {
+
+        }
+
+
+      } catch (SQLException e) {
+        printSQLException(e);
+      } finally {
+
+      }
+
+
+
+      return false;
+    }
+
+    //TODO
+    private void onSuggestionIrrelevant() {
+
+    }
+
     public IntentData getIntentForCompany() {
-        return null;
+      return null;
     }
 
     // This is potentially not needed couple of methods as

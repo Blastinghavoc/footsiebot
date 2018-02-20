@@ -105,18 +105,25 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
    }
 
+   //TODO return a suggestion object
    public String onUpdatedDatabase() {
+     Suggestion result = null;
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
      if(companies == null) {
-       return "Companies are null";
+       return null;
      }
      Collections.sort(companies);
      if(groups == null) {
-       return "Groups are null";
+       return null;
      }
      Collections.sort(groups);
+
+    // if(detectedImportantChange()) {
+    //
+    // }
+
      // What to return here ?
      return "";
    }
@@ -136,7 +143,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
      if(groups  != null){
          Collections.sort(groups);
      }
-
    }
 
    /**
@@ -182,9 +188,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    // TODO
-   private boolean detectedImportantChange() {
-	 return false;
-   }
+   // private boolean detectedImportantChange() {
+   //
+   //   return false;
+   // }
 
    /**
     *
@@ -245,14 +252,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
    private void updateLastSuggestion() {
 
    }
-
-
-
-
-
-
-
-
 
 
 }
