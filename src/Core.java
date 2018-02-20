@@ -182,7 +182,7 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " .";
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -292,7 +292,7 @@ public class Core extends Application {
     private String addExtraDataToOutput(String output,String[] data){
         extraDataAddedToLastOutput = null;
         if (data.length > 1){
-            output += "\n";
+            output += "\n\n";
             extraDataAddedToLastOutput = new ArrayList<Intent>();
             output += "Related data about this company:";
             String[] temp;
