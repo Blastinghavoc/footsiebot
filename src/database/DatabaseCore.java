@@ -210,6 +210,10 @@ public class DatabaseCore implements IDatabaseManager {
         Statement s1 = null;
         ResultSet results = null;
         ArrayList<String> output = new ArrayList<String>();
+        if(FTSEQuery == null || FTSEQuery.isEmpty()){
+            System.out.println("Null query");//DEBUG
+            return null;
+        }
 
         // add asked for data to first index of array
         try {
@@ -251,6 +255,7 @@ public class DatabaseCore implements IDatabaseManager {
         String timeSpecifierSQL = "";
         Boolean isFetchCurrentQuery = false;
         String colName = "";
+
         LocalDateTime currentTime = LocalDateTime.now();
         String comparisonTime = "";
 
@@ -428,7 +433,7 @@ public class DatabaseCore implements IDatabaseManager {
     			query += ", ";
     		}
     	}
-    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
+    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
     	// execute and store query results
     	try {
