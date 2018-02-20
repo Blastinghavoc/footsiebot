@@ -188,10 +188,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    // TODO
-   // private boolean detectedImportantChange() {
-   //
-   //   return false;
-   // }
+   private boolean detectedImportantChange() {
+
+     return false;
+   }
 
    /**
     *

@@ -555,40 +555,52 @@ public class DatabaseCore implements IDatabaseManager {
 
       return result;
     }
-
-    private boolean detectedImportantChange() {
+    //TODO
+    private ArrayList<String> detectedImportantChange() {
       String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
 
       ResultSet rs = null;
       Statement stmt = null;
+      ArrayList<String> result = new ArrayList<>();
 
       HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
 
-      Float treshold =0.0f;
+      Float treshold = 0.0f;
 
       try {
         stmt = conn.createStatement();
         rs = stmt.executeQuery(query);
 
         while(rs.next()) {
+          String companyName = rs.getString("CompanyCode");
+          Float percChange = rs.getFloat("PercentageChange");
 
+          if(percChange > treshold) {
+            companiesPercChangeMap.put(companyName, percChange);
+          }
         }
 
+        Set<String> winningNames = companiesPercChangeMap.keySet();
+
+        for(String s: winningNames) {
+          result.add(s);
+        }
 
       } catch (SQLException e) {
         printSQLException(e);
       } finally {
-
+        if (stmt != null) { tryClose(stmt); }
+        if(rs != null) {tryClose(rs); }
       }
 
-
-
-      return false;
+      if(result.size() == 0) return null;
+      return result;
     }
+
 
     //TODO
     private void onSuggestionIrrelevant() {
-
+      
     }
 
     public IntentData getIntentForCompany() {
