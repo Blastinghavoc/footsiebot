@@ -21,7 +21,7 @@ public class Core extends Application {
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
-    public static long TRADING_TIME = 50000000; //The time of day in milliseconds to call onTradingHour.
+    public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
     public static long DOWNLOAD_RATE = 60000;//Download new data every 60 seconds
     private volatile ScrapeResult lastestScrape;
@@ -63,10 +63,14 @@ public class Core extends Application {
     public void start(Stage primaryStage) {
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
+        Boolean runTradingHourTest = false;
         if (args.size() > 0) {
             if (args.get(0).equals("nlp")) {
                 debugNLP();
                 System.exit(0);
+            }
+            else if (args.get(0).equals("tradinghour")){
+                runTradingHourTest = true;
             }
         }
 
@@ -85,17 +89,14 @@ public class Core extends Application {
             // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
-
-        Article[] news = new Article[5];
-        news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
-        news[1] = new Article("HSBC is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, HSBC, is closing down and all their customers will be left with nothing");
-        news[2] = new Article("Santander is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Santander, is closing down and all their customers will be left with nothing");
-        news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
-        news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
-        ui.displayResults(news, true);
-        ui.displayMessage("AI suggestion", true);
-
-        //onNewDataAvailable();//Call once on startup
+        
+        if(runTradingHourTest){
+            try{
+                onTradingHour();//DEBUG
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
    /**
@@ -201,12 +202,29 @@ public class Core extends Application {
                 }
                 break;
             case OPENING_PRICE:
+                output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ");
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case CLOSING_PRICE:
+                output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ");
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case TREND:
+                /*TODO:
+                    Will ouput whether or not the given company rose or fell on the given day, based on opening and closing prices.
+                    If the day is today, will base it on opening price and current price.
+                    Additional data will be opening and closing prices if not for today,
+                    else will be opening price and most recent price.
+
+                    Possibly add "microtrend": analysis of last two snapshots.
+                */
                 break;
             case NEWS:
+                //Nothing to do here, should never run, TODO remove
                 break;
             case GROUP_FULL_SUMMARY:
                 break;
@@ -429,7 +447,57 @@ public class Core extends Application {
 
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
-        ic.onNewsTime();
+        Company[] companies = ic.onNewsTime();
+        String[] companyCodes = new String[companies.length];
+        String output = "Hi Dave, it's time for your daily summary!\nI've detected the following companies as important to you:";
+        if((companies == null) || (companies.length < 1)){
+            return;
+        }
+        output += "\ncode  : spot     abs      perc     ";//"open  ";
+        for(int i = 0;i < companies.length;i++){
+            Company c = companies[i];
+            String resizedCode = c.getCode();
+            companyCodes[i] = resizedCode;
+            while(resizedCode.length() <= 5){
+                resizedCode += " ";
+            }
+            output += "\n"+resizedCode + " : ";
+            String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
+            String[] temp;
+            for(String s:data){
+                temp = s.split(",");
+                String val;
+                if(temp.length < 2){
+                    val = temp[0];
+                }
+                else{
+                    val = temp[1];
+                }
+
+                while(val.length() < 8){
+                    val += " ";
+                }
+                output += val+" ";
+            }
+        }
+        output += "\n\nYou may also view the latest news for these companies in the news pane";
+        Article[] news = dgc.getNews(companyCodes);
+        ui.displayResults(news,false);
+        ui.displayMessage(output,false);
+    }
+
+    public void suggestionIrrelevant(String msg){
+        //Extract company or group name from message.
+        ParseResult tempPr = nlp.parse(msg);
+        if((tempPr != null)&& (tempPr.getOperand() != null)){
+            System.out.println("Extracted operand: "+ tempPr.getOperand() + " from message: "+ msg);//DEBUG
+            ic.onSuggestionIrrelevant(tempPr.getOperand());
+            //TODO: make onSuggestionIrrelevant update the priorities in the database
+        }
+        else{
+            System.out.println("Couldn't extract operand from message: "+msg);//DEBUG
+        }
+
     }
 
     private void debugNLP() {

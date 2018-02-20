@@ -53,9 +53,9 @@ public class NewsScraper {
 		//Get URL for the RSS feed specific for those companies
 		String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=";
 		for (int i=0; i<company.length - 1; i++) {
-			url = url + company[i] + ",";
+			url = url + company[i] + ".L,";
 		}
-		url = url + company[company.length - 1];
+		url = url + company[company.length - 1]+".L";
 		return scrape(url);
 	}
 
