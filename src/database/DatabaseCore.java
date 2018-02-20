@@ -16,7 +16,7 @@ public class DatabaseCore implements IDatabaseManager {
 
     public DatabaseCore() {
 
-        // load the sqlite-JDBC driver
+        // loads the sqlite-JDBC driver
         try {
             Class.forName("org.sqlite.JDBC");
         }
@@ -26,7 +26,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         conn = null;
         try {
-            // create a database connection
+            // creates a database connection
             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
 
         } catch (SQLException e) {
@@ -35,20 +35,18 @@ public class DatabaseCore implements IDatabaseManager {
 
     }
 
+    /* Stores new FTSE data in the database */
     public boolean storeScraperResults(ScrapeResult sr) {
 
         int numCompanies = 100;//Constant
         String code = " ";
         Float price, absChange, percChange = 0.0f;
-
         String group, name;
-
         Statement s1 = null;
         ResultSet companyCheck = null;
         PreparedStatement s2 = null;
         PreparedStatement s3 = null;
         Statement s4 = null;
-
         String checkNewCompanyQuery = null;
         String addNewCompanyQuery = null;
         String addCompanyGroupQuery = null;
@@ -145,12 +143,9 @@ public class DatabaseCore implements IDatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
             tryClose(s1);
-            //return false;
         }
 
         tryClose(s1);
-
-        //return true;
     }
 
     /*Probably doesn't actually need the time. The database can do that
@@ -165,7 +160,7 @@ public class DatabaseCore implements IDatabaseManager {
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
-        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
+        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+ companyCode +"','"+intent+"','"+timeSpecifier+"')";
         Statement s1 = null;
         ResultSet r1 = null;
         String table = intentToTableName(pr.getIntent());
@@ -207,6 +202,8 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
+    /* Returns the FTSE data asked for as well as other information about the 
+    company */
     public String[] getFTSE(ParseResult pr) {
 
         String FTSEQuery = convertFTSEQuery(pr);
@@ -233,14 +230,17 @@ public class DatabaseCore implements IDatabaseManager {
         return output.toArray(new String[1]);
     }
 
+    // CAN DELETE??
     public String convertScrapeResult(ScrapeResult sr) {
         return null;
     }
 
+    // CAN DELETE??
     public String convertQuery(ParseResult pr, LocalDateTime date) {
         return null;
     }
 
+    /* Returns an SQL query to get the FTSE data required in the parse result */
     public String convertFTSEQuery(ParseResult pr) {
         footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
@@ -249,7 +249,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         String query = "";
         String timeSpecifierSQL = "";
-        Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
+        Boolean isFetchCurrentQuery = false;
         String colName = "";
         LocalDateTime currentTime = LocalDateTime.now();
         String comparisonTime = "";
@@ -274,18 +274,22 @@ public class DatabaseCore implements IDatabaseManager {
             case OPENING_PRICE:
                 comparisonTime = getComparisonTime(currentTime);
                 query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-                        + "WHERE CompanyCode = '" + companyCode + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                        + "WHERE CompanyCode = '" + companyCode
+                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                         + "ORDER BY TimeOfData ASC LIMIT 1";
                 break;
             case CLOSING_PRICE:
-                comparisonTime = getComparisonTime(currentTime);
+
+                comparisonTime = timeSpecifierToDate(pr.getTimeSpecifier());
                 query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-                        + "WHERE CompanyCode = '" + companyCode + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                        + "WHERE CompanyCode = '" + companyCode 
+                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                         + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
             case TREND:
                 break;
             case NEWS:
+                // do we need this???
                 break;
             case GROUP_FULL_SUMMARY:
                 break;
@@ -296,13 +300,62 @@ public class DatabaseCore implements IDatabaseManager {
 
         // get current data requested from database
         if (isFetchCurrentQuery) {
-            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
+            query   = "SELECT " + colName + " FROM FTSECompanySnapshots\n" 
+                    + "WHERE CompanyCode = '" + companyCode + 
+                    "' ORDER BY TimeOfData DESC LIMIT 1";
         }
 
         return query;
     }
 
-    /* Returns the comparison time for the queries for getting the opening and closing price of a company */
+    /* Converts time specifier to date */
+    private String timeSpecifierToDate(TimeSpecifier t) {
+        
+        LocalDateTime date = LocalDateTime.now();
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd ");
+        String formattedDate = "";
+        
+        switch (t) {
+            case TODAY: 
+                formattedDate = date.format(dateTimeFormatter);
+                return formattedDate;
+            case YESTERDAY:
+                date = date.minusDays(1);
+                break;
+            case LAST_MONDAY:
+                while (date.getDayOfWeek() != java.time.DayOfWeek.MONDAY) {
+                    date = date.minusDays(1);
+                }
+                break;
+            case LAST_TUESDAY:
+                while (date.getDayOfWeek() != java.time.DayOfWeek.TUESDAY) {
+                    date = date.minusDays(1);
+                }
+                break;
+            case LAST_WEDNESDAY:
+                while (date.getDayOfWeek() != java.time.DayOfWeek.WEDNESDAY) {
+                    date = date.minusDays(1);
+                }
+                break;
+            case LAST_THURSDAY:
+                while (date.getDayOfWeek() != java.time.DayOfWeek.THURSDAY) {
+                    date = date.minusDays(1);
+                }
+                break;
+            case LAST_FRIDAY:
+                while (date.getDayOfWeek() != java.time.DayOfWeek.FRIDAY) {
+                    date = date.minusDays(1);
+                }
+                break;
+        }
+
+        formattedDate = date.format(dateFormatter); 
+        return formattedDate;  
+    }
+
+    /* Returns the most current date on a trading day or the date of the most 
+    recent trading day on a non trading day */
     private String getComparisonTime(LocalDateTime currentTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String comparisonTime;
@@ -321,6 +374,8 @@ public class DatabaseCore implements IDatabaseManager {
         return comparisonTime;
     }
 
+    /* Returns all other information stored about a company except the 
+    information asked for by the user */
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
 
     	Statement s1 = null;
@@ -374,8 +429,6 @@ public class DatabaseCore implements IDatabaseManager {
     		}
     	}
     	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
-
-    	System.out.println(query);//DEBUG
 
     	// execute and store query results
     	try {
