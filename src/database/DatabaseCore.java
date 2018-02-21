@@ -143,7 +143,7 @@ public class DatabaseCore implements IDatabaseManager {
         try {
             s1 = conn.createStatement();
             String query    = "DELETE FROM FTSECompanySnapshots\n"
-                            + "WHERE DATETIME(TimeOfData, '+7 days') <= '" 
+                            + "WHERE DATETIME(TimeOfData, '+7 days') <= '"
                             + comparisonTime + "'";
             s1.executeUpdate(query);
         } catch (SQLException e) {
@@ -208,9 +208,10 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /* Returns the FTSE data asked for as well as other information about the 
+    /* Returns the FTSE data asked for as well as other information about the
     company */
     public String[] getFTSE(ParseResult pr) {
+
 
     	footsiebot.nlp.Intent intent = pr.getIntent();
     	ArrayList<String> output = new ArrayList<String>();
@@ -259,6 +260,7 @@ public class DatabaseCore implements IDatabaseManager {
     		default:
     			break;
     	}
+
 
         // add other company data to array list
         switch (intent) {
@@ -460,7 +462,7 @@ public class DatabaseCore implements IDatabaseManager {
             case CLOSING_PRICE:
                 comparisonTime = timeSpecifierToDate(timeSpec);
                 query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-                        + "WHERE CompanyCode = '" + companyCode 
+                        + "WHERE CompanyCode = '" + companyCode
                         + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                         + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
@@ -473,8 +475,8 @@ public class DatabaseCore implements IDatabaseManager {
 
         // get current data requested from database
         if (isFetchCurrentQuery) {
-            query   = "SELECT " + colName + " FROM FTSECompanySnapshots\n" 
-                    + "WHERE CompanyCode = '" + companyCode + 
+            query   = "SELECT " + colName + " FROM FTSECompanySnapshots\n"
+                    + "WHERE CompanyCode = '" + companyCode +
                     "' ORDER BY TimeOfData DESC LIMIT 1";
         }
 
@@ -483,16 +485,16 @@ public class DatabaseCore implements IDatabaseManager {
 
     /* Converts time specifier to date */
     private String timeSpecifierToDate(TimeSpecifier t) {
-        
+
         LocalDateTime date = LocalDateTime.now();
         //DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = "";
-        
+
         switch (t) {
-            // for today and yesterday first gets most recent trading day in 
+            // for today and yesterday first gets most recent trading day in
             // in case it is a non trading day
-            case TODAY: 
+            case TODAY:
                 formattedDate = getComparisonTime(date);
                 return formattedDate;
             case YESTERDAY:
@@ -525,11 +527,11 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
         }
 
-        formattedDate = date.format(dateFormatter); 
-        return formattedDate;  
+        formattedDate = date.format(dateFormatter);
+        return formattedDate;
     }
 
-    /* Returns the most current date on a trading day or the date of the most 
+    /* Returns the most current date on a trading day or the date of the most
     recent trading day on a non trading day */
     private String getComparisonTime(LocalDateTime currentTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -549,7 +551,7 @@ public class DatabaseCore implements IDatabaseManager {
         return comparisonTime;
     }
 
-    /* Returns all other information stored about a company except the 
+    /* Returns all other information stored about a company except the
     information asked for by the user */
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
 
@@ -844,8 +846,8 @@ public class DatabaseCore implements IDatabaseManager {
         ResultSet r1 = null;
         Statement s1 = null;
         try {
-            String query = "SELECT CompanyName from FTSECompanies ";
-            query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
+            String query = "SELECT FC.CompanyCode from FTSECompanies FC ";
+            query += "INNER JOIN FTSEGroupMappings ON (FC.CompanyCode = FTSEGroupMappings.CompanyCode) ";
             query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
             s1 = conn.createStatement();
             r1 = s1.executeQuery(query);
