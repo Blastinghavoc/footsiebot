@@ -155,30 +155,38 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @param  String companyOrGroup
     * @return
     */
-   public String onSuggestionIrrelevant(AIIntent intent, String companyOrGroup, boolean isNews) {
-     String alert = "";
-     // check if it is a company or a group
-     for(Company c: companies) {
-       if(c.getCode().equals(companyOrGroup)) {
-         System.out.println("weight "c.getIrrelevantSuggestionWeight());
-         //TODO
-         c.decrementPriorityOfIntent(intent);
-         alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
-         return alert;
-       }
-     }
-     // is a group
-     for(Group g: groups) {
-       if(g.getGroupCode().equals(companyOrGroup)) {
-         System.out.println("weight "c.getIrrelevantSuggestionWeight());
-         // Overall for groups ?
-         g.decrementPriority(g.getIrrelevantSuggestionWeight());
-         alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
-         return alert;
-       }
-     }
 
-     return "Error, no company nor group matching found";
+   public void onSuggestionIrrelevant(Suggestion s) {
+      AIIntent intent;
+      boolean isNews = s.isNews();
+      // company
+      if(s.getCompany() != null) {
+
+        Company c = s.getCompany();
+        ParseResult pr = s.getParseResult();
+
+        switch(pr.getIntent()) {
+          case SPOT_PRICE : intent = AIIntent.SPOT_PRICE;
+          break;
+          case OPENING_PRICE : intent = AIIntent.OPENING_PRICE;
+          break;
+          case CLOSING_PRICE : intent = AIIntent.CLOSING_PRICE;
+          break;
+          case PERCENT_CHANGE : intent = AIIntent.PERCENT_CHANGE;
+          break;
+          case ABSOLUTE_CHANGE : intent = AIIntent.ABSOLUTE_CHANGE;
+          break;
+          default : return;
+        }
+
+        c.decrementPriorityOfIntent(intent);
+        db.onSuggestionIrrelevant(c, intent, isNews);
+
+      } else {
+        //groups
+
+      }
+
    }
 
    /**

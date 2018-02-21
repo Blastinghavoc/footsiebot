@@ -8,7 +8,7 @@ public interface IIntelligenceUnit {
 
    public Suggestion getSuggestion(ParseResult pr);
 
-   public String onUpdatedDatabase();
+   public Suggestion[] onUpdatedDatabase();
 
    public void onShutdown();
    /**
@@ -17,7 +17,7 @@ public interface IIntelligenceUnit {
     * @param  String companyOrGroup
     * @return
     */
-   public String onSuggestionIrrelevant(String companyOrGroup);
+   public void onSuggestionIrrelevant(Suggestion suggestion);
 
    public Company[] onNewsTime();
 

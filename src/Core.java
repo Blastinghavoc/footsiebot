@@ -89,7 +89,7 @@ public class Core extends Application {
             // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
-        
+
         if(runTradingHourTest){
             try{
                 onTradingHour();//DEBUG
@@ -491,7 +491,7 @@ public class Core extends Application {
         ParseResult tempPr = nlp.parse(msg);
         if((tempPr != null)&& (tempPr.getOperand() != null)){
             System.out.println("Extracted operand: "+ tempPr.getOperand() + " from message: "+ msg);//DEBUG
-            ic.onSuggestionIrrelevant(tempPr.getOperand());
+            //ic.onSuggestionIrrelevant(tempPr.getOperand());
             //TODO: make onSuggestionIrrelevant update the priorities in the database
         }
         else{

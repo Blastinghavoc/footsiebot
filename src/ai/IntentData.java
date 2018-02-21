@@ -9,19 +9,21 @@ public class IntentData implements Comparable<IntentData> {
 
   private AIIntent intent;
   // This could be changed to a linked list if we only ever acces the last value
-  private Float priority;
-  private Float irrelevantSuggestionWeight;
+  private Float count;
+  private Float adjustment;
 
-  public IntentData(AIIntent intent, Float priority, Float irrelevantSuggestionWeight) {
+  public IntentData(AIIntent intent, Float count, Float adjustment) {
     this.intent = intent;
-    this.priority = priority;
-    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
+    this.count = count;
+    this.adjustment = adjustment;
   }
 
 
   public AIIntent getIntent() {
 	   return intent;
   }
+
+  public Float getAdjustment() {return adjustment;}
 
   // public Float getLastValue() {
   //   //Float res = 0.0f;
@@ -31,15 +33,11 @@ public class IntentData implements Comparable<IntentData> {
   // }
 
   public Float getPriority() {
-    return priority;
+    return count - adjustment;
   }
 
-  public void incrementPriority(Float p) {
-    priority-= p;
-  }
-
-  public void decrementPriority(Float p) {
-    priority-= p;
+  public void decrementPriority(Float f) {
+    adjustment+= f;
   }
 
   @Override

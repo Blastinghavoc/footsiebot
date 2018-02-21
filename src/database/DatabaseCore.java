@@ -398,8 +398,6 @@ public class DatabaseCore implements IDatabaseManager {
         return  name;
     }
 
-
-
     public ArrayList<Company> getAICompanies() {
 
       ArrayList<Company> companies = new ArrayList<Company>();
@@ -443,6 +441,15 @@ public class DatabaseCore implements IDatabaseManager {
           float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
           float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
 
+          // intent priorities
+          float spotPriority = spot - spotAdj;
+          float openingPriority = opening - openingAdj;
+          float closingPriority = closing - closingPriceAdj;
+          float absoluteChangePriority = absoluteChange - absoluteChangeAdj;
+          float percentageChangePriority = percentageChange - percentageChangeAdj;
+          // news
+          float newsPriority = newsCount - newsAdj;
+
           // Instantiate IntentData List for this company
           // TODO not having values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
@@ -451,12 +458,22 @@ public class DatabaseCore implements IDatabaseManager {
           intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
           intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
 
+          HashMap<AIIntent, Float[]> mapping = new HashMap<>();
+
+          mapping.put(AIIntent.SPOT_PRICE, new Float[]{spot, spotAdj});
+          mapping.put(AIIntent.OPENING_PRICE, new Float[]{opening, openingAdj});
+          mapping.put(AIIntent.CLOSING_PRICE, new Float[]{closing, closingPriceAdj});
+          mapping.put(AIIntent.PERCENT_CHANGE, new Float[]{percentageChange,percentageChangeAdj });
+          mapping.put(AIIntent.ABSOLUTE_CHANGE, new Float[]{absoluteChange, absoluteChangeAdj});
+
+
           // Calculate priority for each company
-          // it is the sum of all the counts
-          float priority = spot + opening + absoluteChange + closing + percentageChange;
+          Float intentScale = 1.0f;
+          Float newsScale = 1.0f;
+          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
-          float irrelevantSuggestionWeightForCompany = (spotAdj + openingAdj + absoluteChangeAdj + closingPriceAdj + percentageChangeAdj) / 5;
-          companies.add(new Company(rs.getString("CompanyCode"), intents, newsCount, priority,  irrelevantSuggestionWeightForCompany ));
+
+          companies.add(new Company(rs.getString("CompanyCode"), intents, mapping, intentScale, newsScale, newsCount, newsAdj));
         }
 
         if(companies.size() != 0) {
@@ -505,27 +522,30 @@ public class DatabaseCore implements IDatabaseManager {
         Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
 
         // retrieve all companies for each group
+        // for(Map.Entry<String,Group> g: entrySet) {
+        //   String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
+        //   ResultSet rs0 = null;
+        //
+        //   try {
+        //     rs0 = stmt.executeQuery(query2);
+        //     ArrayList<Company> companiesForThisGroup = new ArrayList<>();
+        //     // put all the companies for this group in its list
+        //     while(rs0.next()) {
+        //       Company c = companiesMap.get(rs0.getString("CompanyCode"));
+        //       companiesForThisGroup.add(c);
+        //     }
+        //     g.getValue().addCompanies(companiesForThisGroup);
+        //
+        //     // add to final list
+        //     result.add(g.getValue());
+        //   } catch(SQLException e) {
+        //     printSQLException(e);
+        //   } finally {
+        //     if(rs0 != null) {tryClose(rs0); }
+        //   }
+        // }
+
         for(Map.Entry<String,Group> g: entrySet) {
-          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
-          ResultSet rs0 = null;
-
-          try {
-            rs0 = stmt.executeQuery(query2);
-            ArrayList<Company> companiesForThisGroup = new ArrayList<>();
-            // put all the companies for this group in its list
-            while(rs0.next()) {
-              Company c = companiesMap.get(rs0.getString("CompanyCode"));
-              companiesForThisGroup.add(c);
-            }
-            g.getValue().addCompanies(companiesForThisGroup);
-
-            // add to final list
-            result.add(g.getValue());
-          } catch(SQLException e) {
-            printSQLException(e);
-          } finally {
-            if(rs0 != null) {tryClose(rs0); }
-          }
         }
 
         // now add the remaining values to each group
@@ -534,16 +554,12 @@ public class DatabaseCore implements IDatabaseManager {
           int numberOfCompanies = com.size();
 
           Float priority = 0.0f;
-          Float irrelevantSuggestionWeight = 0.0f;
 
           for(Company c: com) {
             priority+= c.getPriority();
-            irrelevantSuggestionWeight+= c.getIrrelevantSuggestionWeight();
           }
-          irrelevantSuggestionWeight/= numberOfCompanies;
 
           g.setPriority(priority);
-          g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
         }
 
       } catch (SQLException ex) {
@@ -556,7 +572,7 @@ public class DatabaseCore implements IDatabaseManager {
       return result;
     }
     //TODO
-    private ArrayList<String> detectedImportantChange() {
+    public ArrayList<String> detectedImportantChange() {
       String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
 
       ResultSet rs = null;
@@ -599,28 +615,29 @@ public class DatabaseCore implements IDatabaseManager {
 
 
     //TODO
-    private void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
+    public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
       String table = "";
-      switch(intent) {
-        case SPOT_PRICE: table+= "CompanySpotPriceCount";
-        break;
-        case OPENING_PRICE: table+= "CompanyOpeningPriceCount";
-        break;
-        case CLOSING_PRICE: table+= "CompanySpotPriceCount";
-        break;
-        case PERCENT_CHANGE: table+= "CompanySpotPriceCount";
-        break;
-        case ABSOLUTE_CHANGE: table+= "CompanySpotPriceCount";
-        break;
+      if(!isNews) {
+        switch(intent) {
+          case SPOT_PRICE: table+= "CompanySpotPriceCount";
+          break;
+          case OPENING_PRICE: table+= "CompanyOpeningPriceCount";
+          break;
+          case CLOSING_PRICE: table+= "CompanySpotPriceCount";
+          break;
+          case PERCENT_CHANGE: table+= "CompanySpotPriceCount";
+          break;
+          case ABSOLUTE_CHANGE: table+= "CompanySpotPriceCount";
+          break;
+        }
+      } else {
+        // is news
+        table+= "CompanyNewsCount";
       }
 
-      String column = table.replace("Company", "");
-      String value = table.replace("Company", "").replace("Count", "Adjustment");
-
-      System.out.println(column + value);
+      String column = table.replace("Company", "").replace("Count", "Adjustment");
       // TODO exponentially
-      String query = "UPDATE " + table + "SET " + column + " = " + column + " - " + value + " " ;
-
+      String query = "UPDATE " + table + "SET " + column + " = (0.5 * " + column  + ")";
       Statement stmt = null;
 
       try {
@@ -634,6 +651,13 @@ public class DatabaseCore implements IDatabaseManager {
       }
 
     }
+
+    //TODO
+    // private void onSuggestionIrrelevant(Group group) {
+    //
+    //
+    // }
+
 
     public IntentData getIntentForCompany() {
       return null;
