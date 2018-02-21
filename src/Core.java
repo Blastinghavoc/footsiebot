@@ -23,7 +23,7 @@ public class Core extends Application {
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
-    public static long DOWNLOAD_RATE = 60000;//Download new data every 60 seconds
+    public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
     private Boolean readingScrape = false;

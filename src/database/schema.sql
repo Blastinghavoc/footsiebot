@@ -7,7 +7,7 @@ DROP TABLE CompanySpotPriceCount;
 DROP TABLE CompanyOpeningPriceCount;
 DROP TABLE CompanyAbsoluteChangeCount;
 DROP TABLE CompanyClosingPriceCount;
-DROP TABLE PercentageChangeCount;
+DROP TABLE CompanyPercentageChangeCount;
 DROP TABLE AISettings;
 
 CREATE TABLE FTSECompanies (

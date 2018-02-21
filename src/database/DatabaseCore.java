@@ -696,8 +696,8 @@ public class DatabaseCore implements IDatabaseManager {
         ResultSet r1 = null;
         Statement s1 = null;
         try {
-            String query = "SELECT CompanyName from FTSECompanies ";
-            query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
+            String query = "SELECT FC.CompanyCode from FTSECompanies FC ";
+            query += "INNER JOIN FTSEGroupMappings ON (FC.CompanyCode = FTSEGroupMappings.CompanyCode) ";
             query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
             s1 = conn.createStatement();
             r1 = s1.executeQuery(query);
