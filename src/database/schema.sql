@@ -7,7 +7,8 @@ DROP TABLE CompanySpotPriceCount;
 DROP TABLE CompanyOpeningPriceCount;
 DROP TABLE CompanyAbsoluteChangeCount;
 DROP TABLE CompanyClosingPriceCount;
-DROP TABLE PercentageChangeCount;
+DROP TABLE CompanyPercentageChangeCount;
+DROP TABLE CompanyTrendCount;
 DROP TABLE AISettings;
 
 CREATE TABLE FTSECompanies (
@@ -86,6 +87,14 @@ CREATE TABLE CompanyPercentageChangeCount (
 	CompanyCode varchar(10),
 	PercentageChangeCount integer,
 	PercentageChangeAdjustment decimal(2,2),
+	primary key(CompanyCode),
+	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
+);
+
+CREATE TABLE CompanyTrendCount (
+	CompanyCode varchar(10),
+	TrendCount integer,
+	TrendAdjustment decimal(2,2),
 	primary key(CompanyCode),
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
