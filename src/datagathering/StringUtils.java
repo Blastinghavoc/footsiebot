@@ -1,4 +1,7 @@
+package footsiebot.datagathering;
+
 import java.util.*;
+
 
 public class StringUtils {
 
