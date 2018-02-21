@@ -266,7 +266,7 @@ public class DatabaseCore implements IDatabaseManager {
         		output.addAll(getTrendData(pr));
         		break;
         	case GROUP_FULL_SUMMARY:
-        		//output.addAll(getGroupData(pr));
+        		output.addAll(getGroupData(pr));
             case OPENING_PRICE:
             case CLOSING_PRICE:
                 output.add("Date, " + timeSpecifierToDate(pr.getTimeSpecifier()));
@@ -277,6 +277,15 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
         return output.toArray(new String[1]);
+    }
+
+    private ArrayList<String> getGroupData(ParseResult pr) {
+    	ArrayList<String> output = new ArrayList<String>();
+    	String groupName = pr.getOperand();
+    	String[] companies = getCompaniesInGroup(groupName);
+
+
+    	return output;
     }
 
     /* Returns an array list  containing the data to be output by the Core
