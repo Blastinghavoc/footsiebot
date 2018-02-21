@@ -255,23 +255,18 @@ public class DatabaseCore implements IDatabaseManager {
 		            tryClose(s1,results);
 		        }
 		        tryClose(s1, results);
-
-    			break;
-
-    		case TREND:
-    		//case SINCE_TREND:
-    			break;
-    		case GROUP_FULL_SUMMARY:
     			break;
     		default:
     			break;
     	}
 
-        // add other compnay data to array list
+        // add other company data to array list
         switch (intent) {
         	case TREND:
         		output.addAll(getTrendData(pr));
         		break;
+        	case GROUP_FULL_SUMMARY:
+        		//output.addAll(getGroupData(pr));
             case OPENING_PRICE:
             case CLOSING_PRICE:
                 output.add("Date, " + timeSpecifierToDate(pr.getTimeSpecifier()));
