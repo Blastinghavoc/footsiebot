@@ -21,14 +21,16 @@ public class WebScraper {
         ArrayList<Float> pricelist = new ArrayList<Float>();
         ArrayList<Float> abslist = new ArrayList<Float>();
         ArrayList<Float> perclist = new ArrayList<Float>();
+
         ArrayList<Integer> vollist = new ArrayList<Integer>();
+
 
         String url = "http://www.londonstockexchange.com/exchange/prices-and-markets/stocks/indices/summary/summary-indices-constituents.html?index=UKX&page=";
         for (int i = 1; i < 7; i++) {
             try {
                 page = Jsoup.connect(url + i).get();
             } catch (IOException e) {
-                e.printStackTrace();    
+                e.printStackTrace();
                 return null;
             }
 
@@ -37,12 +39,13 @@ public class WebScraper {
 
             for (Element entry : entries) {
                 Elements columns = entry.select("td");
-                int j = 1;            
+                int j = 1;
                 elementloop: for (Element column : columns) {
                     switch (j) {
                         case 1: codelist.add(column.text());
                             break;
                         case 2:
+
                             // namelist.add("nametest");
                             // grouplist.add("grouptest");
                             // vollist.add(null);
@@ -75,6 +78,7 @@ public class WebScraper {
                             // System.out.println("name: " + name);
                             // System.out.println("group: " + group);
                             // System.out.println("trading volume: " + volume);                            
+
                             break;
                         case 3: break;
                         case 4: pricelist.add(Float.parseFloat(column.text().replace(",", "")));

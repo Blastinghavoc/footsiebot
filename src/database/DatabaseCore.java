@@ -1,31 +1,22 @@
 package footsiebot.database;
 
 import footsiebot.nlp.*;
-// import footsiebot.nlp.ParseResult;
-// import footsiebot.nlp.Intent;
-// import footsiebot.nlp.TimeSpecifier;
-
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
-
-// import java.sql.Connection;
-// import java.sql.DriverManager;
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
 import java.sql.*;
 import java.util.*;
 import java.lang.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.DayOfWeek;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
 
-
-
     public DatabaseCore() {
 
-        // load the sqlite-JDBC driver
+        // loads the sqlite-JDBC driver
         try {
             Class.forName("org.sqlite.JDBC");
         }
@@ -35,7 +26,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         conn = null;
         try {
-            // create a database connection
+            // creates a database connection
             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
 
         } catch (SQLException e) {
@@ -44,29 +35,26 @@ public class DatabaseCore implements IDatabaseManager {
 
     }
 
+    /* Stores new FTSE data in the database */
     public boolean storeScraperResults(ScrapeResult sr) {
 
-        // need to delete old FTSE data
-
         int numCompanies = 100;//Constant
-        LocalDateTime currentTime = LocalDateTime.now();
         String code = " ";
         Float price, absChange, percChange = 0.0f;
-
         String group, name;
-
         Statement s1 = null;
         ResultSet companyCheck = null;
         PreparedStatement s2 = null;
         PreparedStatement s3 = null;
         Statement s4 = null;
-
         String checkNewCompanyQuery = null;
         String addNewCompanyQuery = null;
         String addCompanyGroupQuery = null;
         String addScrapeResultQuery = null;
 
         trySetAutoCommit(false);//Will treat the following as a transaction, so that it can be rolled back if it fails
+
+        deleteOldFTSEData();
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
@@ -141,6 +129,27 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
+    /* Deletes FTSE data from over 5 trading days ago */
+    private void deleteOldFTSEData() {
+
+        LocalDateTime currentTime = LocalDateTime.now();
+        String comparisonTime = getComparisonTime(currentTime);
+        Statement s1 = null;
+
+        try {
+            s1 = conn.createStatement();
+            String query    = "DELETE FROM FTSECompanySnapshots\n"
+                            + "WHERE DATETIME(TimeOfData, '+7 days') <= '"
+                            + comparisonTime + "'";
+            s1.executeUpdate(query);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            tryClose(s1);
+        }
+
+        tryClose(s1);
+    }
+
     /*Probably doesn't actually need the time. The database can do that
     automatically
     */
@@ -153,7 +162,7 @@ public class DatabaseCore implements IDatabaseManager {
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
-        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
+        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+ companyCode +"','"+intent+"','"+timeSpecifier+"')";
         Statement s1 = null;
         ResultSet r1 = null;
         String table = intentToTableName(pr.getIntent());
@@ -195,40 +204,67 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
+    /* Returns the FTSE data asked for as well as other information about the
+    company */
     public String[] getFTSE(ParseResult pr) {
 
         String FTSEQuery = convertFTSEQuery(pr);
         Statement s1 = null;
         ResultSet results = null;
         ArrayList<String> output = new ArrayList<String>();
+        if(FTSEQuery == null || FTSEQuery.isEmpty()){
+            System.out.println("Null query");//DEBUG
+            return null;
+        }
 
         // add asked for data to first index of array
         try {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
-            while (results.next()) {
-                output.add(((Float)results.getFloat(1)).toString());
+            System.out.println(FTSEQuery);
+            if (!results.next()) {
+                String nullArr[] = null;
+                System.out.println("No results");
+                return nullArr; // return null array if no results
+            } else {
+                do {
+                    output.add(((Float)results.getFloat(1)).toString());
+                } while (results.next());
             }
         } catch (SQLException e) {
             e.printStackTrace();
             //System.out.println(FTSEQuery); //DEBUG
             tryClose(s1,results);
         }
+        tryClose(s1, results);
+
+        // add dates to output for closing price and opening price
+        switch (pr.getIntent()) {
+            case OPENING_PRICE:
+            case CLOSING_PRICE:
+                output.add("Date, " + timeSpecifierToDate(pr.getTimeSpecifier()));
+            default:
+                break;
+        }
 
         // add other data about company to other indexes of the array
         output.addAll(getAllCompanyInfo(pr));
 
+
         return output.toArray(new String[1]);
     }
 
+    // CAN DELETE??
     public String convertScrapeResult(ScrapeResult sr) {
         return null;
     }
 
+    // CAN DELETE??
     public String convertQuery(ParseResult pr, LocalDateTime date) {
         return null;
     }
 
+    /* Returns an SQL query to get the FTSE data required in the parse result */
     public String convertFTSEQuery(ParseResult pr) {
         footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
@@ -237,10 +273,11 @@ public class DatabaseCore implements IDatabaseManager {
 
         String query = "";
         String timeSpecifierSQL = "";
-        Boolean isFetchCurrentQuery = false; // if the query is fetch current data from a column in database
+        Boolean isFetchCurrentQuery = false;
         String colName = "";
 
-        PreparedStatement s1 = null;
+        LocalDateTime currentTime = LocalDateTime.now();
+        String comparisonTime = "";
 
         switch (intent) {
             case SPOT_PRICE:
@@ -260,12 +297,24 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
+                comparisonTime = timeSpecifierToDate(pr.getTimeSpecifier());
+                query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                        + "WHERE CompanyCode = '" + companyCode
+                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                        + "ORDER BY TimeOfData ASC LIMIT 1";
                 break;
             case CLOSING_PRICE:
+
+                comparisonTime = timeSpecifierToDate(pr.getTimeSpecifier());
+                query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                        + "WHERE CompanyCode = '" + companyCode
+                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                        + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
             case TREND:
                 break;
             case NEWS:
+                // do we need this???
                 break;
             case GROUP_FULL_SUMMARY:
                 break;
@@ -276,15 +325,84 @@ public class DatabaseCore implements IDatabaseManager {
 
         // get current data requested from database
         if (isFetchCurrentQuery) {
-            query = "SELECT " + colName + " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
-
+            query   = "SELECT " + colName + " FROM FTSECompanySnapshots\n"
+                    + "WHERE CompanyCode = '" + companyCode +
+                    "' ORDER BY TimeOfData DESC LIMIT 1";
         }
-
-        tryClose(s1);
 
         return query;
     }
 
+    /* Converts time specifier to date */
+    private String timeSpecifierToDate(TimeSpecifier t) {
+
+        LocalDateTime date = LocalDateTime.now();
+        //DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedDate = "";
+
+        switch (t) {
+            // for today and yesterday first gets most recent trading day in
+            // in case it is a non trading day
+            case TODAY:
+                formattedDate = getComparisonTime(date);
+                return formattedDate;
+            case YESTERDAY:
+                formattedDate = getComparisonTime(date.minusDays(1));
+                return formattedDate;
+            case LAST_MONDAY:
+                do {
+                    date = date.minusDays(1);
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.MONDAY);
+                break;
+            case LAST_TUESDAY:
+                do {
+                    date = date.minusDays(1);
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.TUESDAY);
+                break;
+            case LAST_WEDNESDAY:
+                do {
+                    date = date.minusDays(1);
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.WEDNESDAY);
+                break;
+            case LAST_THURSDAY:
+                do {
+                    date = date.minusDays(1);
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.THURSDAY);
+                break;
+            case LAST_FRIDAY:
+                do {
+                    date = date.minusDays(1);
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.FRIDAY);
+                break;
+        }
+
+        formattedDate = date.format(dateFormatter);
+        return formattedDate;
+    }
+
+    /* Returns the most current date on a trading day or the date of the most
+    recent trading day on a non trading day */
+    private String getComparisonTime(LocalDateTime currentTime) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String comparisonTime;
+        switch (currentTime.getDayOfWeek()) {
+            case SATURDAY:
+                comparisonTime = (currentTime.minusDays(1)).format(formatter);
+                break;
+            case SUNDAY:
+                comparisonTime = (currentTime.minusDays(2)).format(formatter);
+                break;
+            default:
+                comparisonTime = currentTime.format(formatter);
+                break;
+        }
+
+        return comparisonTime;
+    }
+
+    /* Returns all other information stored about a company except the
+    information asked for by the user */
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
 
     	Statement s1 = null;
@@ -337,9 +455,7 @@ public class DatabaseCore implements IDatabaseManager {
     			query += ", ";
     		}
     	}
-    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "'";
-
-    	System.out.println(query);//DEBUG
+    	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
     	// execute and store query results
     	try {
@@ -357,6 +473,8 @@ public class DatabaseCore implements IDatabaseManager {
     		e.printStackTrace();
     		tryClose(s1, results);
     	}
+
+        tryClose(s1, results);
 
     	return rs;
     }
