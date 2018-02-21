@@ -20,6 +20,14 @@ public class Company implements Comparable<Company> {
     this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
 
   }
+  //TOTEST 
+  public void decrementPriorityOfIntent(AIIntent i) {
+    for(IntentData id: intents) {
+      if(id.getIntent().equals(i)) {
+        id.decrementPriority(id.getIrrelevantSuggestionWeight());
+      }
+    }
+  }
 
   public Float getIrrelevantSuggestionWeight() {
 	return irrelevantSuggestionWeight;

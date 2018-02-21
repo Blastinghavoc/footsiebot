@@ -44,7 +44,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // If operand is a group
      if(pr.isOperandGroup()) {
          if(groups == null){
-             System.out.println("groups was null, cannot make suggestion");//DEBUG
+             System.out.println("Groups was null, cannot make suggestion");//DEBUG
              return null;
          }
        // search in groups if valid group
@@ -106,8 +106,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    //TODO return a suggestion object
-   public String onUpdatedDatabase() {
-     Suggestion result = null;
+   public Suggestion[] onUpdatedDatabase() {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
@@ -120,12 +119,17 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
      Collections.sort(groups);
 
-    // if(detectedImportantChange()) {
-    //
-    // }
+     ArrayList<Company> changed = detectedImportantChange();
+     if(changed.size() == 0) return null;
 
-     // What to return here ?
-     return "";
+     ArrayList<Suggestion> res = new ArrayList<>();
+
+     for(Company c: changed) {
+       // NOTE parseresult is null
+       res.add(new Suggestion("Detected important change", c, false, null));
+     }
+
+     return res.toArray(new Suggestion[res.size()]);
    }
 
    public void onShutdown() {
@@ -151,12 +155,14 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @param  String companyOrGroup
     * @return
     */
-   public String onSuggestionIrrelevant(String companyOrGroup) {
+   public String onSuggestionIrrelevant(AIIntent intent, String companyOrGroup, boolean isNews) {
      String alert = "";
      // check if it is a company or a group
      for(Company c: companies) {
        if(c.getCode().equals(companyOrGroup)) {
-         c.decrementPriority(c.getIrrelevantSuggestionWeight());
+         System.out.println("weight "c.getIrrelevantSuggestionWeight());
+         //TODO
+         c.decrementPriorityOfIntent(intent);
          alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
          return alert;
        }
@@ -164,6 +170,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // is a group
      for(Group g: groups) {
        if(g.getGroupCode().equals(companyOrGroup)) {
+         System.out.println("weight "c.getIrrelevantSuggestionWeight());
+         // Overall for groups ?
          g.decrementPriority(g.getIrrelevantSuggestionWeight());
          alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
          return alert;
@@ -188,9 +196,21 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    // TODO
-   private boolean detectedImportantChange() {
+   private ArrayList<Company> detectedImportantChange() {
+     ArrayList<String> names = db.detectedImportantChange();
+     if(names.size() == 0) return null;
 
-     return false;
+     ArrayList<Company> winningCompanies = new ArrayList<>();
+
+     for(String s: names) {
+       for(Company c: companies) {
+         if(s.equals(c.getCode())) {
+           winningCompanies.add(c);
+         }
+       }
+     }
+
+     return winningCompanies;
    }
 
    /**

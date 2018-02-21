@@ -564,7 +564,7 @@ public class DatabaseCore implements IDatabaseManager {
       ArrayList<String> result = new ArrayList<>();
 
       HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
-
+      // TODO
       Float treshold = 0.0f;
 
       try {
@@ -599,8 +599,40 @@ public class DatabaseCore implements IDatabaseManager {
 
 
     //TODO
-    private void onSuggestionIrrelevant() {
-      
+    private void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
+      String table = "";
+      switch(intent) {
+        case SPOT_PRICE: table+= "CompanySpotPriceCount";
+        break;
+        case OPENING_PRICE: table+= "CompanyOpeningPriceCount";
+        break;
+        case CLOSING_PRICE: table+= "CompanySpotPriceCount";
+        break;
+        case PERCENT_CHANGE: table+= "CompanySpotPriceCount";
+        break;
+        case ABSOLUTE_CHANGE: table+= "CompanySpotPriceCount";
+        break;
+      }
+
+      String column = table.replace("Company", "");
+      String value = table.replace("Company", "").replace("Count", "Adjustment");
+
+      System.out.println(column + value);
+      // TODO exponentially
+      String query = "UPDATE " + table + "SET " + column + " = " + column + " - " + value + " " ;
+
+      Statement stmt = null;
+
+      try {
+        stmt = conn.createStatement();
+        stmt.executeUpdate(query);
+
+      } catch (SQLException e) {
+        printSQLException(e);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+      }
+
     }
 
     public IntentData getIntentForCompany() {
