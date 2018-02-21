@@ -172,8 +172,9 @@ public class Core extends Application {
         }
     }
 
-
-
+   /**
+    *
+    */
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
     }
@@ -182,7 +183,7 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " .";
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -248,7 +249,7 @@ public class Core extends Application {
         return output;
     }
 
-    /*
+   /**
     * Decodes a Suggestion and performs relevant output
     */
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
@@ -270,6 +271,9 @@ public class Core extends Application {
         }
     }
 
+   /**
+    *
+    */
     private void outputNews(ParseResult pr,Boolean wasSuggestion){
         Article[] result;
         if (pr.isOperandGroup()) {
@@ -281,6 +285,7 @@ public class Core extends Application {
         }
         ui.displayResults(result, wasSuggestion);
     }
+
 
     private void outputFTSE(ParseResult pr,Boolean wasSuggestion){
         /*
@@ -313,7 +318,7 @@ public class Core extends Application {
     private String addExtraDataToOutput(String output,String[] data){
         extraDataAddedToLastOutput = null;
         if (data.length > 1){
-            output += "\n";
+            output += "\n\n";
             extraDataAddedToLastOutput = new ArrayList<Intent>();
             output += "Related data about this company:";
             String[] temp;
@@ -453,6 +458,9 @@ public class Core extends Application {
         ic.onUpdatedDatabase();
     }
 
+   /**
+    *
+    */
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
         Company[] companies = ic.onNewsTime();
@@ -494,6 +502,9 @@ public class Core extends Application {
         ui.displayMessage(output,false);
     }
 
+   /**
+    *
+    */
     public void suggestionIrrelevant(String msg){
         //Extract company or group name from message.
         ParseResult tempPr = nlp.parse(msg);
@@ -526,6 +537,11 @@ public class Core extends Application {
         }
     }
 
+   /**
+    * Opens the webpage at the url given on the user's default browser
+    *
+    * @param url the url of the webpage
+    */
     public void openWebpage(String url) {
         getHostServices().showDocument(url);
     }

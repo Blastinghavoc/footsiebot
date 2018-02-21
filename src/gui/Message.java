@@ -1,34 +1,36 @@
 package footsiebot.gui;
 
 import java.time.LocalDateTime;
-import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.stage.Stage;
 import javafx.scene.layout.*;
-import javafx.stage.*;
-import javafx.scene.paint.*;
-import javafx.scene.shape.*;
-import javafx.geometry.*;
-import javafx.scene.text.Font;
+import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import java.lang.Math;
+import javafx.scene.shape.Rectangle;
+import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.util.Duration;
+import javafx.scene.text.Font;
 
 public class Message extends FlowPane {
-    private Label msg;
     private LocalDateTime timestamp;
     private boolean sent;
-    private Rectangle visual;
-    private StackPane msgWrapper;
-    private StackPane btnWrapper;
     private double width;
     private double height;
     private GUIcore ui;
     private boolean isAI;
     private Message parent;
+
+    private StackPane msgWrapper;
+    private Label msg;
+    private Rectangle visual;
+
+    private StackPane btnWrapper;
+
+    private Tooltip aiNote;
+    private Tooltip removeNote;
+
 
     public Message(String text, LocalDateTime timestamp, boolean sent, boolean isAI, GUIcore ui) {
         super();
@@ -49,71 +51,26 @@ public class Message extends FlowPane {
 
         width = Math.ceil(sizing.getLayoutBounds().getWidth());
         height = Math.ceil(sizing.getLayoutBounds().getHeight());
-        msg = new Label(text);
-        msg.setMaxWidth(width);
-        msg.setMinHeight(height);
-        msg.setWrapText(true);
 
-        visual = new Rectangle((width + 14), (height + 8));
-        msgWrapper = new StackPane();
-        msgWrapper.setMinWidth(visual.getWidth());
-        msgWrapper.setMaxWidth(visual.getWidth());
-        msgWrapper.getChildren().addAll(visual, msg);
+        initMessage(text);
 
-        Tooltip aiNote = new Tooltip("Why am I seeing this?");
-        Tooltip removeNote = new Tooltip("Remove message");
+        aiNote = new Tooltip("Why am I seeing this?");
+        removeNote = new Tooltip("Remove message");
 
-        if (isAI) {
-            btnWrapper = new StackPane();
-            Insets btnPadding = new Insets(0, 5, 2, 5);
-            btnWrapper.setPadding(btnPadding);
-            Label lbl2 = new Label("x");
-            lbl2.getStyleClass().add("remove-button");
-            lbl2.setTooltip(removeNote);
-            Text lblSize = new Text("?");
-            Label lbl = new Label("?");
-            lbl.setTooltip(aiNote);
-            lbl.setAlignment(Pos.CENTER);
-            lbl.setMinWidth(lblSize.getLayoutBounds().getHeight());
-            lbl.getStyleClass().add("options-button");
-            btnWrapper.getChildren().addAll(lbl, lbl2);
-            btnWrapper.setAlignment(lbl2, Pos.TOP_CENTER);
-            btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
-
-            lbl.setOnMouseClicked(e -> {
-                ui.displayMessage("This is why", false, this);
-            });
-
-            lbl2.setOnMouseClicked(e -> {
-                for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
-                    if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
-                        Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
-                        if (tmp.getParentMsg() == this)
-                            ui.getMessageBoard().getChildren().removeAll(tmp);
-                    }
-                }
-                ui.getMessageBoard().getChildren().removeAll(this);
-                ui.suggestionIrrelevant(msg.getText());
-            });
-        }
+        if (isAI)
+            setupAI();
 
         if (sent) {
             if (isAI)
                 getChildren().add(btnWrapper);
             getChildren().add(msgWrapper);
-            msg.getStyleClass().add("user-label");
-            visual.getStyleClass().add("user-visual");
-            getStyleClass().add("user-message");
-            msg.setAlignment(Pos.CENTER_RIGHT);
+            finishSetup("user");
             setAlignment(Pos.CENTER_RIGHT);
         } else {
             getChildren().addAll(msgWrapper);
             if (isAI)
                 getChildren().add(btnWrapper);
-            msg.getStyleClass().add("system-label");
-            visual.getStyleClass().add("system-visual");
-            getStyleClass().add("system-message");
-            msg.setAlignment(Pos.CENTER_LEFT);
+            finishSetup("system");
             setAlignment(Pos.CENTER_LEFT);
         }
     }
@@ -137,6 +94,20 @@ public class Message extends FlowPane {
 
         width = Math.ceil(sizing.getLayoutBounds().getWidth());
         height = Math.ceil(sizing.getLayoutBounds().getHeight());
+        initMessage(text);
+
+        if (sent) {
+            getChildren().addAll(msgWrapper);
+            finishSetup("user");
+            setAlignment(Pos.CENTER_RIGHT);
+        } else {
+            getChildren().addAll(msgWrapper);
+            finishSetup("system");
+            setAlignment(Pos.CENTER_LEFT);
+        }
+    }
+
+    private void initMessage(String text) {
         msg = new Label(text);
         msg.setMaxWidth(width);
         msg.setMinHeight(height);
@@ -147,63 +118,46 @@ public class Message extends FlowPane {
         msgWrapper.setMinWidth(visual.getWidth());
         msgWrapper.setMaxWidth(visual.getWidth());
         msgWrapper.getChildren().addAll(visual, msg);
+    }
 
-        Tooltip aiNote = new Tooltip("Why am I seeing this?");
-        Tooltip removeNote = new Tooltip("Remove message");
+    private void setupAI() {
+        btnWrapper = new StackPane();
+        Insets btnPadding = new Insets(0, 5, 2, 5);
+        btnWrapper.setPadding(btnPadding);
+        Label close = new Label("x");
+        close.getStyleClass().add("remove-message");
+        close.setTooltip(removeNote);
+        Text lblSize = new Text("?");
+        Label why = new Label("?");
+        why.setTooltip(aiNote);
+        why.setAlignment(Pos.CENTER);
+        why.setMinWidth(lblSize.getLayoutBounds().getHeight());
+        why.getStyleClass().add("options-button");
+        btnWrapper.getChildren().addAll(why, close);
+        btnWrapper.setAlignment(close, Pos.TOP_CENTER);
+        btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
 
-        if (isAI) {
-            btnWrapper = new StackPane();
-            Insets btnPadding = new Insets(0, 5, 2, 5);
-            btnWrapper.setPadding(btnPadding);
-            Label lbl2 = new Label("x");
-            lbl2.getStyleClass().add("remove-button");
-            lbl2.setTooltip(removeNote);
-            Text lblSize = new Text("?");
-            Label lbl = new Label("?");
-            lbl.setTooltip(aiNote);
-            lbl.setAlignment(Pos.CENTER);
-            lbl.setMinWidth(lblSize.getLayoutBounds().getHeight());
-            lbl.getStyleClass().add("options-button");
-            btnWrapper.getChildren().addAll(lbl, lbl2);
-            btnWrapper.setAlignment(lbl2, Pos.TOP_CENTER);
-            btnWrapper.setAlignment(lbl, Pos.BOTTOM_CENTER);
+        why.setOnMouseClicked(e -> {
+            ui.displayMessage("This is why", false, this);
+        });
 
-            lbl.setOnMouseClicked(e -> {
-                ui.displayMessage("This is why", false, this);
-            });
-
-            lbl2.setOnMouseClicked(e -> {
-                for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
-                    if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
-                        Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
-
-                        if (tmp.getParentMsg() == this)
-                            ui.getMessageBoard().getChildren().removeAll(tmp);
-                    }
+        close.setOnMouseClicked(e -> {
+            for (int i = 0; i < ui.getMessageBoard().getChildren().size(); i++) {
+                if (ui.getMessageBoard().getChildren().get(i) instanceof Message) {
+                    Message tmp = (Message) ui.getMessageBoard().getChildren().get(i);
+                    if (tmp.getParentMsg() == this)
+                        ui.getMessageBoard().getChildren().removeAll(tmp);
                 }
-                ui.getMessageBoard().getChildren().removeAll(this);
-            });
-        }
+            }
+            ui.getMessageBoard().getChildren().removeAll(this);
+        });
+    }
 
-        if (sent) {
-            if (isAI)
-                getChildren().add(btnWrapper);
-            getChildren().add(msgWrapper);
-            msg.getStyleClass().add("user-label");
-            visual.getStyleClass().add("user-visual");
-            getStyleClass().add("user-message");
-            msg.setAlignment(Pos.CENTER_RIGHT);
-            setAlignment(Pos.CENTER_RIGHT);
-        } else {
-            getChildren().addAll(msgWrapper);
-            if (isAI)
-                getChildren().add(btnWrapper);
-            msg.getStyleClass().add("system-label");
-            visual.getStyleClass().add("system-visual");
-            getStyleClass().add("system-message");
-            msg.setAlignment(Pos.CENTER_LEFT);
-            setAlignment(Pos.CENTER_LEFT);
-        }
+    private void finishSetup(String sender) {
+        msg.getStyleClass().add(sender + "-label");
+        visual.getStyleClass().add(sender + "-visual");
+        getStyleClass().add(sender + "-message");
+        msg.setAlignment(Pos.CENTER_LEFT);
     }
 
    /**
@@ -221,10 +175,9 @@ public class Message extends FlowPane {
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
-        width = Math.ceil(sizing.getLayoutBounds().getWidth());
-        height = Math.ceil(sizing.getLayoutBounds().getHeight());
-        msgWrapper.setMinWidth(visual.getWidth());
-        msgWrapper.setMaxWidth(visual.getWidth());
+        width = sizing.getLayoutBounds().getWidth();
+        height = sizing.getLayoutBounds().getHeight();
+
         msg.setMaxWidth(width);
         visual.setWidth(width + 14);
         visual.setHeight(height + 8);
@@ -232,6 +185,10 @@ public class Message extends FlowPane {
         if (isAI)
             btnWrapper.setMaxHeight(visual.getHeight());
 
+        msgWrapper.setMinWidth(visual.getWidth());
+        msgWrapper.setMaxWidth(visual.getWidth());
+        msgWrapper.setMinHeight(visual.getHeight() + 10);
+        msgWrapper.setMaxHeight(visual.getHeight() + 10);
         setMinHeight(visual.getHeight() + 10);
         setMaxHeight(visual.getHeight() + 10);
     }
