@@ -11,13 +11,8 @@ public interface IIntelligenceUnit {
    public String onUpdatedDatabase();
 
    public void onShutdown();
-   /**
-    * User has reported that a suggestion has not been relevant
-    * ajust weights accordingly
-    * @param  String companyOrGroup
-    * @return
-    */
-   public String onSuggestionIrrelevant(String companyOrGroup);
+
+   public void onSuggestionIrrelevant(Suggestion suggestion);
 
    public Company[] onNewsTime();
 

@@ -145,26 +145,29 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @param  String companyOrGroup
     * @return
     */
-   public String onSuggestionIrrelevant(String companyOrGroup) {
-     String alert = "";
-     // check if it is a company or a group
-     for(Company c: companies) {
-       if(c.getCode().equals(companyOrGroup)) {
-         c.decrementPriority(c.getIrrelevantSuggestionWeight());
-         alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
-         return alert;
-       }
+   public void onSuggestionIrrelevant(Suggestion s) {
+     if("DEBUG".equals("DEBUG")){
+         return;//DEBUG
      }
-     // is a group
-     for(Group g: groups) {
-       if(g.getGroupCode().equals(companyOrGroup)) {
-         g.decrementPriority(g.getIrrelevantSuggestionWeight());
-         alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
-         return alert;
-       }
-     }
+    //  String alert = "";
+    //  // check if it is a company or a group
+    //  for(Company c: companies) {
+    //    if(c.getCode().equals(companyOrGroup)) {
+    //      c.decrementPriority(c.getIrrelevantSuggestionWeight());
+    //      alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
+    //      return alert;
+    //    }
+    //  }
+    //  // is a group
+    //  for(Group g: groups) {
+    //    if(g.getGroupCode().equals(companyOrGroup)) {
+    //      g.decrementPriority(g.getIrrelevantSuggestionWeight());
+    //      alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
+    //      return alert;
+    //    }
+    //  }
 
-     return "Error, no company nor group matching found";
+     return;
    }
 
    /**

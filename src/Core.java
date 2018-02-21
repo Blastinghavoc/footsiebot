@@ -138,16 +138,19 @@ public class Core extends Application {
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
         if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
-            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that",false);
+            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
             return;
         }
 
         if(!checkParseResultValid(pr)){
-            ui.displayMessage("Sorry, that was not a valid query.",false);
+            ui.displayMessage("Sorry, that was not a valid query.");
             return;
         }
 
         System.out.println(pr); //DEBUG
+
+        extraDataAddedToLastOutput = null;//Reseting this.
+
         Suggestion suggestion;
 
         Boolean managedToStoreQuery = dbm.storeQuery(pr,LocalDateTime.now());
@@ -156,9 +159,9 @@ public class Core extends Application {
         }
         //Branch based on whether the intent is for news or data.
         if (pr.getIntent() == Intent.NEWS) {
-            outputNews(pr,false);
+            outputNews(pr,null);
         } else {
-            outputFTSE(pr,false);
+            outputFTSE(pr,null);
         }
 
         lastOperandOutput = pr.getOperand();
@@ -255,18 +258,19 @@ public class Core extends Application {
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
 
         if(suggestion.isNews()){
-            outputNews(pr,true);
+            outputNews(pr,suggestion);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
             ParseResult suggPr = suggestion.getParseResult();
             if((extraDataAddedToLastOutput != null)&& lastOperandOutput.equals(suggPr.getOperand())){
+                //System.out.println(suggPr.getIntent()+" vs "+pr.getIntent());//DEBUG
                 if((suggPr.getIntent() == pr.getIntent()) ||extraDataAddedToLastOutput.contains(suggPr.getIntent())){
                     //The intent suggested has already been displayed to the user.
                     return;
                 }
             }
-            outputFTSE(suggPr,true);
+            outputFTSE(suggPr,suggestion);
             System.out.println("Displayed suggestion for pr = "+suggPr.toString());//DEBUG
         }
     }
@@ -274,7 +278,7 @@ public class Core extends Application {
    /**
     *
     */
-    private void outputNews(ParseResult pr,Boolean wasSuggestion){
+    private void outputNews(ParseResult pr,Suggestion s){
         Article[] result;
         if (pr.isOperandGroup()) {
             String[] companies = groupNameToCompanyList(pr.getOperand());
@@ -283,11 +287,11 @@ public class Core extends Application {
         } else {
             result = dgc.getNews(pr.getOperand());
         }
-        ui.displayResults(result, wasSuggestion);
+        ui.displayResults(result, s);
     }
 
 
-    private void outputFTSE(ParseResult pr,Boolean wasSuggestion){
+    private void outputFTSE(ParseResult pr,Suggestion s){
         /*
         NOTE: may wish to branch for groups, using an overloaded/modified method
         of getFTSE(ParseResult,Boolean).
@@ -295,23 +299,23 @@ public class Core extends Application {
         String[] data = dbm.getFTSE(pr);
 
         String result;//NOTE: May convert to a different format for the UI
-
+        Boolean wasSuggestion = (s!= null);
         if(data == null){
             System.out.println("NULL DATA!");
             if(wasSuggestion){
-                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query",false);
+                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
             }else{
-                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query",false);
+                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query");
             }
             return;
         }
 
         if (pr.isOperandGroup()) {
             result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,wasSuggestion);
+            ui.displayMessage(result,s);
         } else {
             result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,wasSuggestion);
+            ui.displayMessage(result,s);
         }
     }
 
@@ -498,25 +502,16 @@ public class Core extends Application {
         }
         output += "\n\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayResults(news,false);
-        ui.displayMessage(output,false);
+        ui.displayResults(news,null);
+        ui.displayMessage(output,null);
     }
 
    /**
     *
     */
-    public void suggestionIrrelevant(String msg){
-        //Extract company or group name from message.
-        ParseResult tempPr = nlp.parse(msg);
-        if((tempPr != null)&& (tempPr.getOperand() != null)){
-            System.out.println("Extracted operand: "+ tempPr.getOperand() + " from message: "+ msg);//DEBUG
-            ic.onSuggestionIrrelevant(tempPr.getOperand());
-            //TODO: make onSuggestionIrrelevant update the priorities in the database
-        }
-        else{
-            System.out.println("Couldn't extract operand from message: "+msg);//DEBUG
-        }
-
+    public void suggestionIrrelevant(Suggestion s){
+        System.out.println("A suggestion was marked irrelevant");
+        ic.onSuggestionIrrelevant(s);
     }
 
     private void debugNLP() {

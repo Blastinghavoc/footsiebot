@@ -20,6 +20,8 @@ import javafx.beans.property.*;
 import javafx.util.Duration;
 import javafx.application.Platform;
 
+import footsiebot.ai.Suggestion;
+
 public class GUIcore implements IGraphicalUserInterface {
     private String style;
 
@@ -435,8 +437,8 @@ public class GUIcore implements IGraphicalUserInterface {
         System.out.println("Stopped download thread");
     }
 
-    public void suggestionIrrelevant(String msg){
-        core.suggestionIrrelevant(msg);
+    public void suggestionIrrelevant(Suggestion s){
+        core.suggestionIrrelevant(s);
     }
 
    /**
@@ -482,7 +484,7 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     private void onUserInput() {
         if (checkInput()) {
-            messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), true, false, this));
+            messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), true, null, this));
             core.onUserInput(input.getText().trim());
             // messages.setValue(messageBoard.getChildren());
             input.clear();
@@ -511,11 +513,11 @@ public class GUIcore implements IGraphicalUserInterface {
     * Displays a message from the system to the user
     *
     * @param msg a string containing the message to be displayed
-    * @param isAI a boolean representing whether the message was sent by the AI
+    * @param sugg a Suggestion from the AI
     */
-    public void displayMessage(String msg, boolean isAI) {
+    public void displayMessage(String msg, Suggestion sugg) {
         if (msg != null) {
-            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, isAI, this));
+            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, sugg, this));
         }
     }
 
@@ -524,6 +526,7 @@ public class GUIcore implements IGraphicalUserInterface {
     *
     * @param msg a string containing the message to be displayed
     * @param isAI a boolean representing whether the message was sent by the AI
+    * NOTE: isAI is no longer used.
     * @param parent the parent message
     */
     public void displayMessage(String msg, boolean isAI, Message parent) {
@@ -531,17 +534,24 @@ public class GUIcore implements IGraphicalUserInterface {
             if (parent != null)
                 messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), this, parent));
             else
-                messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, isAI, this));
+                messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, null, this));
         }
+    }
+
+    /*
+    A message sent with no boolean defaults to not an AI message
+    */
+    public void displayMessage(String msg){
+        displayMessage(msg,null);
     }
 
    /**
     * Displays news results
     *
     * @param news the array of Articles to displayed
-    * @param isAI a boolean representing whether the message was sent by the AI
+    * @param Suggestion A potentially null Suggestion from the AI
     */
-    public void displayResults(Article[] news, boolean isAI) {
+    public void displayResults(Article[] news, Suggestion s) {
         if (news != null) {
             newsBoard.getChildren().clear();
             for (Article a : news) {
