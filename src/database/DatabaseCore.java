@@ -14,9 +14,11 @@ import java.time.DayOfWeek;
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
 
+
+
     public DatabaseCore() {
 
-        // loads the sqlite-JDBC driver
+        // load the sqlite-JDBC driver
         try {
             Class.forName("org.sqlite.JDBC");
         }
@@ -26,7 +28,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         conn = null;
         try {
-            // creates a database connection
+            // create a database connection
             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
 
         } catch (SQLException e) {
@@ -35,8 +37,9 @@ public class DatabaseCore implements IDatabaseManager {
 
     }
 
-    /* Stores new FTSE data in the database */
     public boolean storeScraperResults(ScrapeResult sr) {
+
+        // need to delete old FTSE data
 
         int numCompanies = 100;//Constant
         Float price, absChange, percChange = 0.0f;
@@ -45,6 +48,7 @@ public class DatabaseCore implements IDatabaseManager {
         PreparedStatement s2 = null;
         PreparedStatement s3 = null;
         Statement s4 = null;
+
         String checkNewCompanyQuery = null;
         String addNewCompanyQuery = null;
         String addCompanyGroupQuery = null;
@@ -61,7 +65,7 @@ public class DatabaseCore implements IDatabaseManager {
             code = sr.getCode(i).toLowerCase();
 
             // Remove punctuation if present
-            if (code.endsWith(".")) { 
+            if (code.endsWith(".")) {
                 code = code.substring(0, code.length() - 1);
             }
 
@@ -132,7 +136,7 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /* Deletes FTSE data from over 5 trading days ago 
+    /* Deletes FTSE data from over 5 trading days ago
     MAY NOT NEED */
     private void deleteOldFTSEData() {
 
@@ -143,7 +147,7 @@ public class DatabaseCore implements IDatabaseManager {
         try {
             s1 = conn.createStatement();
             String query    = "DELETE FROM FTSECompanySnapshots\n"
-                            + "WHERE DATETIME(TimeOfData, '+7 days') <= '" 
+                            + "WHERE DATETIME(TimeOfData, '+7 days') <= '"
                             + comparisonTime + "'";
             s1.executeUpdate(query);
         } catch (SQLException e) {
@@ -166,7 +170,7 @@ public class DatabaseCore implements IDatabaseManager {
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
-        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+ companyCode +"','"+intent+"','"+timeSpecifier+"')";
+        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
         Statement s1 = null;
         ResultSet r1 = null;
         String table = intentToTableName(pr.getIntent());
@@ -208,14 +212,15 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /* Returns the FTSE data asked for as well as other information about the 
+    /* Returns the FTSE data asked for as well as other information about the
     company */
     public String[] getFTSE(ParseResult pr) {
+
 
     	footsiebot.nlp.Intent intent = pr.getIntent();
     	ArrayList<String> output = new ArrayList<String>();
 
-    	/* call relevant method to get a query for the intent data or a 
+    	/* call relevant method to get a query for the intent data or a
     	percentage change if the intent is to get trend data */
 
     	switch (intent) {
@@ -260,6 +265,7 @@ public class DatabaseCore implements IDatabaseManager {
     			break;
     	}
 
+
         // add other company data to array list
         switch (intent) {
         	case TREND:
@@ -291,7 +297,7 @@ public class DatabaseCore implements IDatabaseManager {
     /* Returns an array list  containing the data to be output by the Core
     for trend data */
     private ArrayList<String> getTrendData(ParseResult pr) {
-    	
+
     	ArrayList<String> output = new ArrayList<String>();
     	footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
@@ -324,7 +330,7 @@ public class DatabaseCore implements IDatabaseManager {
                      			+ "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                      			+ "ORDER BY TimeOfData ASC LIMIT 1";
 
-           		/* if the time specifier is today, ccompare against spot price, 
+           		/* if the time specifier is today, ccompare against spot price,
            		otherwise comapre against closing price of specified day*/
            		if (timeSpec == footsiebot.nlp.TimeSpecifier.TODAY) {
            			// compare against spot price
@@ -332,7 +338,7 @@ public class DatabaseCore implements IDatabaseManager {
                         			+ "WHERE CompanyCode = '" + companyCode + "'";
            		} else {
            			endTimeQuery   	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-			                        + "WHERE CompanyCode = '" + companyCode 
+			                        + "WHERE CompanyCode = '" + companyCode
 			                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
 			                        + "ORDER BY TimeOfData DESC LIMIT 1";
            		}
@@ -392,7 +398,7 @@ public class DatabaseCore implements IDatabaseManager {
             //     	tryClose(s1, spotPriceRS);
             //     	tryClose(s2, openingPriceRS);
             //     }
-            	
+
             // 	tryClose(s1, spotPriceRS);
             //  tryClose(s2, openingPriceRS);
     	}
@@ -417,12 +423,10 @@ public class DatabaseCore implements IDatabaseManager {
     	return output;
     }
 
-    // CAN DELETE??
     public String convertScrapeResult(ScrapeResult sr) {
         return null;
     }
 
-    // CAN DELETE??
     public String convertQuery(ParseResult pr, LocalDateTime date) {
         return null;
     }
@@ -469,7 +473,7 @@ public class DatabaseCore implements IDatabaseManager {
             case CLOSING_PRICE:
                 comparisonTime = timeSpecifierToDate(timeSpec);
                 query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-                        + "WHERE CompanyCode = '" + companyCode 
+                        + "WHERE CompanyCode = '" + companyCode
                         + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                         + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
@@ -482,8 +486,8 @@ public class DatabaseCore implements IDatabaseManager {
 
         // get current data requested from database
         if (isFetchCurrentQuery) {
-            query   = "SELECT " + colName + " FROM FTSECompanySnapshots\n" 
-                    + "WHERE CompanyCode = '" + companyCode + 
+            query   = "SELECT " + colName + " FROM FTSECompanySnapshots\n"
+                    + "WHERE CompanyCode = '" + companyCode +
                     "' ORDER BY TimeOfData DESC LIMIT 1";
         }
 
@@ -492,16 +496,16 @@ public class DatabaseCore implements IDatabaseManager {
 
     /* Converts time specifier to date */
     private String timeSpecifierToDate(TimeSpecifier t) {
-        
+
         LocalDateTime date = LocalDateTime.now();
         //DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = "";
-        
+
         switch (t) {
-            // for today and yesterday first gets most recent trading day in 
+            // for today and yesterday first gets most recent trading day in
             // in case it is a non trading day
-            case TODAY: 
+            case TODAY:
                 formattedDate = getComparisonTime(date);
                 return formattedDate;
             case YESTERDAY:
@@ -534,11 +538,11 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
         }
 
-        formattedDate = date.format(dateFormatter); 
-        return formattedDate;  
+        formattedDate = date.format(dateFormatter);
+        return formattedDate;
     }
 
-    /* Returns the most current date on a trading day or the date of the most 
+    /* Returns the most current date on a trading day or the date of the most
     recent trading day on a non trading day */
     private String getComparisonTime(LocalDateTime currentTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -556,9 +560,10 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
         return comparisonTime;
+
     }
 
-    /* Returns all other information stored about a company except the 
+    /* Returns all other information stored about a company except the
     information asked for by the user */
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
 
@@ -614,6 +619,8 @@ public class DatabaseCore implements IDatabaseManager {
     	}
     	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
+    	System.out.println(query);//DEBUG
+
     	// execute and store query results
     	try {
     		s1 = conn.createStatement();
@@ -630,8 +637,6 @@ public class DatabaseCore implements IDatabaseManager {
     		e.printStackTrace();
     		tryClose(s1, results);
     	}
-
-        tryClose(s1, results);
 
     	return rs;
     }
@@ -672,8 +677,6 @@ public class DatabaseCore implements IDatabaseManager {
         }
         return  name;
     }
-
-
 
     public ArrayList<Company> getAICompanies() {
 
@@ -718,6 +721,15 @@ public class DatabaseCore implements IDatabaseManager {
           float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
           float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
 
+          // intent priorities
+          float spotPriority = spot - spotAdj;
+          float openingPriority = opening - openingAdj;
+          float closingPriority = closing - closingPriceAdj;
+          float absoluteChangePriority = absoluteChange - absoluteChangeAdj;
+          float percentageChangePriority = percentageChange - percentageChangeAdj;
+          // news
+          float newsPriority = newsCount - newsAdj;
+
           // Instantiate IntentData List for this company
           // TODO not having values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
@@ -726,12 +738,22 @@ public class DatabaseCore implements IDatabaseManager {
           intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
           intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
 
+          HashMap<AIIntent, Float[]> mapping = new HashMap<>();
+
+          mapping.put(AIIntent.SPOT_PRICE, new Float[]{spot, spotAdj});
+          mapping.put(AIIntent.OPENING_PRICE, new Float[]{opening, openingAdj});
+          mapping.put(AIIntent.CLOSING_PRICE, new Float[]{closing, closingPriceAdj});
+          mapping.put(AIIntent.PERCENT_CHANGE, new Float[]{percentageChange,percentageChangeAdj });
+          mapping.put(AIIntent.ABSOLUTE_CHANGE, new Float[]{absoluteChange, absoluteChangeAdj});
+
+
           // Calculate priority for each company
-          // it is the sum of all the counts
-          float priority = spot + opening + absoluteChange + closing + percentageChange;
+          Float intentScale = 1.0f;
+          Float newsScale = 1.0f;
+          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
-          float irrelevantSuggestionWeightForCompany = (spotAdj + openingAdj + absoluteChangeAdj + closingPriceAdj + percentageChangeAdj) / 5;
-          companies.add(new Company(rs.getString("CompanyCode"), intents, newsCount, priority,  irrelevantSuggestionWeightForCompany ));
+
+          companies.add(new Company(rs.getString("CompanyCode"), intents, mapping, intentScale, newsScale, newsCount, newsAdj));
         }
 
         if(companies.size() != 0) {
@@ -780,27 +802,30 @@ public class DatabaseCore implements IDatabaseManager {
         Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
 
         // retrieve all companies for each group
+        // for(Map.Entry<String,Group> g: entrySet) {
+        //   String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
+        //   ResultSet rs0 = null;
+        //
+        //   try {
+        //     rs0 = stmt.executeQuery(query2);
+        //     ArrayList<Company> companiesForThisGroup = new ArrayList<>();
+        //     // put all the companies for this group in its list
+        //     while(rs0.next()) {
+        //       Company c = companiesMap.get(rs0.getString("CompanyCode"));
+        //       companiesForThisGroup.add(c);
+        //     }
+        //     g.getValue().addCompanies(companiesForThisGroup);
+        //
+        //     // add to final list
+        //     result.add(g.getValue());
+        //   } catch(SQLException e) {
+        //     printSQLException(e);
+        //   } finally {
+        //     if(rs0 != null) {tryClose(rs0); }
+        //   }
+        // }
+
         for(Map.Entry<String,Group> g: entrySet) {
-          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
-          ResultSet rs0 = null;
-
-          try {
-            rs0 = stmt.executeQuery(query2);
-            ArrayList<Company> companiesForThisGroup = new ArrayList<>();
-            // put all the companies for this group in its list
-            while(rs0.next()) {
-              Company c = companiesMap.get(rs0.getString("CompanyCode"));
-              companiesForThisGroup.add(c);
-            }
-            g.getValue().addCompanies(companiesForThisGroup);
-
-            // add to final list
-            result.add(g.getValue());
-          } catch(SQLException e) {
-            printSQLException(e);
-          } finally {
-            if(rs0 != null) {tryClose(rs0); }
-          }
         }
 
         // now add the remaining values to each group
@@ -809,16 +834,12 @@ public class DatabaseCore implements IDatabaseManager {
           int numberOfCompanies = com.size();
 
           Float priority = 0.0f;
-          Float irrelevantSuggestionWeight = 0.0f;
 
           for(Company c: com) {
             priority+= c.getPriority();
-            irrelevantSuggestionWeight+= c.getIrrelevantSuggestionWeight();
           }
-          irrelevantSuggestionWeight/= numberOfCompanies;
 
           g.setPriority(priority);
-          g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
         }
 
       } catch (SQLException ex) {
@@ -830,9 +851,96 @@ public class DatabaseCore implements IDatabaseManager {
 
       return result;
     }
+    //TODO
+    public ArrayList<String> detectedImportantChange() {
+      String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
+
+      ResultSet rs = null;
+      Statement stmt = null;
+      ArrayList<String> result = new ArrayList<>();
+
+      HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
+      // TODO
+      Float treshold = 0.0f;
+
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query);
+
+        while(rs.next()) {
+          String companyName = rs.getString("CompanyCode");
+          Float percChange = rs.getFloat("PercentageChange");
+
+          if(percChange > treshold) {
+            companiesPercChangeMap.put(companyName, percChange);
+          }
+        }
+
+        Set<String> winningNames = companiesPercChangeMap.keySet();
+
+        for(String s: winningNames) {
+          result.add(s);
+        }
+
+      } catch (SQLException e) {
+        printSQLException(e);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+        if(rs != null) {tryClose(rs); }
+      }
+
+      if(result.size() == 0) return null;
+      return result;
+    }
+
+
+    //TODO
+    public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
+      String table = "";
+      if(!isNews) {
+        switch(intent) {
+          case SPOT_PRICE: table+= "CompanySpotPriceCount";
+          break;
+          case OPENING_PRICE: table+= "CompanyOpeningPriceCount";
+          break;
+          case CLOSING_PRICE: table+= "CompanySpotPriceCount";
+          break;
+          case PERCENT_CHANGE: table+= "CompanySpotPriceCount";
+          break;
+          case ABSOLUTE_CHANGE: table+= "CompanySpotPriceCount";
+          break;
+        }
+      } else {
+        // is news
+        table+= "CompanyNewsCount";
+      }
+
+      String column = table.replace("Company", "").replace("Count", "Adjustment");
+      // TODO exponentially
+      String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ")";
+      Statement stmt = null;
+
+      try {
+        stmt = conn.createStatement();
+        stmt.executeUpdate(query);
+
+      } catch (SQLException e) {
+        printSQLException(e);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+      }
+
+    }
+
+    //TODO
+    // private void onSuggestionIrrelevant(Group group) {
+    //
+    //
+    // }
+
 
     public IntentData getIntentForCompany() {
-        return null;
+      return null;
     }
 
     // This is potentially not needed couple of methods as
@@ -853,8 +961,8 @@ public class DatabaseCore implements IDatabaseManager {
         ResultSet r1 = null;
         Statement s1 = null;
         try {
-            String query = "SELECT CompanyName from FTSECompanies ";
-            query += "INNER JOIN FTSEGroupMappings ON (FTSECompanies.CompanyCode = FTSEGroupMappings.CompanyCode) ";
+            String query = "SELECT FC.CompanyCode from FTSECompanies FC ";
+            query += "INNER JOIN FTSEGroupMappings ON (FC.CompanyCode = FTSEGroupMappings.CompanyCode) ";
             query += "WHERE FTSEGroupMappings.GroupName = '"+groupName+"'";
             s1 = conn.createStatement();
             r1 = s1.executeQuery(query);
