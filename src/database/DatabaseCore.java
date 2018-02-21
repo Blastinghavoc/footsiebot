@@ -138,7 +138,9 @@ public class DatabaseCore implements IDatabaseManager {
 
         try {
             s1 = conn.createStatement();
-            String query = "DELETE FROM FTSECompanySnapshots WHERE DATETIME(TimeOfData, '+7 days') <= '" + comparisonTime + "'";
+            String query    = "DELETE FROM FTSECompanySnapshots\n"
+                            + "WHERE DATETIME(TimeOfData, '+7 days') <= '" 
+                            + comparisonTime + "'";
             s1.executeUpdate(query);
         } catch (SQLException e) {
             e.printStackTrace();
@@ -219,8 +221,13 @@ public class DatabaseCore implements IDatabaseManager {
         try {
             s1 = conn.createStatement();
             results = s1.executeQuery(FTSEQuery);
-            while (results.next()) {
-                output.add(((Float)results.getFloat(1)).toString());
+            if (!results.next()) {
+                String nullArr[] = null;
+                return nullArr; // return null array if no results
+            } else {
+                do {
+                    output.add(((Float)results.getFloat(1)).toString());
+                } while (results.next());
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -228,8 +235,19 @@ public class DatabaseCore implements IDatabaseManager {
             tryClose(s1,results);
         }
         tryClose(s1, results);
+
+        // add dates to output for closing price and opening price
+        switch (pr.getIntent()) {
+            case OPENING_PRICE:
+            case CLOSING_PRICE:
+                output.add("Date, " + timeSpecifierToDate(pr.getTimeSpecifier()));
+            default:
+                break;
+        }
+
         // add other data about company to other indexes of the array
         output.addAll(getAllCompanyInfo(pr));
+
 
         return output.toArray(new String[1]);
     }
@@ -277,7 +295,7 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
-                comparisonTime = getComparisonTime(currentTime);
+                comparisonTime = timeSpecifierToDate(pr.getTimeSpecifier());
                 query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
                         + "WHERE CompanyCode = '" + companyCode
                         + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
@@ -317,41 +335,43 @@ public class DatabaseCore implements IDatabaseManager {
     private String timeSpecifierToDate(TimeSpecifier t) {
         
         LocalDateTime date = LocalDateTime.now();
-        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd ");
+        //DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String formattedDate = "";
         
         switch (t) {
+            // for today and yesterday first gets most recent trading day in 
+            // in case it is a non trading day
             case TODAY: 
-                formattedDate = date.format(dateTimeFormatter);
+                formattedDate = getComparisonTime(date);
                 return formattedDate;
             case YESTERDAY:
-                date = date.minusDays(1);
-                break;
+                formattedDate = getComparisonTime(date.minusDays(1));
+                return formattedDate;
             case LAST_MONDAY:
-                while (date.getDayOfWeek() != java.time.DayOfWeek.MONDAY) {
+                do {
                     date = date.minusDays(1);
-                }
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.MONDAY);
                 break;
             case LAST_TUESDAY:
-                while (date.getDayOfWeek() != java.time.DayOfWeek.TUESDAY) {
+                do {
                     date = date.minusDays(1);
-                }
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.TUESDAY);
                 break;
             case LAST_WEDNESDAY:
-                while (date.getDayOfWeek() != java.time.DayOfWeek.WEDNESDAY) {
+                do {
                     date = date.minusDays(1);
-                }
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.WEDNESDAY);
                 break;
             case LAST_THURSDAY:
-                while (date.getDayOfWeek() != java.time.DayOfWeek.THURSDAY) {
+                do {
                     date = date.minusDays(1);
-                }
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.THURSDAY);
                 break;
             case LAST_FRIDAY:
-                while (date.getDayOfWeek() != java.time.DayOfWeek.FRIDAY) {
+                do {
                     date = date.minusDays(1);
-                }
+                } while (date.getDayOfWeek() != java.time.DayOfWeek.FRIDAY);
                 break;
         }
 
