@@ -25,6 +25,8 @@ public class IntentData implements Comparable<IntentData> {
 
   public Float getAdjustment() {return adjustment;}
 
+  public Float getCount() {return count;}
+
   // public Float getLastValue() {
   //   //Float res = 0.0f;
   //   Float f = values.get(values.size() - 1);

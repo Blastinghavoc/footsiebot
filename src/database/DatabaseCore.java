@@ -908,7 +908,7 @@ public class DatabaseCore implements IDatabaseManager {
 
       String column = table.replace("Company", "").replace("Count", "Adjustment");
       // TODO exponentially
-      String query = "UPDATE " + table + "SET " + column + " = (0.5 * " + column  + ")";
+      String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ")";
       Statement stmt = null;
 
       try {

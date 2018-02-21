@@ -28,7 +28,8 @@ public class Company implements Comparable<Company> {
     for(IntentData id: intents) {
       if(id.getIntent().equals(i)) {
         // TODO
-        id.decrementPriority(0.5f * (id.getAdjustment()) );
+        id.decrementPriority(1+ (0.5f * (id.getAdjustment())) );
+        mapping.put(i,new Float[]{id.getCount(),id.getAdjustment()});
       }
     }
   }
@@ -39,15 +40,15 @@ public class Company implements Comparable<Company> {
 
   public IntentData getTopIntentData() {
     java.util.Collections.sort(intents);
-	  return intents.get(0);
+	  return intents.get(0);      
   }
 
   public Float getPriority() {
-    float spotPriority = mapping.get(AIIntent.SPOT_PRICE)[1] - mapping.get(AIIntent.SPOT_PRICE)[2] ;
-    float openingPriority = mapping.get(AIIntent.OPENING_PRICE)[1] - mapping.get(AIIntent.OPENING_PRICE)[2] ;
-    float closingPriority = mapping.get(AIIntent.CLOSING_PRICE)[1] - mapping.get(AIIntent.CLOSING_PRICE)[2] ;
-    float absoluteChangePriority = mapping.get(AIIntent.ABSOLUTE_CHANGE)[1] - mapping.get(AIIntent.ABSOLUTE_CHANGE)[2] ;
-    float percentageChangePriority = mapping.get(AIIntent.PERCENT_CHANGE)[1] - mapping.get(AIIntent.PERCENT_CHANGE)[2];
+    float spotPriority = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1] ;
+    float openingPriority = mapping.get(AIIntent.OPENING_PRICE)[0] - mapping.get(AIIntent.OPENING_PRICE)[1] ;
+    float closingPriority = mapping.get(AIIntent.CLOSING_PRICE)[0] - mapping.get(AIIntent.CLOSING_PRICE)[1] ;
+    float absoluteChangePriority = mapping.get(AIIntent.ABSOLUTE_CHANGE)[0] - mapping.get(AIIntent.ABSOLUTE_CHANGE)[1] ;
+    float percentageChangePriority = mapping.get(AIIntent.PERCENT_CHANGE)[0] - mapping.get(AIIntent.PERCENT_CHANGE)[1];
 
     float newsPriority = newsCount - newsAdj;
 
