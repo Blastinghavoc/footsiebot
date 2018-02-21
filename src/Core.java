@@ -89,7 +89,7 @@ public class Core extends Application {
             // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
-        
+
         if(runTradingHourTest){
             try{
                 onTradingHour();//DEBUG
@@ -202,15 +202,23 @@ public class Core extends Application {
                 }
                 break;
             case OPENING_PRICE:
-                output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ");
-                if(!wasSuggestion){
-                    output = addExtraDataToOutput(output,data);
+                {
+                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
+                    if(!wasSuggestion){
+                        String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
+                        output = addExtraDataToOutput(output,remainingData);
+                    }
                 }
                 break;
             case CLOSING_PRICE:
-                output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ");
-                if(!wasSuggestion){
-                    output = addExtraDataToOutput(output,data);
+                {
+                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
+                    if(!wasSuggestion){
+                        String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
+                        output = addExtraDataToOutput(output,remainingData);
+                    }
                 }
                 break;
             case TREND:
