@@ -8,7 +8,7 @@ public interface IIntelligenceUnit {
 
    public Suggestion getSuggestion(ParseResult pr);
 
-   public String onUpdatedDatabase();
+   public Suggestion[] onUpdatedDatabase();
 
    public void onShutdown();
 
