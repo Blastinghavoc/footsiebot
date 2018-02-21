@@ -79,9 +79,9 @@ public class WebScraper {
                         case 3: break;
                         case 4: pricelist.add(Float.parseFloat(column.text().replace(",", "")));
                             break;
-                        case 5: abslist.add(Float.parseFloat(column.text()));
+                        case 5: abslist.add(Float.parseFloat(column.ownText()));
                             break;
-                        case 6: perclist.add(Float.parseFloat(column.text()));
+                        case 6: perclist.add(Float.parseFloat(column.ownText()));
                             break;
                         default: break elementloop;
                     }

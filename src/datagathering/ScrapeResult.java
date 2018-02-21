@@ -1,6 +1,5 @@
 package footsiebot.datagathering;
 
-
 public class ScrapeResult {
     private String[] codes;
     private String[] names;
@@ -44,12 +43,9 @@ public class ScrapeResult {
         return percChange[index];
     }
 
-<<<<<<< HEAD
     public Integer getVolume(int index) {
         return tradeVolume[index];
     }
-=======
->>>>>>> 0a17c9612f8ac823a5f8aa64f63647bbf7de7af6
 
     public int getSize() {
         return names.length;
