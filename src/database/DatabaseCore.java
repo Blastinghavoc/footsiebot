@@ -35,6 +35,7 @@ public class DatabaseCore implements IDatabaseManager {
 
     }
 
+    /* Stores FTSE data in database */
     public boolean storeScraperResults(ScrapeResult sr) {
 
         // need to delete old FTSE data
@@ -286,15 +287,59 @@ public class DatabaseCore implements IDatabaseManager {
     and whether a group is rising or falling */
     private ArrayList<String> getGroupData(ParseResult pr) {
     	ArrayList<String> output = new ArrayList<String>();
+    	Float percChange = 0.0f;
     	Float percChangeTotal = 0.0f;
     	Float averagePercChange = 0.0f;
     	String groupName = pr.getOperand();
     	String[] companies = getCompaniesInGroup(groupName);
     	footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier(); 
+    	String comparisonTime = "";
+    	HashMap<String, Float> spotPriceMap = new HashMap<String, Float>();
+    	HashMap<String, Float> percChangeMap = new HashMap<String, Float>();
+    	ArrayList<Float> spotPrices = new ArrayList<Float>();
+    	ArrayList<Float> percChanges = new ArrayList<Float>();
+    	Float maxSpotPrice = 0.0f;
+    	Float minSpotPrice = 0.0f;
+    	Float maxPercChange = 0.0f;
+    	Float minPercChange = 0.0f;
+    	String companyWithMaxSpotPrice, companyWithMinSpotPrice, companyWithMaxPercChange, companyWithMinPercChange;
 
+    	String spotOrClosingPriceQry = "";
+    	Statement s1 = null;
+    	ResultSet results = null;
+
+    	comparisonTime = timeSpecifierToDate(timeSpec);
+
+    	/* gets percentage change and spot price/ closing price for each company 
+    	in group */
     	for (int i = 0; i < companies.length; i ++) {
-			percChangeTotal += getTrendDataOnDate(companies[i], timeSpec).get(0);
+    		percChange = getTrendDataOnDate(companies[i], timeSpec).get(0);
+			percChangeTotal += percChange;
+			percChangeMap.put(companies[i], percChange);
+
+			/* gets spot price if the time specifier is today, otherwise gets 
+			closing price */
+			spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec, companies[i], comparisonTime);
+			try {
+				s1 = conn.createStatement();
+				results = s1.executeQuery(spotOrClosingPriceQry);
+				while (results.next()) {
+					spotPriceMap.put(companies[i], results.getFloat(1));
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+				tryClose(s1, results);
+			}
     	}
+    	tryClose(s1, results);
+
+    	// if no data stored for time specifier
+    	if (spotPriceMap.isEmpty()) {
+    		return output;
+    	}
+
+    	// calculates average percentage change for whole group and whether
+    	// the overall group is rising or falling
     	averagePercChange = percChangeTotal/ companies.length;
     	output.add(averagePercChange.toString());
     	if (averagePercChange > 0) {
@@ -304,7 +349,28 @@ public class DatabaseCore implements IDatabaseManager {
 		} else {
 			output.add("stayed the same");
 		}
-		System.out.println("PERC CHANGE " + averagePercChange + " " + output.get(1));
+
+		Comparator<? super Map.Entry<String, Float>> valueComparator = ((entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue()));
+
+		maxSpotPrice = Collections.max(spotPriceMap.entrySet(), valueComparator).getValue();
+		companyWithMaxSpotPrice = Collections.max(spotPriceMap.entrySet(), valueComparator).getKey();
+		minSpotPrice = Collections.min(spotPriceMap.entrySet(), valueComparator).getValue();
+		companyWithMinSpotPrice = Collections.min(spotPriceMap.entrySet(), valueComparator).getKey();
+		maxPercChange = Collections.max(percChangeMap.entrySet(), valueComparator).getValue();
+		companyWithMaxPercChange = Collections.max(percChangeMap.entrySet(), valueComparator).getKey();
+		minPercChange = Collections.min(percChangeMap.entrySet(), valueComparator).getValue();
+		companyWithMinPercChange = Collections.min(percChangeMap.entrySet(), valueComparator).getKey();
+
+		output.add(companyWithMaxSpotPrice + ", " + maxSpotPrice.toString());
+		output.add(companyWithMinSpotPrice + ", " + minSpotPrice.toString());
+		output.add(companyWithMaxPercChange + ", " + maxPercChange.toString());
+		output.add(companyWithMinPercChange + ", " + minPercChange.toString());
+		
+		System.out.println("PERC CHANGE " + output.get(0) + " " + output.get(1));
+		System.out.println(output.get(2));
+		System.out.println(output.get(3));
+		System.out.println(output.get(4));
+		System.out.println(output.get(5));
     	return output;
     }
 
@@ -376,18 +442,7 @@ public class DatabaseCore implements IDatabaseManager {
              			+ "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
              			+ "ORDER BY TimeOfData ASC LIMIT 1";
 
-   		/* if the time specifier is today, ccompare against spot price,
-   		otherwise compare against closing price of specified day*/
-   		if (timeSpec == footsiebot.nlp.TimeSpecifier.TODAY) {
-   			// compare against spot price
-   			endTimeQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-                			+ "WHERE CompanyCode = '" + companyCode + "'";
-   		} else {
-   			endTimeQuery   	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-	                        + "WHERE CompanyCode = '" + companyCode
-	                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
-	                        + "ORDER BY TimeOfData DESC LIMIT 1";
-   		}
+   		endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode, comparisonTime);
 
    		/* If able to get start and end prices, calculate the percentage
    		change between them */
@@ -427,43 +482,77 @@ public class DatabaseCore implements IDatabaseManager {
    		return trendData;
     }
 
+    /* if the time specifier is today, returns query to get spot price of 
+    company, otherwise returns query to get closing price of company on
+    specified day*/
+    private String spotOrClosingPriceQuery(footsiebot.nlp.TimeSpecifier timeSpec, String companyCode, String comparisonTime) {
+   		String query = "";
+   		if (timeSpec == footsiebot.nlp.TimeSpecifier.TODAY) {
+   			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                			+ "WHERE CompanyCode = '" + companyCode + "'";
+   		} else {
+   			query   	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+	                        + "WHERE CompanyCode = '" + companyCode
+	                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+	                        + "ORDER BY TimeOfData DESC LIMIT 1";
+   		}
+   		return query;
+    }
+
     /* Returns array list containing percentage change in spot price, 
     opening price and closing price or spot price(if time specifier is today) 
     for a company since the day specified */
     private ArrayList<Float> getPercChangeSinceDate(String companyCode, footsiebot.nlp.TimeSpecifier timeSpec) {
     	ArrayList<Float> trendData = new ArrayList<Float>();
+    	LocalDateTime currentTime = LocalDateTime.now();
+        String comparisonTime = "";
+        String spotPriceQuery, openingPriceQuery = null;
+    	Statement s1 = null;
+        Statement s2 = null;
+        ResultSet spotPriceRS = null;
+        ResultSet openingPriceRS = null;
+        Float spotPrice = 0.0f;
+        Float openingPrice = 0.0f;
+        Float percChange = 0.0f;
 
-    	// TO DO: finish when since trend implemented
+    	comparisonTime = timeSpecifierToDate(timeSpec);
+    	spotPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                		+ "WHERE CompanyCode = '" + companyCode;
+        openingPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                			+ "WHERE CompanyCode = '" + companyCode
+                			+ "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
+                			+ "ORDER BY TimeOfData ASC LIMIT 1";
+        try {
+        	s1 = conn.createStatement();
+        	s2 = conn.createStatement();
+        	spotPriceRS = s1.executeQuery(spotPriceQuery);
+        	openingPriceRS = s2.executeQuery(openingPriceQuery);
 
-	    // 	comparisonTime = timeSpecifierToDate(timeSpec);
-        // 	spotPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-        //             		+ "WHERE CompanyCode = '" + companyCode;
-        //     openingPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-        //             			+ "WHERE CompanyCode = '" + companyCode
-        //             			+ "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
-        //             			+ "ORDER BY TimeOfData ASC LIMIT 1";
-        //     try {
-        //     	s1 = conn.createStatement();
-        //     	s2 = conn.createStatement();
-        //     	spotPriceRS = s1.executeQuery(spotPriceQuery);
-        //     	openingPriceRS = s2.executeQuery(openingPriceQuery);
+        	while (spotPriceRS.next()) {
+        		spotPrice = spotPriceRS.getFloat(1);
+        	}
 
-        //     	while (spotPriceRS.next()) {
-        //     		spotPrice = spotPriceRS.getFloat(1);
-        //     	}
+        	while (openingPriceRS.next()) {
+        		openingPrice = openingPriceRS.getFloat(1);
+        	}
 
-        //     	while (openingPriceRS.next()) {
-        //     		openingPrice = openingPriceRS.getFloat(1);
-        //     	}
+        	if (spotPrice != 0.0f && openingPrice != 0.0f) {
+   				percChange = ((openingPrice - spotPrice) / openingPrice) * 100;
+   			} else {
+   				System.out.println("Null start or spot price");
+   			}
+        } catch (SQLException e) {
+        	e.printStackTrace();
+        	tryClose(s1, spotPriceRS);
+        	tryClose(s2, openingPriceRS);
+        }
 
-        //     } catch (SQLException e) {
-        //     	e.printStackTrace();
-        //     	tryClose(s1, spotPriceRS);
-        //     	tryClose(s2, openingPriceRS);
-        //     }
+    	tryClose(s1, spotPriceRS);
+     	tryClose(s2, openingPriceRS);
 
-        // 	tryClose(s1, spotPriceRS);
-        //  tryClose(s2, openingPriceRS);
+     	trendData.add(percChange);
+   		trendData.add(openingPrice);
+   		trendData.add(spotPrice);
 
     	return trendData;
     }
