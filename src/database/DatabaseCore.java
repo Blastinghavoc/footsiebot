@@ -1,22 +1,15 @@
 package footsiebot.database;
 
 import footsiebot.nlp.*;
-// import footsiebot.nlp.ParseResult;
-// import footsiebot.nlp.Intent;
-// import footsiebot.nlp.TimeSpecifier;
-
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
-
-// import java.sql.Connection;
-// import java.sql.DriverManager;
-// import java.sql.ResultSet;
-// import java.sql.SQLException;
-// import java.sql.Statement;
 import java.sql.*;
 import java.util.*;
 import java.lang.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.DayOfWeek;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
@@ -49,17 +42,8 @@ public class DatabaseCore implements IDatabaseManager {
         // need to delete old FTSE data
 
         int numCompanies = 100;//Constant
-<<<<<<< HEAD
-        LocalDateTime currentTime = LocalDateTime.now();
-        String code = " ";
-        Float price, absChange, percChange = 0.0f;
-
-        String group, name;
-
-=======
         Float price, absChange, percChange = 0.0f;
         String code, group, name = " ";
->>>>>>> master
         Statement s1 = null;
         PreparedStatement s2 = null;
         PreparedStatement s3 = null;
@@ -73,18 +57,15 @@ public class DatabaseCore implements IDatabaseManager {
 
         trySetAutoCommit(false); // Will treat the following as a transaction, so that it can be rolled back if it fails
 
-<<<<<<< HEAD
-=======
         // may not need if storing older data as well
         deleteOldFTSEData();
 
->>>>>>> master
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
             code = sr.getCode(i).toLowerCase();
 
             // Remove punctuation if present
-            if (code.endsWith(".")) { 
+            if (code.endsWith(".")) {
                 code = code.substring(0, code.length() - 1);
             }
 
@@ -155,7 +136,7 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /* Deletes FTSE data from over 5 trading days ago 
+    /* Deletes FTSE data from over 5 trading days ago
     MAY NOT NEED */
     private void deleteOldFTSEData() {
 
@@ -239,7 +220,7 @@ public class DatabaseCore implements IDatabaseManager {
     	footsiebot.nlp.Intent intent = pr.getIntent();
     	ArrayList<String> output = new ArrayList<String>();
 
-    	/* call relevant method to get a query for the intent data or a 
+    	/* call relevant method to get a query for the intent data or a
     	percentage change if the intent is to get trend data */
 
     	switch (intent) {
@@ -307,7 +288,7 @@ public class DatabaseCore implements IDatabaseManager {
     /* Returns an array list  containing the data to be output by the Core
     for trend data */
     private ArrayList<String> getTrendData(ParseResult pr) {
-    	
+
     	ArrayList<String> output = new ArrayList<String>();
     	footsiebot.nlp.Intent intent = pr.getIntent();
         footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
@@ -340,7 +321,7 @@ public class DatabaseCore implements IDatabaseManager {
                      			+ "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                      			+ "ORDER BY TimeOfData ASC LIMIT 1";
 
-           		/* if the time specifier is today, ccompare against spot price, 
+           		/* if the time specifier is today, ccompare against spot price,
            		otherwise comapre against closing price of specified day*/
            		if (timeSpec == footsiebot.nlp.TimeSpecifier.TODAY) {
            			// compare against spot price
@@ -348,7 +329,7 @@ public class DatabaseCore implements IDatabaseManager {
                         			+ "WHERE CompanyCode = '" + companyCode + "'";
            		} else {
            			endTimeQuery   	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
-			                        + "WHERE CompanyCode = '" + companyCode 
+			                        + "WHERE CompanyCode = '" + companyCode
 			                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
 			                        + "ORDER BY TimeOfData DESC LIMIT 1";
            		}
@@ -408,7 +389,7 @@ public class DatabaseCore implements IDatabaseManager {
             //     	tryClose(s1, spotPriceRS);
             //     	tryClose(s2, openingPriceRS);
             //     }
-            	
+
             // 	tryClose(s1, spotPriceRS);
             //  tryClose(s2, openingPriceRS);
     	}
