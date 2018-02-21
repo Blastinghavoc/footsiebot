@@ -21,9 +21,9 @@ public class Core extends Application {
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
-    public static long TRADING_TIME = 50000000; //The time of day in milliseconds to call onTradingHour.
+    public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
-    public static long DOWNLOAD_RATE = 60000;//Download new data every 60 seconds
+    public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
     private Boolean readingScrape = false;
@@ -63,10 +63,14 @@ public class Core extends Application {
     public void start(Stage primaryStage) {
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
+        Boolean runTradingHourTest = false;
         if (args.size() > 0) {
             if (args.get(0).equals("nlp")) {
                 debugNLP();
                 System.exit(0);
+            }
+            else if (args.get(0).equals("tradinghour")){
+                runTradingHourTest = true;
             }
         }
 
@@ -86,16 +90,13 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        // Article[] news = new Article[5];
-        // news[0] = new Article("Barclays is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Barclays, is closing down and all their customers will be left with nothing");
-        // news[1] = new Article("HSBC is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, HSBC, is closing down and all their customers will be left with nothing");
-        // news[2] = new Article("Santander is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Santander, is closing down and all their customers will be left with nothing");
-        // news[3] = new Article("Nationwide is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Nationwide, is closing down and all their customers will be left with nothing");
-        // news[4] = new Article("Lloyds is closing", "http://www.bbc.co.uk/news/world-asia-43057574", "One of the UK's main banks, Lloyds, is closing down and all their customers will be left with nothing");
-        // ui.displayResults(news, true);
-        // ui.displayMessage("AI suggestion", true);
-
-        //onNewDataAvailable();//Call once on startup
+        if(runTradingHourTest){
+            try{
+                onTradingHour();//DEBUG
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
     }
 
    /**
@@ -137,16 +138,19 @@ public class Core extends Application {
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
         if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
-            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that",false);
+            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
             return;
         }
 
         if(!checkParseResultValid(pr)){
-            ui.displayMessage("Sorry, that was not a valid query.",false);
+            ui.displayMessage("Sorry, that was not a valid query.");
             return;
         }
 
         System.out.println(pr); //DEBUG
+
+        extraDataAddedToLastOutput = null;//Reseting this.
+
         Suggestion suggestion;
 
         Boolean managedToStoreQuery = dbm.storeQuery(pr,LocalDateTime.now());
@@ -155,9 +159,9 @@ public class Core extends Application {
         }
         //Branch based on whether the intent is for news or data.
         if (pr.getIntent() == Intent.NEWS) {
-            outputNews(pr,false);
+            outputNews(pr,null);
         } else {
-            outputFTSE(pr,false);
+            outputFTSE(pr,null);
         }
 
         lastOperandOutput = pr.getOperand();
@@ -171,8 +175,9 @@ public class Core extends Application {
         }
     }
 
-
-
+   /**
+    *
+    */
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
     }
@@ -181,7 +186,7 @@ public class Core extends Application {
         String output = "Whoops, something went wrong!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " .";
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -201,12 +206,37 @@ public class Core extends Application {
                 }
                 break;
             case OPENING_PRICE:
+                {
+                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
+                    if(!wasSuggestion){
+                        String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
+                        output = addExtraDataToOutput(output,remainingData);
+                    }
+                }
                 break;
             case CLOSING_PRICE:
+                {
+                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
+                    if(!wasSuggestion){
+                        String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
+                        output = addExtraDataToOutput(output,remainingData);
+                    }
+                }
                 break;
             case TREND:
+                /*TODO:
+                    Will ouput whether or not the given company rose or fell on the given day, based on opening and closing prices.
+                    If the day is today, will base it on opening price and current price.
+                    Additional data will be opening and closing prices if not for today,
+                    else will be opening price and most recent price.
+
+                    Possibly add "microtrend": analysis of last two snapshots.
+                */
                 break;
             case NEWS:
+                //Nothing to do here, should never run, TODO remove
                 break;
             case GROUP_FULL_SUMMARY:
                 break;
@@ -222,29 +252,33 @@ public class Core extends Application {
         return output;
     }
 
-    /*
+   /**
     * Decodes a Suggestion and performs relevant output
     */
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
 
         if(suggestion.isNews()){
-            outputNews(pr,true);
+            outputNews(pr,suggestion);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
             ParseResult suggPr = suggestion.getParseResult();
             if((extraDataAddedToLastOutput != null)&& lastOperandOutput.equals(suggPr.getOperand())){
+                //System.out.println(suggPr.getIntent()+" vs "+pr.getIntent());//DEBUG
                 if((suggPr.getIntent() == pr.getIntent()) ||extraDataAddedToLastOutput.contains(suggPr.getIntent())){
                     //The intent suggested has already been displayed to the user.
                     return;
                 }
             }
-            outputFTSE(suggPr,true);
+            outputFTSE(suggPr,suggestion);
             System.out.println("Displayed suggestion for pr = "+suggPr.toString());//DEBUG
         }
     }
 
-    private void outputNews(ParseResult pr,Boolean wasSuggestion){
+   /**
+    *
+    */
+    private void outputNews(ParseResult pr,Suggestion s){
         Article[] result;
         if (pr.isOperandGroup()) {
             String[] companies = groupNameToCompanyList(pr.getOperand());
@@ -253,10 +287,11 @@ public class Core extends Application {
         } else {
             result = dgc.getNews(pr.getOperand());
         }
-        ui.displayResults(result, wasSuggestion);
+        ui.displayResults(result, s);
     }
 
-    private void outputFTSE(ParseResult pr,Boolean wasSuggestion){
+
+    private void outputFTSE(ParseResult pr,Suggestion s){
         /*
         NOTE: may wish to branch for groups, using an overloaded/modified method
         of getFTSE(ParseResult,Boolean).
@@ -264,30 +299,30 @@ public class Core extends Application {
         String[] data = dbm.getFTSE(pr);
 
         String result;//NOTE: May convert to a different format for the UI
-
+        Boolean wasSuggestion = (s!= null);
         if(data == null){
             System.out.println("NULL DATA!");
             if(wasSuggestion){
-                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query",false);
+                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
             }else{
-                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query",false);
+                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query");
             }
             return;
         }
 
         if (pr.isOperandGroup()) {
             result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,wasSuggestion);
+            ui.displayMessage(result,s);
         } else {
             result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,wasSuggestion);
+            ui.displayMessage(result,s);
         }
     }
 
     private String addExtraDataToOutput(String output,String[] data){
         extraDataAddedToLastOutput = null;
         if (data.length > 1){
-            output += "\n";
+            output += "\n\n";
             extraDataAddedToLastOutput = new ArrayList<Intent>();
             output += "Related data about this company:";
             String[] temp;
@@ -427,23 +462,56 @@ public class Core extends Application {
         ic.onUpdatedDatabase();
     }
 
+   /**
+    *
+    */
     public void onTradingHour() {
         System.out.println("It's time for your daily news summary!");//DEBUG
-        ic.onNewsTime();
+        Company[] companies = ic.onNewsTime();
+        String[] companyCodes = new String[companies.length];
+        String output = "Hi Dave, it's time for your daily summary!\nI've detected the following companies as important to you:";
+        if((companies == null) || (companies.length < 1)){
+            return;
+        }
+        output += "\ncode  : spot     abs      perc     ";//"open  ";
+        for(int i = 0;i < companies.length;i++){
+            Company c = companies[i];
+            String resizedCode = c.getCode();
+            companyCodes[i] = resizedCode;
+            while(resizedCode.length() <= 5){
+                resizedCode += " ";
+            }
+            output += "\n"+resizedCode + " : ";
+            String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
+            String[] temp;
+            for(String s:data){
+                temp = s.split(",");
+                String val;
+                if(temp.length < 2){
+                    val = temp[0];
+                }
+                else{
+                    val = temp[1];
+                }
+
+                while(val.length() < 8){
+                    val += " ";
+                }
+                output += val+" ";
+            }
+        }
+        output += "\n\nYou may also view the latest news for these companies in the news pane";
+        Article[] news = dgc.getNews(companyCodes);
+        ui.displayResults(news,null);
+        ui.displayMessage(output,null);
     }
 
-    public void suggestionIrrelevant(String msg){
-        //Extract company or group name from message.
-        ParseResult tempPr = nlp.parse(msg);
-        if((tempPr != null)&& (tempPr.getOperand() != null)){
-            System.out.println("Extracted operand: "+ tempPr.getOperand() + " from message: "+ msg);//DEBUG
-            ic.onSuggestionIrrelevant(tempPr.getOperand());
-            //TODO: make onSuggestionIrrelevant update the priorities in the database
-        }
-        else{
-            System.out.println("Couldn't extract operand from message: "+msg);//DEBUG
-        }
-
+   /**
+    *
+    */
+    public void suggestionIrrelevant(Suggestion s){
+        System.out.println("A suggestion was marked irrelevant");
+        ic.onSuggestionIrrelevant(s);
     }
 
     private void debugNLP() {
@@ -464,6 +532,11 @@ public class Core extends Application {
         }
     }
 
+   /**
+    * Opens the webpage at the url given on the user's default browser
+    *
+    * @param url the url of the webpage
+    */
     public void openWebpage(String url) {
         getHostServices().showDocument(url);
     }

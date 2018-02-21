@@ -24,4 +24,7 @@ public interface IDatabaseManager {
 
   public String[] getCompaniesInGroup(String groupName);
 
+  public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews);
+
+  public ArrayList<String> detectedImportantChange();
 }

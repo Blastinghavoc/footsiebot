@@ -44,7 +44,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // If operand is a group
      if(pr.isOperandGroup()) {
          if(groups == null){
-             System.out.println("groups was null, cannot make suggestion");//DEBUG
+             System.out.println("Groups was null, cannot make suggestion");//DEBUG
              return null;
          }
        // search in groups if valid group
@@ -105,20 +105,31 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
    }
 
-   public String onUpdatedDatabase() {
+   //TODO return a suggestion object
+   public Suggestion[] onUpdatedDatabase() {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
      if(companies == null) {
-       return "Companies are null";
+       return null;
      }
      Collections.sort(companies);
      if(groups == null) {
-       return "Groups are null";
+       return null;
      }
      Collections.sort(groups);
-     // What to return here ?
-     return "";
+
+     ArrayList<Company> changed = detectedImportantChange();
+     if(changed.size() == 0) return null;
+
+     ArrayList<Suggestion> res = new ArrayList<>();
+
+     for(Company c: changed) {
+       // NOTE parseresult is null
+       res.add(new Suggestion("Detected important change", c, false, null));
+     }
+
+     return res.toArray(new Suggestion[res.size()]);
    }
 
    public void onShutdown() {
@@ -136,7 +147,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
      if(groups  != null){
          Collections.sort(groups);
      }
-
    }
 
    /**
@@ -145,26 +155,38 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @param  String companyOrGroup
     * @return
     */
-   public String onSuggestionIrrelevant(String companyOrGroup) {
-     String alert = "";
-     // check if it is a company or a group
-     for(Company c: companies) {
-       if(c.getCode().equals(companyOrGroup)) {
-         c.decrementPriority(c.getIrrelevantSuggestionWeight());
-         alert+= "Company " + companyOrGroup + " has been adjusted priority accordingly ";
-         return alert;
-       }
-     }
-     // is a group
-     for(Group g: groups) {
-       if(g.getGroupCode().equals(companyOrGroup)) {
-         g.decrementPriority(g.getIrrelevantSuggestionWeight());
-         alert+= "Group " + companyOrGroup + "has been adjusted priority accordingly";
-         return alert;
-       }
-     }
 
-     return "Error, no company nor group matching found";
+   public void onSuggestionIrrelevant(Suggestion s) {
+      AIIntent intent;
+      boolean isNews = s.isNews();
+      // company
+      if(s.getCompany() != null) {
+
+        Company c = s.getCompany();
+        ParseResult pr = s.getParseResult();
+
+        switch(pr.getIntent()) {
+          case SPOT_PRICE : intent = AIIntent.SPOT_PRICE;
+          break;
+          case OPENING_PRICE : intent = AIIntent.OPENING_PRICE;
+          break;
+          case CLOSING_PRICE : intent = AIIntent.CLOSING_PRICE;
+          break;
+          case PERCENT_CHANGE : intent = AIIntent.PERCENT_CHANGE;
+          break;
+          case ABSOLUTE_CHANGE : intent = AIIntent.ABSOLUTE_CHANGE;
+          break;
+          default : return;
+        }
+        System.out.println("Priority is "+ c.getPriority());
+        c.decrementPriorityOfIntent(intent);
+        db.onSuggestionIrrelevant(c, intent, isNews);
+        System.out.println("Priority is now "+ c.getPriority());
+      } else {
+        //groups
+
+      }
+
    }
 
    /**
@@ -182,8 +204,21 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    // TODO
-   private boolean detectedImportantChange() {
-	 return false;
+   private ArrayList<Company> detectedImportantChange() {
+     ArrayList<String> names = db.detectedImportantChange();
+     if(names.size() == 0) return null;
+
+     ArrayList<Company> winningCompanies = new ArrayList<>();
+
+     for(String s: names) {
+       for(Company c: companies) {
+         if(s.equals(c.getCode())) {
+           winningCompanies.add(c);
+         }
+       }
+     }
+
+     return winningCompanies;
    }
 
    /**
@@ -245,14 +280,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
    private void updateLastSuggestion() {
 
    }
-
-
-
-
-
-
-
-
 
 
 }
