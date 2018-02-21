@@ -440,11 +440,9 @@ public class Core extends Application {
         ic.onNewsTime();
     }
 
-<<<<<<< HEAD
    /**
     *
     */
-=======
     public void suggestionIrrelevant(String msg){
         //Extract company or group name from message.
         ParseResult tempPr = nlp.parse(msg);
@@ -459,7 +457,6 @@ public class Core extends Application {
 
     }
 
->>>>>>> e6339e37655f6d9054094cca51f2d132082814bc
     private void debugNLP() {
         Boolean cont = true;
         while (cont) {

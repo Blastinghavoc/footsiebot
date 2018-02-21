@@ -26,15 +26,16 @@ public class NewsBlock extends BorderPane {
     */
     public NewsBlock(Article article, double width, Core core, GUIcore ui) {
         super();
-        headline = new Label(article.getHeadline());
+        headline = new Label(article.getHeadline().trim());
         headline.setWrapText(true);
         headline.getStyleClass().add("headline");
 
-        digest = new Label(article.getDigest());
+        digest = new Label(article.getDigest().trim());
         digest.getStyleClass().add("digest");
         digest.setWrapText(true);
+        digest.setLineSpacing(1);
 
-        url = new Label(article.getUrl());
+        url = new Label(article.getUrl().trim());
         url.getStyleClass().add("url");
         url.setUnderline(true);
 
@@ -85,10 +86,12 @@ public class NewsBlock extends BorderPane {
         setLeft(digest);
         setBottom(url);
 
-        setMinHeight(100);
-        setMaxHeight(100);
-        setMinWidth(width);
-        setMaxWidth(width);
+        setMinHeight(150);
+        setMaxHeight(150);
+
+        headline.setMaxWidth(width - 28);
+        digest.setMaxWidth(width - 7);
+        url.setMaxWidth(width - 7);
 
         url.setOnMouseClicked(e -> {
             core.openWebpage(url.getText());
@@ -103,5 +106,10 @@ public class NewsBlock extends BorderPane {
     public void resize(double width) {
         setMaxWidth(width);
         setMinWidth(width);
+
+        headline.setMaxWidth(width - 28);
+        digest.setMaxWidth(width - 7);
+        url.setMaxWidth(width - 7);
+
     }
 }

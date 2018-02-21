@@ -11,6 +11,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.util.Duration;
+import javafx.scene.text.Font;
 
 public class Message extends FlowPane {
     private LocalDateTime timestamp;
@@ -170,7 +171,6 @@ public class Message extends FlowPane {
         setMaxWidth(chatPaneWidth - 36);
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
-        // System.out.println("Message max width: " + maxWidth);
         Text sizing = new Text(msg.getText());
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
@@ -179,7 +179,6 @@ public class Message extends FlowPane {
         height = sizing.getLayoutBounds().getHeight();
 
         msg.setMaxWidth(width);
-        msg.setMaxHeight(height);
         visual.setWidth(width + 14);
         visual.setHeight(height + 8);
 
