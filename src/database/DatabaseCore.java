@@ -1,22 +1,31 @@
 package footsiebot.database;
 
 import footsiebot.nlp.*;
+// import footsiebot.nlp.ParseResult;
+// import footsiebot.nlp.Intent;
+// import footsiebot.nlp.TimeSpecifier;
+
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
+
+// import java.sql.Connection;
+// import java.sql.DriverManager;
+// import java.sql.ResultSet;
+// import java.sql.SQLException;
+// import java.sql.Statement;
 import java.sql.*;
 import java.util.*;
 import java.lang.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.DayOfWeek;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
 
+
+
     public DatabaseCore() {
 
-        // loads the sqlite-JDBC driver
+        // load the sqlite-JDBC driver
         try {
             Class.forName("org.sqlite.JDBC");
         }
@@ -26,7 +35,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         conn = null;
         try {
-            // creates a database connection
+            // create a database connection
             conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
 
         } catch (SQLException e) {
@@ -35,26 +44,29 @@ public class DatabaseCore implements IDatabaseManager {
 
     }
 
-    /* Stores new FTSE data in the database */
     public boolean storeScraperResults(ScrapeResult sr) {
 
+        // need to delete old FTSE data
+
         int numCompanies = 100;//Constant
+        LocalDateTime currentTime = LocalDateTime.now();
         String code = " ";
         Float price, absChange, percChange = 0.0f;
+
         String group, name;
+
         Statement s1 = null;
         ResultSet companyCheck = null;
         PreparedStatement s2 = null;
         PreparedStatement s3 = null;
         Statement s4 = null;
+
         String checkNewCompanyQuery = null;
         String addNewCompanyQuery = null;
         String addCompanyGroupQuery = null;
         String addScrapeResultQuery = null;
 
         trySetAutoCommit(false);//Will treat the following as a transaction, so that it can be rolled back if it fails
-
-        deleteOldFTSEData();
 
         // store all scraper data in database
         for (int i = 0; i < numCompanies; i++) {
@@ -162,7 +174,7 @@ public class DatabaseCore implements IDatabaseManager {
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
-        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+ companyCode +"','"+intent+"','"+timeSpecifier+"')";
+        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
         Statement s1 = null;
         ResultSet r1 = null;
         String table = intentToTableName(pr.getIntent());
@@ -254,12 +266,10 @@ public class DatabaseCore implements IDatabaseManager {
         return output.toArray(new String[1]);
     }
 
-    // CAN DELETE??
     public String convertScrapeResult(ScrapeResult sr) {
         return null;
     }
 
-    // CAN DELETE??
     public String convertQuery(ParseResult pr, LocalDateTime date) {
         return null;
     }
@@ -399,6 +409,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
         return comparisonTime;
+
     }
 
     /* Returns all other information stored about a company except the
@@ -457,6 +468,8 @@ public class DatabaseCore implements IDatabaseManager {
     	}
     	query += " FROM FTSECompanySnapshots WHERE CompanyCode = '" + companyCode + "' ORDER BY TimeOfData DESC LIMIT 1";
 
+    	System.out.println(query);//DEBUG
+
     	// execute and store query results
     	try {
     		s1 = conn.createStatement();
@@ -473,8 +486,6 @@ public class DatabaseCore implements IDatabaseManager {
     		e.printStackTrace();
     		tryClose(s1, results);
     	}
-
-        tryClose(s1, results);
 
     	return rs;
     }
@@ -515,8 +526,6 @@ public class DatabaseCore implements IDatabaseManager {
         }
         return  name;
     }
-
-
 
     public ArrayList<Company> getAICompanies() {
 
@@ -561,6 +570,15 @@ public class DatabaseCore implements IDatabaseManager {
           float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
           float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
 
+          // intent priorities
+          float spotPriority = spot - spotAdj;
+          float openingPriority = opening - openingAdj;
+          float closingPriority = closing - closingPriceAdj;
+          float absoluteChangePriority = absoluteChange - absoluteChangeAdj;
+          float percentageChangePriority = percentageChange - percentageChangeAdj;
+          // news
+          float newsPriority = newsCount - newsAdj;
+
           // Instantiate IntentData List for this company
           // TODO not having values for each intent for now
           intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
@@ -569,12 +587,22 @@ public class DatabaseCore implements IDatabaseManager {
           intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
           intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
 
+          HashMap<AIIntent, Float[]> mapping = new HashMap<>();
+
+          mapping.put(AIIntent.SPOT_PRICE, new Float[]{spot, spotAdj});
+          mapping.put(AIIntent.OPENING_PRICE, new Float[]{opening, openingAdj});
+          mapping.put(AIIntent.CLOSING_PRICE, new Float[]{closing, closingPriceAdj});
+          mapping.put(AIIntent.PERCENT_CHANGE, new Float[]{percentageChange,percentageChangeAdj });
+          mapping.put(AIIntent.ABSOLUTE_CHANGE, new Float[]{absoluteChange, absoluteChangeAdj});
+
+
           // Calculate priority for each company
-          // it is the sum of all the counts
-          float priority = spot + opening + absoluteChange + closing + percentageChange;
+          Float intentScale = 1.0f;
+          Float newsScale = 1.0f;
+          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
-          float irrelevantSuggestionWeightForCompany = (spotAdj + openingAdj + absoluteChangeAdj + closingPriceAdj + percentageChangeAdj) / 5;
-          companies.add(new Company(rs.getString("CompanyCode"), intents, newsCount, priority,  irrelevantSuggestionWeightForCompany ));
+
+          companies.add(new Company(rs.getString("CompanyCode"), intents, mapping, intentScale, newsScale, newsCount, newsAdj));
         }
 
         if(companies.size() != 0) {
@@ -623,27 +651,30 @@ public class DatabaseCore implements IDatabaseManager {
         Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
 
         // retrieve all companies for each group
+        // for(Map.Entry<String,Group> g: entrySet) {
+        //   String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
+        //   ResultSet rs0 = null;
+        //
+        //   try {
+        //     rs0 = stmt.executeQuery(query2);
+        //     ArrayList<Company> companiesForThisGroup = new ArrayList<>();
+        //     // put all the companies for this group in its list
+        //     while(rs0.next()) {
+        //       Company c = companiesMap.get(rs0.getString("CompanyCode"));
+        //       companiesForThisGroup.add(c);
+        //     }
+        //     g.getValue().addCompanies(companiesForThisGroup);
+        //
+        //     // add to final list
+        //     result.add(g.getValue());
+        //   } catch(SQLException e) {
+        //     printSQLException(e);
+        //   } finally {
+        //     if(rs0 != null) {tryClose(rs0); }
+        //   }
+        // }
+
         for(Map.Entry<String,Group> g: entrySet) {
-          String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
-          ResultSet rs0 = null;
-
-          try {
-            rs0 = stmt.executeQuery(query2);
-            ArrayList<Company> companiesForThisGroup = new ArrayList<>();
-            // put all the companies for this group in its list
-            while(rs0.next()) {
-              Company c = companiesMap.get(rs0.getString("CompanyCode"));
-              companiesForThisGroup.add(c);
-            }
-            g.getValue().addCompanies(companiesForThisGroup);
-
-            // add to final list
-            result.add(g.getValue());
-          } catch(SQLException e) {
-            printSQLException(e);
-          } finally {
-            if(rs0 != null) {tryClose(rs0); }
-          }
         }
 
         // now add the remaining values to each group
@@ -652,16 +683,12 @@ public class DatabaseCore implements IDatabaseManager {
           int numberOfCompanies = com.size();
 
           Float priority = 0.0f;
-          Float irrelevantSuggestionWeight = 0.0f;
 
           for(Company c: com) {
             priority+= c.getPriority();
-            irrelevantSuggestionWeight+= c.getIrrelevantSuggestionWeight();
           }
-          irrelevantSuggestionWeight/= numberOfCompanies;
 
           g.setPriority(priority);
-          g.setIrrelevantSuggestionWeight(irrelevantSuggestionWeight);
         }
 
       } catch (SQLException ex) {
@@ -673,9 +700,96 @@ public class DatabaseCore implements IDatabaseManager {
 
       return result;
     }
+    //TODO
+    public ArrayList<String> detectedImportantChange() {
+      String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
+
+      ResultSet rs = null;
+      Statement stmt = null;
+      ArrayList<String> result = new ArrayList<>();
+
+      HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
+      // TODO
+      Float treshold = 0.0f;
+
+      try {
+        stmt = conn.createStatement();
+        rs = stmt.executeQuery(query);
+
+        while(rs.next()) {
+          String companyName = rs.getString("CompanyCode");
+          Float percChange = rs.getFloat("PercentageChange");
+
+          if(percChange > treshold) {
+            companiesPercChangeMap.put(companyName, percChange);
+          }
+        }
+
+        Set<String> winningNames = companiesPercChangeMap.keySet();
+
+        for(String s: winningNames) {
+          result.add(s);
+        }
+
+      } catch (SQLException e) {
+        printSQLException(e);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+        if(rs != null) {tryClose(rs); }
+      }
+
+      if(result.size() == 0) return null;
+      return result;
+    }
+
+
+    //TODO
+    public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
+      String table = "";
+      if(!isNews) {
+        switch(intent) {
+          case SPOT_PRICE: table+= "CompanySpotPriceCount";
+          break;
+          case OPENING_PRICE: table+= "CompanyOpeningPriceCount";
+          break;
+          case CLOSING_PRICE: table+= "CompanySpotPriceCount";
+          break;
+          case PERCENT_CHANGE: table+= "CompanySpotPriceCount";
+          break;
+          case ABSOLUTE_CHANGE: table+= "CompanySpotPriceCount";
+          break;
+        }
+      } else {
+        // is news
+        table+= "CompanyNewsCount";
+      }
+
+      String column = table.replace("Company", "").replace("Count", "Adjustment");
+      // TODO exponentially
+      String query = "UPDATE " + table + "SET " + column + " = (0.5 * " + column  + ")";
+      Statement stmt = null;
+
+      try {
+        stmt = conn.createStatement();
+        stmt.executeUpdate(query);
+
+      } catch (SQLException e) {
+        printSQLException(e);
+      } finally {
+        if (stmt != null) { tryClose(stmt); }
+      }
+
+    }
+
+    //TODO
+    // private void onSuggestionIrrelevant(Group group) {
+    //
+    //
+    // }
+
 
     public IntentData getIntentForCompany() {
-        return null;
+      return null;
     }
 
     // This is potentially not needed couple of methods as
