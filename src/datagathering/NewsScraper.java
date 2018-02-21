@@ -59,6 +59,8 @@ public class NewsScraper {
 		String articleURL;
 		String articleDigest;
 		LocalDateTime articleDateTime;
+		int startPos;
+		int endPos;
 		String temp;
 		
 		//ArrayList is used for ease
@@ -90,45 +92,51 @@ public class NewsScraper {
 
 
 			String line;
+			//articleDetails is a string containing all elements of the article
+			String articleDetails;
 			while((line = reader.readLine()) !=null) {
 				//Get the item
 				if (line.contains("<item>")) {
+
+					articleDetails = "";
+
+					while(line.contains("</item>") == false) {
+						line = reader.readLine();
+						articleDetails += line;
+					}
+
 					//GET DESCRIPTION
-					line = reader.readLine();
-					temp = line;
-					temp = temp.replace("<description>","");
-					temp = temp.replace("</description>","");
+					startPos = articleDetails.indexOf("<description>") + 13;
+					endPos = articleDetails.indexOf("</description>");
+					temp = articleDetails.substring(startPos, endPos);
 					temp = StringUtils.unescapeHTML(temp);
 					articleDigest = temp.trim();
 
-					//GET GUID
-					line = reader.readLine();
 
 					//GET LINK
-					line = reader.readLine();
-					temp = line;
-					temp = temp.replace("<link>","");
-					temp = temp.replace("</link>","");
+					startPos = articleDetails.indexOf("<link>") + 6;
+					endPos = articleDetails.indexOf("</link>");
+					temp = articleDetails.substring(startPos, endPos);
 					articleURL = temp.trim();
 
+
 					//GET PUBDATE
-					line = reader.readLine();
-					temp = line;
-					temp = temp.replace("<pubDate>","");
-					temp = temp.replace("</pubDate>","");
+					startPos = articleDetails.indexOf("<pubDate>") + 9;
+					endPos = articleDetails.indexOf("</pubDate>");
+					temp = articleDetails.substring(startPos, endPos);
 					articleDateTime = stringToDateTime(temp.trim());
 
 
 					//GET TITLE
-					line = reader.readLine();
-					temp = line;
-					temp = temp.replace("<title>","");
-					temp = temp.replace("</title>","");
+					startPos = articleDetails.indexOf("<title>") + 7;
+					endPos = articleDetails.indexOf("</title>");
+					temp = articleDetails.substring(startPos, endPos);
 					temp = StringUtils.unescapeHTML(temp);
 					articleHeadline = temp.trim();
-
+					
 					//Add new article to the ArrayList
 					articles.add(new Article(articleHeadline, articleURL, articleDigest, articleDateTime));
+
 				}
 			}
 
