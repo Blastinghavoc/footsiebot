@@ -140,16 +140,19 @@ public class Core extends Application {
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
         if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
-            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that",false);
+            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
             return;
         }
 
         if(!checkParseResultValid(pr)){
-            ui.displayMessage("Sorry, that was not a valid query.",false);
+            ui.displayMessage("Sorry, that was not a valid query.");
             return;
         }
 
         System.out.println(pr); //DEBUG
+
+        extraDataAddedToLastOutput = null;//Reseting this.
+
         Suggestion suggestion;
 
         Boolean managedToStoreQuery = dbm.storeQuery(pr,LocalDateTime.now());
@@ -158,9 +161,9 @@ public class Core extends Application {
         }
         //Branch based on whether the intent is for news or data.
         if (pr.getIntent() == Intent.NEWS) {
-            outputNews(pr,false);
+            outputNews(pr,null);
         } else {
-            outputFTSE(pr,false);
+            outputFTSE(pr,null);
         }
 
         lastOperandOutput = pr.getOperand();
@@ -225,19 +228,75 @@ public class Core extends Application {
                 }
                 break;
             case TREND:
-                /*TODO:
-                    Will ouput whether or not the given company rose or fell on the given day, based on opening and closing prices.
-                    If the day is today, will base it on opening price and current price.
-                    Additional data will be opening and closing prices if not for today,
-                    else will be opening price and most recent price.
-
-                    Possibly add "microtrend": analysis of last two snapshots.
-                */
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    output = "So far today, "+ pr.getOperand() + " is ";
+                    switch(data[1]){
+                        case "rose":
+                        output += "rising";
+                        break;
+                        case "fell":
+                        output += "falling";
+                        break;
+                        case "had no overall change":
+                        output += "displaying no net change";
+                        break;
+                        default:
+                        output += "indeterminate";
+                        break;
+                    }
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    output += "The opening price was GBX "+ data[2] + " and the most recent price is GBX "+ data[3] + ".";
+                    //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
+                }
+                else{
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output += " "+data[1];
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    output += "The opening price was GBX "+ data[2] + " and the closing price was GBX "+ data[3] + ".";
+                }
                 break;
             case NEWS:
                 //Nothing to do here, should never run, TODO remove
                 break;
             case GROUP_FULL_SUMMARY:
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    output = "So far today, " + pr.getOperand() + " are ";
+                    switch(data[1]){
+                        case "rose":
+                        output += "rising";
+                        break;
+                        case "fell":
+                        output += "falling";
+                        break;
+                        case "had no overall change":
+                        output += "displaying no net change";
+                        break;
+                        default:
+                        output += "indeterminate";
+                        break;
+                    }
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    String[] high = data[2].split(",");
+                    output += high[0].trim() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
+                    String[] low = data[3].split(",");
+                    output += low[0].trim() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
+                    String[] mostRising = data[4].split(",");
+                    output += mostRising[0].trim() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    String[] mostFalling = data[5].split(",");
+                    output += mostFalling[0].trim() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                }
+                else{
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output += data[1] + " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
+                    String[] high = data[2].split(",");
+                    output += high[0].trim() + " had the highest closing price at GBX " + high[1].trim() + ".\n";
+                    String[] low = data[3].split(",");
+                    output += low[0].trim() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
+                    String[] mostRising = data[4].split(",");
+                    output += mostRising[0].trim() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    String[] mostFalling = data[5].split(",");
+                    output += mostFalling[0].trim() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                }
                 break;
             default:
             System.out.println("No cases ran in core");
@@ -257,18 +316,26 @@ public class Core extends Application {
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
 
         if(suggestion.isNews()){
-            outputNews(pr,true);
+            outputNews(pr,suggestion);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
             ParseResult suggPr = suggestion.getParseResult();
             if((extraDataAddedToLastOutput != null)&& lastOperandOutput.equals(suggPr.getOperand())){
+                //System.out.println(suggPr.getIntent()+" vs "+pr.getIntent());//DEBUG
                 if((suggPr.getIntent() == pr.getIntent()) ||extraDataAddedToLastOutput.contains(suggPr.getIntent())){
                     //The intent suggested has already been displayed to the user.
                     return;
                 }
             }
-            outputFTSE(suggPr,true);
+            if(pr.getIntent()== Intent.TREND){
+                if(pr.getTimeSpecifier()== TimeSpecifier.TODAY){
+                    if((suggPr.getIntent() == Intent.SPOT_PRICE)||(suggPr.getIntent() == Intent.OPENING_PRICE)){
+                        return;//A trend includes spot price and opening price, so don't bother suggesting these.
+                    }
+                }
+            }
+            outputFTSE(suggPr,suggestion);
             System.out.println("Displayed suggestion for pr = "+suggPr.toString());//DEBUG
         }
     }
@@ -276,7 +343,7 @@ public class Core extends Application {
    /**
     *
     */
-    private void outputNews(ParseResult pr,Boolean wasSuggestion){
+    private void outputNews(ParseResult pr,Suggestion s){
         Article[] result;
         if (pr.isOperandGroup()) {
             String[] companies = groupNameToCompanyList(pr.getOperand());
@@ -285,11 +352,11 @@ public class Core extends Application {
         } else {
             result = dgc.getNews(pr.getOperand());
         }
-        ui.displayResults(result, wasSuggestion);
+        ui.displayResults(result, s);
     }
 
 
-    private void outputFTSE(ParseResult pr,Boolean wasSuggestion){
+    private void outputFTSE(ParseResult pr,Suggestion s){
         /*
         NOTE: may wish to branch for groups, using an overloaded/modified method
         of getFTSE(ParseResult,Boolean).
@@ -297,23 +364,23 @@ public class Core extends Application {
         String[] data = dbm.getFTSE(pr);
 
         String result;//NOTE: May convert to a different format for the UI
-
+        Boolean wasSuggestion = (s!= null);
         if(data == null){
             System.out.println("NULL DATA!");
             if(wasSuggestion){
-                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query",false);
+                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
             }else{
-                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query",false);
+                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query");
             }
             return;
         }
 
         if (pr.isOperandGroup()) {
             result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,wasSuggestion);
+            ui.displayMessage(result,s);
         } else {
             result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,wasSuggestion);
+            ui.displayMessage(result,s);
         }
     }
 
@@ -500,25 +567,16 @@ public class Core extends Application {
         }
         output += "\n\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayResults(news,false);
-        ui.displayMessage(output,false);
+        ui.displayResults(news,null);
+        ui.displayMessage(output,null);
     }
 
    /**
     *
     */
-    public void suggestionIrrelevant(String msg){
-        //Extract company or group name from message.
-        ParseResult tempPr = nlp.parse(msg);
-        if((tempPr != null)&& (tempPr.getOperand() != null)){
-            System.out.println("Extracted operand: "+ tempPr.getOperand() + " from message: "+ msg);//DEBUG
-            ic.onSuggestionIrrelevant(tempPr.getOperand());
-            //TODO: make onSuggestionIrrelevant update the priorities in the database
-        }
-        else{
-            System.out.println("Couldn't extract operand from message: "+msg);//DEBUG
-        }
-
+    public void suggestionIrrelevant(Suggestion s){
+        System.out.println("A suggestion was marked irrelevant");
+        ic.onSuggestionIrrelevant(s);
     }
 
     private void debugNLP() {

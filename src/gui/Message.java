@@ -13,6 +13,8 @@ import javafx.animation.*;
 import javafx.util.Duration;
 import javafx.scene.text.Font;
 
+import footsiebot.ai.Suggestion;
+
 public class Message extends FlowPane {
     private LocalDateTime timestamp;
     private boolean sent;
@@ -31,15 +33,18 @@ public class Message extends FlowPane {
     private Tooltip aiNote;
     private Tooltip removeNote;
 
+    private Suggestion sugg;
 
-    public Message(String text, LocalDateTime timestamp, boolean sent, boolean isAI, GUIcore ui) {
+
+    public Message(String text, LocalDateTime timestamp, boolean sent, Suggestion s, GUIcore ui) {
         super();
         double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
 
         this.timestamp = timestamp;
         this.sent = sent;
         this.ui = ui;
-        this.isAI = isAI;
+        this.isAI = (s!= null);
+        sugg = s;
         parent = null;
         setPrefWidth(chatPaneWidth - 36);
         setMaxWidth(chatPaneWidth - 36);
@@ -150,7 +155,9 @@ public class Message extends FlowPane {
                 }
             }
             ui.getMessageBoard().getChildren().removeAll(this);
-            ui.suggestionIrrelevant(msg.getText());
+            if(isAI){
+                ui.suggestionIrrelevant(sugg);
+            }
         });
     }
 
