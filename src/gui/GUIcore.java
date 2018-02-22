@@ -2,6 +2,8 @@ package footsiebot.gui;
 
 import footsiebot.Core;
 import footsiebot.datagathering.Article;
+import java.util.Calendar;
+import java.time.Instant;
 import java.io.*;
 import java.time.*;
 import javafx.stage.*;
@@ -51,6 +53,8 @@ public class GUIcore implements IGraphicalUserInterface {
     private FadeTransition newsPaneTrans;
     private RotateTransition settingsIconTrans;
     private Label noNews;
+    private ComboBox timeSelector;
+    private Spinner changeSelector;
 
    /**
     * Constructor for the user interface using default styling
@@ -229,14 +233,18 @@ public class GUIcore implements IGraphicalUserInterface {
         topBar.setMinHeight(45);
         topBar.setMaxHeight(45);
 
-        Label name = new Label("Footsiebot");
-        name.setId("name-label");
+        Label logo = new Label("Footsiebot");
+        Calendar today = Calendar.getInstance();
+        if ((today.get(Calendar.DAY_OF_MONTH) == 14) && (today.get(Calendar.MONTH) == Calendar.FEBRUARY))
+            logo.setId("logo-valentines");
+        else
+            logo.setId("logo");
 
         settingsIcon = new ImageView("file:src/img/settings.png");
         settingsIcon.setPreserveRatio(true);
         settingsIcon.setFitWidth(27);
         settingsIcon.setId("settings-icon");
-        topBar.getChildren().addAll(settingsIcon, name);
+        topBar.getChildren().addAll(settingsIcon, logo);
         topBar.setAlignment(settingsIcon, Pos.CENTER_RIGHT);
         // topBar.setAlignment(name, Pos.CENTER);
         Insets settingsIconMargin = new Insets(0, 10, 0, 0);
@@ -435,6 +443,12 @@ public class GUIcore implements IGraphicalUserInterface {
         System.out.println("Stopped download thread");
     }
 
+   /**
+    * Calls the appropriate method in the Core for when an AI suggestion is
+    * reported irrelevant by the user
+    *
+    * @param msg the irrelevant suggestion
+    */
     public void suggestionIrrelevant(String msg){
         core.suggestionIrrelevant(msg);
     }
@@ -533,6 +547,10 @@ public class GUIcore implements IGraphicalUserInterface {
             else
                 messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, isAI, this));
         }
+    }
+
+    public void displaySummary(String pre, String[] data, String post) {
+        messageBoard.getChildren().add(new SummaryMessage(pre, data, post));
     }
 
    /**

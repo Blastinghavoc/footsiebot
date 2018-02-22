@@ -90,6 +90,8 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
+        onTradingHour();
+
         if(runTradingHourTest){
             try{
                 onTradingHour();//DEBUG
