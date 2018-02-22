@@ -230,18 +230,18 @@ public class IntelligenceCore implements IIntelligenceUnit {
      String reason = "Company is in top 5";
      // String description = "Suggesting ";
 
-     IntentData topIntent = company.getTopIntentData();
+     AIIntent topIntent = company.getTopIntent();
      //Float topIntentValue = topIntent.getLastValue();
 
      // Create IParseResult
      TimeSpecifier tm = footsiebot.nlp.TimeSpecifier.TODAY;
-     if(topIntent.getIntent() == AIIntent.CLOSING_PRICE) {
+     if(topIntent == AIIntent.CLOSING_PRICE) {
        tm = footsiebot.nlp.TimeSpecifier.YESTERDAY;
      }
 
      Intent i = null;
 
-     switch(topIntent.getIntent()) {
+     switch(topIntent) {
        case SPOT_PRICE : i = footsiebot.nlp.Intent.SPOT_PRICE;
        break;
        case OPENING_PRICE : i = footsiebot.nlp.Intent.OPENING_PRICE;

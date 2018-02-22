@@ -38,9 +38,18 @@ public class Company implements Comparable<Company> {
 	return code;
   }
 
-  public IntentData getTopIntentData() {
-    java.util.Collections.sort(intents);
-	  return intents.get(0);      
+  public AIIntent getTopIntent() {
+    // get most requested intent
+    Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
+
+    AIIntent currMax = AIIntent.SPOT_PRICE;
+    float startMaxValue = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1];
+
+    for(Map.Entry<AIIntent,Float[]> e: entrySet) {
+      float value = e.getValue()[0] - e.getValue()[1];
+      if(value > startMaxValue) currMax = e.getKey();
+    }
+    return currMax;
   }
 
   public Float getPriority() {
