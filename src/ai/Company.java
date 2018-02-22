@@ -31,40 +31,38 @@ public class Company implements Comparable<Company> {
         Float[] current = mapping.get(i);
         float counter = current[0];
         float adjustment = current[1];
-        mapping.put(i, new Float[]{counter, 1 + 0.5f * adjustment});
+        mapping.put(i, new Float[]{counter, 1.0f + 0.5f * adjustment});
       }
 
     }
 
   }
-  //
-  // for(IntentData id: intents) {
-  //   if(id.getIntent().equals(i)) {
-  //     // TODO
-  //     id.decrementPriority(1+ (0.5f * (id.getAdjustment())) );
-  //     mapping.put(i,new Float[]{id.getCount(),id.getAdjustment()});
-  //   }
-  // }
 
   public String getCode() {
 	return code;
   }
 
-  public AIIntent getTopIntent() {
+  public AbstractMap.SimpleEntry<AIIntent,Float> getTopIntent(AIIntent notToSuggestIntent) {
     // get most requested intent
     Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
 
     AIIntent currMax = AIIntent.SPOT_PRICE;
     float startMaxValue = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1];
 
+    AbstractMap.SimpleEntry<AIIntent,Float> result = null;
+
     for(Map.Entry<AIIntent,Float[]> e: entrySet) {
       float value = e.getValue()[0] - e.getValue()[1];
-      if(value > startMaxValue) currMax = e.getKey();
+      if(value > startMaxValue && e.getKey() != notToSuggestIntent) {
+        currMax = e.getKey();
+        startMaxValue = value;
+        result = new AbstractMap.SimpleEntry(currMax,startMaxValue);
+      }
     }
-    return currMax;
+    return result;
   }
 
-  private float getIntentsPriority() {
+  public float getIntentsPriority() {
     float spotPriority = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1] ;
     float openingPriority = mapping.get(AIIntent.OPENING_PRICE)[0] - mapping.get(AIIntent.OPENING_PRICE)[1] ;
     float closingPriority = mapping.get(AIIntent.CLOSING_PRICE)[0] - mapping.get(AIIntent.CLOSING_PRICE)[1] ;

@@ -1030,7 +1030,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         while(rs.next()) {
           String companyName = rs.getString("CompanyCode");
-          // TODO Absolute value 
+          // TODO Absolute value
           Float percChange = rs.getFloat("PercentageChange");
 
           if(percChange > treshold) {
@@ -1091,7 +1091,6 @@ public class DatabaseCore implements IDatabaseManager {
       } finally {
         if (stmt != null) { tryClose(stmt); }
       }
-
     }
 
     //TODO

@@ -32,6 +32,25 @@ public class IntelligenceCore implements IIntelligenceUnit {
          System.out.println("companies was null, cannot make suggestion");//DEBUG
          return null;
      }
+     // intent detect
+     AIIntent notToSuggestIntent = null;
+     Intent oldIntent = pr.getIntent();
+     System.out.println("User has just asked : " + oldIntent);
+     boolean doNotSuggestNews = false;
+     switch (oldIntent) {
+       case SPOT_PRICE: notToSuggestIntent = AIIntent.SPOT_PRICE;
+       break;
+       case OPENING_PRICE : notToSuggestIntent = AIIntent.OPENING_PRICE;
+       break;
+       case CLOSING_PRICE : notToSuggestIntent = AIIntent.CLOSING_PRICE;
+       break;
+       case PERCENT_CHANGE : notToSuggestIntent = AIIntent.PERCENT_CHANGE;
+       break;
+       case ABSOLUTE_CHANGE : notToSuggestIntent = AIIntent.ABSOLUTE_CHANGE;
+       break;
+       case NEWS : doNotSuggestNews = true;
+       break;
+     }
 
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
@@ -39,6 +58,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // TODO: UPDATE TALLIES FOR THIS COMPANY LOCALLY
      // If operand is a group
      if(pr.isOperandGroup()) {
+         // no suggestion if they have asked news for this group  //NOTE
+         if(doNotSuggestNews) {
+           System.out.println("The user has just asked news for group " + pr.getOperand());
+           System.out.println("So will not suggest news for this group now ");
+           return null;
+         }
          if(groups == null){
              System.out.println("Groups was null, cannot make suggestion");//DEBUG
              return null;
@@ -75,7 +100,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
            break;
          }
        }
-       if(targetCompany == null){
+       if(targetCompany == null) {
            System.out.println("No company found for suggestion making");//DEBUG
            return null;
         }
@@ -93,7 +118,20 @@ public class IntelligenceCore implements IIntelligenceUnit {
          // but could decide to suggest news
          // DECIDING WHETHER to suggest news
          float newsPriority =  targetCompany.getNewsPriority();
-         lastSuggestion = suggestIntent(targetCompany);
+
+         System.out.println("Should not suggest " + notToSuggestIntent);
+
+         AbstractMap.SimpleEntry<AIIntent,Float> topIntentData = targetCompany.getTopIntent(notToSuggestIntent);
+         AIIntent topIntent = topIntentData.getKey();
+         System.out.println("Top intent is : " + topIntent);
+         Float topIntentPriority = topIntentData.getValue();
+
+         if(topIntentPriority > newsPriority || doNotSuggestNews) {
+           lastSuggestion = suggestIntent(targetCompany,topIntent);
+         } else {
+           System.out.println("Suggesting news for " + targetCompany.getCode());
+           lastSuggestion = suggestNews(targetCompany);
+         }
          return lastSuggestion;
          // return Group to Core
        } else {
@@ -124,6 +162,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
      for(Company c: changed) {
        // NOTE parseresult is null
+       System.out.println("Company " + c.getCode() + "has had a significant change ");
        res.add(new Suggestion("Detected important change", c, false, null));
      }
 
@@ -201,6 +240,14 @@ public class IntelligenceCore implements IIntelligenceUnit {
 	   return result;
    }
 
+   public Group[] onNewsTimeGroups() {
+     Group[] result = new Group[TOP];
+     for(int i = 0; i < TOP; i++) {
+       result[i] = groups.get(i);
+     }
+    return result;
+   }
+
    // TODO
    private ArrayList<Company> detectedImportantChange() {
      ArrayList<String> names = db.detectedImportantChange();
@@ -224,12 +271,9 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @param  Company company       [description]
     * @return         [description]
     */
-   private Suggestion suggestIntent(Company company) {
+   private Suggestion suggestIntent(Company company ,AIIntent topIntent) {
      String reason = "Company is in top 5";
      // String description = "Suggesting ";
-
-     AIIntent topIntent = company.getTopIntent();
-     //Float topIntentValue = topIntent.getLastValue();
 
      // Create IParseResult
      TimeSpecifier tm = footsiebot.nlp.TimeSpecifier.TODAY;
@@ -273,10 +317,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
      ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", group.getGroupCode(), true,footsiebot.nlp.TimeSpecifier.TODAY );
      Suggestion result = new Suggestion(reason, group, pr );
      return result;
-   }
-
-   private void updateLastSuggestion() {
-
    }
 
 
