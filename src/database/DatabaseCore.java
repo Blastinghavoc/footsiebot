@@ -319,7 +319,11 @@ public class DatabaseCore implements IDatabaseManager {
     	/* gets percentage change and spot price/ closing price for each company
     	in group */
     	for (int i = 0; i < companies.length; i ++) {
-    		percChange = getTrendDataOnDate(companies[i], timeSpec).get(0);
+            ArrayList<Float> tmp = getTrendDataOnDate(companies[i], timeSpec);
+            if (tmp == null || tmp.size() == 0){
+                return new ArrayList<String>();//Returning an empty result
+            }
+    		percChange = tmp.get(0);
 			percChangeTotal += percChange;
 			percChangeMap.put(companies[i], percChange);
 
