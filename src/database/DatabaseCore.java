@@ -285,7 +285,7 @@ public class DatabaseCore implements IDatabaseManager {
         		output.addAll(getAllCompanyInfo(pr));
                 break;
         }
-
+        System.out.println(Arrays.toString(output.toArray(new String[1])));
         return output.toArray(new String[1]);
     }
 
@@ -397,6 +397,9 @@ public class DatabaseCore implements IDatabaseManager {
     	switch (intent) {
     		case TREND:
     			trendData = getTrendDataOnDate(companyCode, timeSpec);
+    			if (trendData.isEmpty()) {
+    				return output;
+    			}
     			break;
             // case TREND_SINCE:
     		// 		percChange = getTrendDataSinceDate(companyCode, timeSpec);
@@ -470,6 +473,7 @@ public class DatabaseCore implements IDatabaseManager {
    				percChange = ((endPrice - startPrice) / startPrice) * 100;
    			} else {
    				System.out.println("Null start or end price");
+   				return trendData;
    			}
 
    		} catch (SQLException e) {
