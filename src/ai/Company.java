@@ -20,6 +20,14 @@ public class Company implements Comparable<Company> {
     this.newsScale = newsScale;
     this.newsCount = newsCount;
     this.newsAdj = newsAdj;
+
+    Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
+    // DEBUG
+    for(Map.Entry<AIIntent,Float[]> e: entrySet) {
+      System.out.println(e.getKey());
+      System.out.println(e.getValue());
+    }
+
   }
   //TOTEST
   public void decrementPriorityOfIntent(AIIntent i) {
@@ -48,8 +56,10 @@ public class Company implements Comparable<Company> {
 
     AIIntent currMax = AIIntent.SPOT_PRICE;
     float startMaxValue = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1];
+    //DEBUG
+    System.out.println(startMaxValue);
 
-    AbstractMap.SimpleEntry<AIIntent,Float> result = null;
+    AbstractMap.SimpleEntry<AIIntent,Float> result = new AbstractMap.SimpleEntry(currMax, startMaxValue);
 
     for(Map.Entry<AIIntent,Float[]> e: entrySet) {
       float value = e.getValue()[0] - e.getValue()[1];
@@ -58,6 +68,9 @@ public class Company implements Comparable<Company> {
         startMaxValue = value;
         result = new AbstractMap.SimpleEntry(currMax,startMaxValue);
       }
+      // DEBUG
+      System.out.println(result.getKey());
+      System.out.println(result.getValue());
     }
     return result;
   }

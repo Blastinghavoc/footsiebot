@@ -169,6 +169,8 @@ public class Core extends Application {
         lastOperandOutput = pr.getOperand();
 
         suggestion = ic.getSuggestion(pr);
+        // DEBUG 
+        System.out.println(suggestion.getParseResult().getIntent());
         if(suggestion != null){
             handleSuggestion(suggestion,pr);
         }
