@@ -30,7 +30,11 @@ public class NewsBlock extends BorderPane {
         headline.setWrapText(true);
         headline.getStyleClass().add("headline");
 
-        digest = new Label(article.getDigest().trim());
+        String date = article.getPubDate().toString();
+        date = date.substring(0, date.indexOf("T"));
+        String[] dateComponents = date.split("-");
+        date = dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0];
+        digest = new Label(date + "\n" + article.getDigest().trim());
         digest.getStyleClass().add("digest");
         digest.setWrapText(true);
         digest.setLineSpacing(1);
@@ -94,6 +98,7 @@ public class NewsBlock extends BorderPane {
         url.setMaxWidth(width - 7);
 
         url.setOnMouseClicked(e -> {
+            url.getStyleClass().setAll("url-visited");
             core.openWebpage(url.getText());
         });
     }

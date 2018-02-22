@@ -1,6 +1,9 @@
 @font-face {
-    /*-fx-font-family: "CFSpaceship";*/
     src: url("fonts/Above.ttf");
+}
+
+@font-face {
+    src: url("fonts/CookieMonster.ttf");
 }
 
 .root {
@@ -8,12 +11,17 @@
     -fx-background-color: white;
     -fx-accent: derive(#6699CC, 50%);
     /*-fx-font-size: 12pt;*/
+    -fx-focus-color: derive(#6699CC, 50%);
 }
 
-#name-label {
+#logo {
     -fx-font-family: "Above DEMO";
     -fx-font-size: 25pt;
-    /*-fx-text-fill: #5783af;*/
+}
+
+#logo-valentines {
+    -fx-font-family: "CookieMonster";
+    -fx-font-size: 25pt;
 }
 
 #chat-pane {
@@ -266,8 +274,8 @@
 }
 
 .news-block {
-    -fx-background-color: derive(white, -5%);
-    /*-fx-background-color: derive(#6699CC, 95%);*/
+    /*-fx-background-color: derive(white, -5%);*/
+    -fx-background-color: derive(#6699CC, 95%);
     /*-fx-background-color: rgba(255, 255, 255, 0.4);*/
     /*-fx-background-color: linear-gradient(from 0px 0px to 0px 50px, gray, darkgray 50%, dimgray 99%, white);*/
     /*-fx-background-color: linear-gradient(to bottom, derive(#6699CC, 95%), derive(#6699CC, 85%));*/
@@ -284,8 +292,8 @@
 }
 
 .news-block:hover {
-    -fx-background-color: derive(white, -10%);
-    /*-fx-background-color: derive(#6699CC, 85%);*/
+    /*-fx-background-color: derive(white, -10%);*/
+    -fx-background-color: derive(#6699CC, 85%);
 }
 
 .headline {
@@ -307,7 +315,14 @@
     /*-fx-background-color: pink;*/
     -fx-cursor: hand;
     -fx-font-size: 9.5pt;
-    -fx-text-fill: navy;
+    -fx-text-fill: #0000EE;
+}
+
+.url-visited {
+    /*-fx-background-color: pink;*/
+    -fx-cursor: hand;
+    -fx-font-size: 9.5pt;
+    -fx-text-fill: #551A8B;
 }
 
 .remove-news {
