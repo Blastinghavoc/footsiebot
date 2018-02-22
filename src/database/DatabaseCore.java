@@ -349,11 +349,11 @@ public class DatabaseCore implements IDatabaseManager {
     	averagePercChange = percChangeTotal/ companies.length;
     	output.add(averagePercChange.toString());
     	if (averagePercChange > 0) {
-			output.add("risen");
+			output.add("rose");
     	} else if (averagePercChange < 0) {
-			output.add("fallen");
+			output.add("fell");
 		} else {
-			output.add("stayed the same");
+			output.add("had no overall change");
 		}
 
 		Comparator<? super Map.Entry<String, Float>> valueComparator = ((entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue()));
@@ -617,7 +617,7 @@ public class DatabaseCore implements IDatabaseManager {
                         + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                         + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
-            case GROUP_FULL_SUMMARY:
+            case GROUP_FULL_SUMMARY://NOTE: Not required
                 break;
             default:
                 System.out.println("No cases ran");
