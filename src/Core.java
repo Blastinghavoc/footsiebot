@@ -242,14 +242,14 @@ public class Core extends Application {
                         output += "indeterminate";
                         break;
                     }
-                    output += " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
                     output += "The opening price was GBX "+ data[2] + " and the most recent price is GBX "+ data[3] + ".";
-                    //NOTE: net change is truncated to 3 decimal places.
+                    //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
                     output += " "+data[1];
-                    output += " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
                     output += "The opening price was GBX "+ data[2] + " and the closing price was GBX "+ data[3] + ".";
                 }
                 break;
@@ -273,15 +273,15 @@ public class Core extends Application {
                         output += "indeterminate";
                         break;
                     }
-                    output += " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
                     String[] high = data[2].split(",");
                     output += high[0].trim() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
                     output += low[0].trim() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
-                    output += mostRising[0].trim() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+4)+ "%.\n";
+                    output += mostRising[0].trim() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
                     String[] mostFalling = data[5].split(",");
-                    output += mostFalling[0].trim() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+4)+ "%.";
+                    output += mostFalling[0].trim() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
@@ -291,9 +291,9 @@ public class Core extends Application {
                     String[] low = data[3].split(",");
                     output += low[0].trim() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
-                    output += mostRising[0].trim() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+4)+ "%.\n";
+                    output += mostRising[0].trim() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
                     String[] mostFalling = data[5].split(",");
-                    output += mostFalling[0].trim() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+4)+ "%.";
+                    output += mostFalling[0].trim() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
                 }
                 break;
             default:
