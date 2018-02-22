@@ -91,18 +91,18 @@ public class WebScraper {
                             // extracts the trading volume
                             current = summary.select("td:contains(volume) ~ td").first();
                             if (current == null) vollist.add(null);
-                            else vollist.add(Integer.parseInt(current.text().replace(",", "")));
+                            else vollist.add(Integer.parseInt(current.text().replace(",", "").trim()));
 
                             break;
                         case 3: break;
                         case 4: 
-                            pricelist.add(Float.parseFloat(column.text().replace(",", "")));
+                            pricelist.add(Float.parseFloat(column.text().replace(",", "").trim()));
                             break;
                         case 5: 
-                            abslist.add(Float.parseFloat(column.ownText()));
+                            abslist.add(Float.parseFloat(column.ownText().trim()));
                             break;
                         case 6: 
-                            perclist.add(Float.parseFloat(column.ownText()));
+                            perclist.add(Float.parseFloat(column.ownText().trim()));
                             break;
                         default: break elementloop;
                     }
