@@ -234,6 +234,14 @@ public class IntelligenceCore implements IIntelligenceUnit {
 	   return result;
    }
 
+   public Group[] onNewsTimeGroups() {
+     Group[] result = new Group[TOP];
+     for(int i = 0; i < TOP; i++) {
+       result[i] = groups.get(i);
+     }
+    return result;
+   }
+
    // TODO
    private ArrayList<Company> detectedImportantChange() {
      ArrayList<String> names = db.detectedImportantChange();
