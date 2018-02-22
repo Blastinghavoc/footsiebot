@@ -838,7 +838,7 @@ public class DatabaseCore implements IDatabaseManager {
         + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
-        + "LEFT OUTER JOIN CompanyPercenta geChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
 
 
       Statement stmt = null;

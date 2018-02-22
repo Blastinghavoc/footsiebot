@@ -35,6 +35,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // intent detect
      AIIntent notToSuggestIntent = null;
      Intent oldIntent = pr.getIntent();
+     System.out.println("User has just asked : " + oldIntent);
      boolean doNotSuggestNews = false;
      switch (oldIntent) {
        case SPOT_PRICE: notToSuggestIntent = AIIntent.SPOT_PRICE;
@@ -118,13 +119,17 @@ public class IntelligenceCore implements IIntelligenceUnit {
          // DECIDING WHETHER to suggest news
          float newsPriority =  targetCompany.getNewsPriority();
 
+         System.out.println("Should not suggest " + notToSuggestIntent);
+
          AbstractMap.SimpleEntry<AIIntent,Float> topIntentData = targetCompany.getTopIntent(notToSuggestIntent);
          AIIntent topIntent = topIntentData.getKey();
+         System.out.println("Top intent is : " + topIntent);
          Float topIntentPriority = topIntentData.getValue();
 
          if(topIntentPriority > newsPriority || doNotSuggestNews) {
            lastSuggestion = suggestIntent(targetCompany,topIntent);
          } else {
+           System.out.println("Suggesting news for " + targetCompany.getCode());
            lastSuggestion = suggestNews(targetCompany);
          }
          return lastSuggestion;
@@ -157,6 +162,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
      for(Company c: changed) {
        // NOTE parseresult is null
+       System.out.println("Company " + c.getCode() + "has had a significant change ");
        res.add(new Suggestion("Detected important change", c, false, null));
      }
 
