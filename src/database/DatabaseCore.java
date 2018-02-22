@@ -838,7 +838,7 @@ public class DatabaseCore implements IDatabaseManager {
         + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
-        + "LEFT OUTER JOIN CompanyPercenta geChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
 
 
       Statement stmt = null;
@@ -972,8 +972,21 @@ public class DatabaseCore implements IDatabaseManager {
         //     if(rs0 != null) {tryClose(rs0); }
         //   }
         // }
-
+        
+        
         for(Map.Entry<String,Group> g: entrySet) {
+            ArrayList<Company> list = new ArrayList<Company>();
+            String[] companylist = getCompaniesInGroup(g.getValue().getGroupCode());
+            for (int i = 0; i < companylist.length; i++) {
+                for (int j = 0; j < companies.size(); j++) {
+                    Company current = companies.get(j);
+                    if (current.getCode() == companylist[i]) {
+                        list.add(current);
+                        break;
+                    }
+                }
+            }
+            g.getValue().addCompanies(list);
         }
 
         // now add the remaining values to each group
@@ -994,7 +1007,7 @@ public class DatabaseCore implements IDatabaseManager {
         printSQLException(ex);
       } finally {
         if (stmt != null) { tryClose(stmt); }
-        if(rs != null) {tryClose(rs); }
+        if (rs != null) { tryClose(rs); }
       }
 
       return result;
@@ -1120,7 +1133,7 @@ public class DatabaseCore implements IDatabaseManager {
             return null;
         } finally {
           if (s1 != null) { tryClose(s1); }
-          if(r1 != null) {tryClose(r1); }
+          if (r1 != null) { tryClose(r1); }
         }
         return companies.toArray(new String[1]);
     }
