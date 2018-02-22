@@ -604,7 +604,41 @@ public class Core extends Application {
     }
 
     public void updateSettings(String time, Double change) {
+        if(time == null || change == null){
+            return;
+        }
+        if(change < 0){//Want absolute value
+            change = 0 - change;
+        }
         System.out.println("Updating the settings with a time of " + time + " and a change of " + change.toString());
+        String[] hm = time.split(":");
+        Integer hours = Integer.parseInt(hm[0]);
+        Integer minutes = Integer.parseInt(hm[1]);
+        long newTradingTime = (3600000*hours) +(60000*minutes);
+        System.out.println(newTradingTime);
+        TRADING_TIME = newTradingTime;
+        ui.stopTradingHourTimeline();
+        ui.startTradingHourTimeline();
+        Long ntt = newTradingTime;
+        writeSettings(ntt,change);
+    }
+
+    private void writeSettings(Long time, Double change){
+        File fl = null;
+        BufferedWriter bw = null;
+        try{
+            fl = new File("src/config.txt");
+            bw = new BufferedWriter(new FileWriter(fl.getAbsolutePath().replace("\\", "/")));
+            bw.write(time.toString());
+            bw.newLine();
+            bw.write(change.toString());            
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(bw);
+        }
+
     }
 
    /**
@@ -614,6 +648,13 @@ public class Core extends Application {
     */
     public void openWebpage(String url) {
         getHostServices().showDocument(url);
+    }
+
+    private static void tryClose(Closeable c){
+        try{
+            c.close();
+        }catch(Exception ex){
+        }
     }
 
 }
