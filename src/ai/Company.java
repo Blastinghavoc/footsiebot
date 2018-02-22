@@ -6,7 +6,6 @@ import java.util.*;
 public class Company implements Comparable<Company> {
 
   private String code;
-  private ArrayList<IntentData> intents;
   private HashMap<AIIntent,Float[]> mapping;
   private Float intentScale;
   private Float newsScale;
@@ -14,9 +13,8 @@ public class Company implements Comparable<Company> {
   private Float newsCount;
   private Float newsAdj;
 
-  public Company(String code, ArrayList<IntentData> intents, HashMap<AIIntent,Float[]> mapping, Float intentScale, Float newsScale, Float newsCount, Float newsAdj) {
+  public Company(String code, HashMap<AIIntent,Float[]> mapping, Float intentScale, Float newsScale, Float newsCount, Float newsAdj) {
     this.code = code;
-    this.intents = intents;
     this.mapping = mapping;
     this.intentScale = intentScale;
     this.newsScale = newsScale;
@@ -25,14 +23,28 @@ public class Company implements Comparable<Company> {
   }
   //TOTEST
   public void decrementPriorityOfIntent(AIIntent i) {
-    for(IntentData id: intents) {
-      if(id.getIntent().equals(i)) {
-        // TODO
-        id.decrementPriority(1+ (0.5f * (id.getAdjustment())) );
-        mapping.put(i,new Float[]{id.getCount(),id.getAdjustment()});
+
+    Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
+
+    for(Map.Entry<AIIntent,Float[]> e: entrySet) {
+      if(e.getKey().equals(i)) {
+        Float[] current = mapping.get(i);
+        float counter = current[0];
+        float adjustment = current[1];
+        mapping.put(i, new Float[]{counter, 1 + 0.5f * adjustment});
       }
+
     }
+
   }
+  //
+  // for(IntentData id: intents) {
+  //   if(id.getIntent().equals(i)) {
+  //     // TODO
+  //     id.decrementPriority(1+ (0.5f * (id.getAdjustment())) );
+  //     mapping.put(i,new Float[]{id.getCount(),id.getAdjustment()});
+  //   }
+  // }
 
   public String getCode() {
 	return code;
@@ -62,6 +74,14 @@ public class Company implements Comparable<Company> {
     float newsPriority = newsCount - newsAdj;
 
     return intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
+  }
+
+  public Float getNewsPriority() {
+    return newsScale * (newsPriority);
+  }
+
+  public Float getIntentsPriority() {
+    return ;
   }
 
   @Override

@@ -681,7 +681,7 @@ public class DatabaseCore implements IDatabaseManager {
         + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
-        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+        + "LEFT OUTER JOIN CompanyPercenta geChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
 
 
       Statement stmt = null;
@@ -693,7 +693,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         while(rs.next()) {
           // Create list of intents for each company
-          ArrayList<IntentData> intents = new ArrayList<>();
+          // ArrayList<IntentData> intents = new ArrayList<>();
           // News counter
           float newsCount = (float) rs.getInt("coalesce(NewsCount,0)");
           // Intents
@@ -723,11 +723,11 @@ public class DatabaseCore implements IDatabaseManager {
 
           // Instantiate IntentData List for this company
           // TODO not having values for each intent for now
-          intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
-          intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
-          intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
-          intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
-          intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
+          // intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
+          // intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
+          // intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
+          // intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
+          // intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
 
           HashMap<AIIntent, Float[]> mapping = new HashMap<>();
 
@@ -744,7 +744,7 @@ public class DatabaseCore implements IDatabaseManager {
           float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
 
-          companies.add(new Company(rs.getString("CompanyCode"), intents, mapping, intentScale, newsScale, newsCount, newsAdj));
+          companies.add(new Company(rs.getString("CompanyCode"), mapping, intentScale, newsScale, newsCount, newsAdj));
         }
 
         if(companies.size() != 0) {
@@ -860,6 +860,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         while(rs.next()) {
           String companyName = rs.getString("CompanyCode");
+          // TODO Absolute value 
           Float percChange = rs.getFloat("PercentageChange");
 
           if(percChange > treshold) {
@@ -929,10 +930,6 @@ public class DatabaseCore implements IDatabaseManager {
     //
     // }
 
-
-    public IntentData getIntentForCompany() {
-      return null;
-    }
 
     // This is potentially not needed couple of methods as
     // the database will always be updated i.e.

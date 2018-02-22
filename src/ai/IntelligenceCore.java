@@ -8,11 +8,7 @@ import footsiebot.database.*;
 import java.util.*;
 import java.lang.*;
 
-
 public class IntelligenceCore implements IIntelligenceUnit {
-  /**
-   *
-   */
 
    // To be possibly set by the user
    private byte TOP = 5;
@@ -95,6 +91,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
          // This will need to be modified as
          // it just suggests an intent now
          // but could decide to suggest news
+         // DECIDING WHETHER to suggest news
+         float newsPriority =  targetCompany.getNewsPriority();
          lastSuggestion = suggestIntent(targetCompany);
          return lastSuggestion;
          // return Group to Core
