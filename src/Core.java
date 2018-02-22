@@ -209,7 +209,9 @@ public class Core extends Application {
                 break;
             case OPENING_PRICE:
                 {
-                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    String date = data[1].split(",")[1].trim();
+                    String[] dateComponents = date.split("-");
+                    date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
@@ -219,7 +221,9 @@ public class Core extends Application {
                 break;
             case CLOSING_PRICE:
                 {
-                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    String date = data[1].split(",")[1].trim();
+                    String[] dateComponents = date.split("-");
+                    date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
