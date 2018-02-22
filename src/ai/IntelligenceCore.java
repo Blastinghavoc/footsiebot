@@ -118,7 +118,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      Collections.sort(groups);
 
      ArrayList<Company> changed = detectedImportantChange();
-     if(changed.size() == 0) return null;
+     if((changed == null ) || (changed.size() == 0)) return null;
 
      ArrayList<Suggestion> res = new ArrayList<>();
 
@@ -204,7 +204,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    // TODO
    private ArrayList<Company> detectedImportantChange() {
      ArrayList<String> names = db.detectedImportantChange();
-     if(names.size() == 0) return null;
+     if((names == null)||(names.size() == 0)) return null;
 
      ArrayList<Company> winningCompanies = new ArrayList<>();
 

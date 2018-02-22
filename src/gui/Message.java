@@ -143,7 +143,7 @@ public class Message extends FlowPane {
         btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
 
         why.setOnMouseClicked(e -> {
-            ui.displayMessage("This is why", false, this);
+            ui.displayMessage(sugg.getReason(), false, this);
         });
 
         close.setOnMouseClicked(e -> {

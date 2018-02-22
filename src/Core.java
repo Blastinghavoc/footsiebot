@@ -90,6 +90,8 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
+        // onTradingHour();
+
         if(runTradingHourTest){
             try{
                 onTradingHour();//DEBUG
@@ -183,7 +185,7 @@ public class Core extends Application {
     }
 
     private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
-        String output = "Whoops, something went wrong!";
+        String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
                 output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
@@ -226,19 +228,81 @@ public class Core extends Application {
                 }
                 break;
             case TREND:
-                /*TODO:
-                    Will ouput whether or not the given company rose or fell on the given day, based on opening and closing prices.
-                    If the day is today, will base it on opening price and current price.
-                    Additional data will be opening and closing prices if not for today,
-                    else will be opening price and most recent price.
-
-                    Possibly add "microtrend": analysis of last two snapshots.
-                */
+                if(data.length <4){
+                    break;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    output = "So far today, "+ pr.getOperand().toUpperCase() + " is ";
+                    switch(data[1]){
+                        case "rose":
+                        output += "rising";
+                        break;
+                        case "fell":
+                        output += "falling";
+                        break;
+                        case "had no overall change":
+                        output += "displaying no net change";
+                        break;
+                        default:
+                        output += "indeterminate";
+                        break;
+                    }
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    output += "The opening price was GBX "+ data[2] + " and the most recent price is GBX "+ data[3] + ".";
+                    //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
+                }
+                else{
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
+                    output += " "+data[1];
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    output += "The opening price was GBX "+ data[2] + " and the closing price was GBX "+ data[3] + ".";
+                }
                 break;
             case NEWS:
                 //Nothing to do here, should never run, TODO remove
                 break;
             case GROUP_FULL_SUMMARY:
+                if(data.length <6){
+                    break;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    output = "So far today, " + pr.getOperand() + " are ";
+                    switch(data[1]){
+                        case "rose":
+                        output += "rising";
+                        break;
+                        case "fell":
+                        output += "falling";
+                        break;
+                        case "had no overall change":
+                        output += "displaying no net change";
+                        break;
+                        default:
+                        output += "indeterminate";
+                        break;
+                    }
+                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    String[] high = data[2].split(",");
+                    output += high[0].trim().toUpperCase() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
+                    String[] low = data[3].split(",");
+                    output += low[0].trim().toUpperCase() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
+                    String[] mostRising = data[4].split(",");
+                    output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    String[] mostFalling = data[5].split(",");
+                    output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                }
+                else{
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output += data[1] + " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
+                    String[] high = data[2].split(",");
+                    output += high[0].trim().toUpperCase() + " had the highest closing price at GBX " + high[1].trim() + ".\n";
+                    String[] low = data[3].split(",");
+                    output += low[0].trim().toUpperCase() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
+                    String[] mostRising = data[4].split(",");
+                    output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    String[] mostFalling = data[5].split(",");
+                    output += mostFalling[0].trim().toUpperCase() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                }
                 break;
             default:
             System.out.println("No cases ran in core");
@@ -268,6 +332,13 @@ public class Core extends Application {
                 if((suggPr.getIntent() == pr.getIntent()) ||extraDataAddedToLastOutput.contains(suggPr.getIntent())){
                     //The intent suggested has already been displayed to the user.
                     return;
+                }
+            }
+            if(pr.getIntent()== Intent.TREND){
+                if(pr.getTimeSpecifier()== TimeSpecifier.TODAY){
+                    if((suggPr.getIntent() == Intent.SPOT_PRICE)||(suggPr.getIntent() == Intent.OPENING_PRICE)){
+                        return;//A trend includes spot price and opening price, so don't bother suggesting these.
+                    }
                 }
             }
             outputFTSE(suggPr,suggestion);
@@ -530,6 +601,10 @@ public class Core extends Application {
             }
             System.out.println(result);
         }
+    }
+
+    public void updateSettings(String time, Double change) {
+        System.out.println("Updating the settings with a time of " + time + " and a change of " + change.toString());
     }
 
    /**
