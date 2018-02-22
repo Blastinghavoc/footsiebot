@@ -57,6 +57,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // TODO: UPDATE TALLIES FOR THIS COMPANY LOCALLY
      // If operand is a group
      if(pr.isOperandGroup()) {
+         // no suggestion if they have asked news for this group  //NOTE
+         if(doNotSuggestNews) {
+           System.out.println("The user has just asked news for group " + pr.getOperand());
+           System.out.println("So will not suggest news for this group now ");
+           return null;
+         }
          if(groups == null){
              System.out.println("Groups was null, cannot make suggestion");//DEBUG
              return null;
