@@ -165,6 +165,12 @@ public class DatabaseCore implements IDatabaseManager {
         // if("DEBUG".equals("DEBUG")){
         //     return false;//DEBUG
         // }
+
+        //TODO: need branch to process group queries sepparately.
+        if(pr.isOperandGroup()){
+            return true;
+        }
+
         String companyCode = pr.getOperand();
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
@@ -292,7 +298,7 @@ public class DatabaseCore implements IDatabaseManager {
     	Float averagePercChange = 0.0f;
     	String groupName = pr.getOperand();
     	String[] companies = getCompaniesInGroup(groupName);
-    	footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier(); 
+    	footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
     	String comparisonTime = "";
     	HashMap<String, Float> spotPriceMap = new HashMap<String, Float>();
     	HashMap<String, Float> percChangeMap = new HashMap<String, Float>();
@@ -310,14 +316,14 @@ public class DatabaseCore implements IDatabaseManager {
 
     	comparisonTime = timeSpecifierToDate(timeSpec);
 
-    	/* gets percentage change and spot price/ closing price for each company 
+    	/* gets percentage change and spot price/ closing price for each company
     	in group */
     	for (int i = 0; i < companies.length; i ++) {
     		percChange = getTrendDataOnDate(companies[i], timeSpec).get(0);
 			percChangeTotal += percChange;
 			percChangeMap.put(companies[i], percChange);
 
-			/* gets spot price if the time specifier is today, otherwise gets 
+			/* gets spot price if the time specifier is today, otherwise gets
 			closing price */
 			spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec, companies[i], comparisonTime);
 			try {
@@ -365,7 +371,7 @@ public class DatabaseCore implements IDatabaseManager {
 		output.add(companyWithMinSpotPrice + ", " + minSpotPrice.toString());
 		output.add(companyWithMaxPercChange + ", " + maxPercChange.toString());
 		output.add(companyWithMinPercChange + ", " + minPercChange.toString());
-		
+
 		System.out.println("PERC CHANGE " + output.get(0) + " " + output.get(1));
 		System.out.println(output.get(2));
 		System.out.println(output.get(3));
@@ -377,7 +383,7 @@ public class DatabaseCore implements IDatabaseManager {
     /* Returns an array list  containing the data to be output by the Core
     for trend data */
     private ArrayList<String> getTrendData(ParseResult pr) {
-    	
+
     	ArrayList<Float> trendData = new ArrayList<Float>();
     	ArrayList<String> output = new ArrayList<String>();
     	footsiebot.nlp.Intent intent = pr.getIntent();
@@ -419,8 +425,8 @@ public class DatabaseCore implements IDatabaseManager {
     	return output;
     }
 
-    /* Returns array list containing percentage change in spot price, 
-    opening price and closing price or spot price(if time specifier is today) 
+    /* Returns array list containing percentage change in spot price,
+    opening price and closing price or spot price(if time specifier is today)
     for a company on day specified */
     private ArrayList<Float> getTrendDataOnDate(String companyCode, footsiebot.nlp.TimeSpecifier timeSpec) {
     	LocalDateTime currentTime = LocalDateTime.now();
@@ -482,7 +488,7 @@ public class DatabaseCore implements IDatabaseManager {
    		return trendData;
     }
 
-    /* if the time specifier is today, returns query to get spot price of 
+    /* if the time specifier is today, returns query to get spot price of
     company, otherwise returns query to get closing price of company on
     specified day*/
     private String spotOrClosingPriceQuery(footsiebot.nlp.TimeSpecifier timeSpec, String companyCode, String comparisonTime) {
@@ -499,8 +505,8 @@ public class DatabaseCore implements IDatabaseManager {
    		return query;
     }
 
-    /* Returns array list containing percentage change in spot price, 
-    opening price and closing price or spot price(if time specifier is today) 
+    /* Returns array list containing percentage change in spot price,
+    opening price and closing price or spot price(if time specifier is today)
     for a company since the day specified */
     private ArrayList<Float> getPercChangeSinceDate(String companyCode, footsiebot.nlp.TimeSpecifier timeSpec) {
     	ArrayList<Float> trendData = new ArrayList<Float>();
