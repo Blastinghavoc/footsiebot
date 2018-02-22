@@ -398,7 +398,7 @@ public class DatabaseCore implements IDatabaseManager {
     		case TREND:
     			trendData = getTrendDataOnDate(companyCode, timeSpec);
     			break;
-            // case SINCE_TREND:
+            // case TREND_SINCE:
     		// 		percChange = getTrendDataSinceDate(companyCode, timeSpec);
     		//		break;
     		default:
@@ -411,11 +411,11 @@ public class DatabaseCore implements IDatabaseManager {
 		output.add(percChange.toString());
 
 		if (percChange > 0)
-			output.add("risen");
+			output.add("rose");
 		else if (percChange < 0) {
-			output.add("fallen");
+			output.add("fell");
 		} else {
-			output.add("stayed the same");
+			output.add("had no overall change");
 		}
 		output.add(startPrice.toString());
 		output.add(endPrice.toString());

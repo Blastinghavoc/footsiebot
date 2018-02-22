@@ -226,14 +226,32 @@ public class Core extends Application {
                 }
                 break;
             case TREND:
-                /*TODO:
-                    Will ouput whether or not the given company rose or fell on the given day, based on opening and closing prices.
-                    If the day is today, will base it on opening price and current price.
-                    Additional data will be opening and closing prices if not for today,
-                    else will be opening price and most recent price.
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    output = "So far today, "+ pr.getOperand() + " is ";
+                    switch(data[1]){
+                        case "rose":
+                        output += "rising";
+                        break;
+                        case "fell":
+                        output += "falling";
+                        break;
+                        case "had no overall change":
+                        output += "displaying no net change";
+                        break;
+                        default:
+                        output += "indeterminate";
+                        break;
+                    }
+                    output += " with a net change of "+data[0] + "%.\n";
+                    output += "The opening price was "+ data[2] + " and the most recent price is "+ data[3] + ".";
 
-                    Possibly add "microtrend": analysis of last two snapshots.
-                */
+                }
+                else{
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output += " "+data[1];
+                    output += " with a net change of "+data[0] + "%.\n";
+                    output += "The opening price was "+ data[2] + " and the closing price was "+ data[3] + ".";
+                }
                 break;
             case NEWS:
                 //Nothing to do here, should never run, TODO remove
