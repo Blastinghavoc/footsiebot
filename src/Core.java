@@ -326,6 +326,13 @@ public class Core extends Application {
                     return;
                 }
             }
+            if(pr.getIntent()== Intent.TREND){
+                if(pr.getTimeSpecifier()== TimeSpecifier.TODAY){
+                    if((suggPr.getIntent() == Intent.SPOT_PRICE)||(suggPr.getIntent() == Intent.OPENING_PRICE)){
+                        return;//A trend includes spot price and opening price, so don't bother suggesting these.
+                    }
+                }
+            }
             outputFTSE(suggPr,suggestion);
             System.out.println("Displayed suggestion for pr = "+suggPr.toString());//DEBUG
         }
