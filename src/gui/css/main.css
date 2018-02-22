@@ -11,6 +11,7 @@
     -fx-background-color: white;
     -fx-accent: derive(#6699CC, 50%);
     /*-fx-font-size: 12pt;*/
+    -fx-focus-color: derive(#6699CC, 50%);
 }
 
 #logo {
@@ -273,8 +274,8 @@
 }
 
 .news-block {
-    -fx-background-color: derive(white, -5%);
-    /*-fx-background-color: derive(#6699CC, 95%);*/
+    /*-fx-background-color: derive(white, -5%);*/
+    -fx-background-color: derive(#6699CC, 95%);
     /*-fx-background-color: rgba(255, 255, 255, 0.4);*/
     /*-fx-background-color: linear-gradient(from 0px 0px to 0px 50px, gray, darkgray 50%, dimgray 99%, white);*/
     /*-fx-background-color: linear-gradient(to bottom, derive(#6699CC, 95%), derive(#6699CC, 85%));*/
@@ -291,8 +292,8 @@
 }
 
 .news-block:hover {
-    -fx-background-color: derive(white, -10%);
-    /*-fx-background-color: derive(#6699CC, 85%);*/
+    /*-fx-background-color: derive(white, -10%);*/
+    -fx-background-color: derive(#6699CC, 85%);
 }
 
 .headline {

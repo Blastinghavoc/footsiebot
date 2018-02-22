@@ -18,27 +18,27 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 public class SummaryMessage extends VBox {
     private Label pre;
-    private TableView table;
+    // private TableView table;
     private Label post;
 
     public SummaryMessage(String pre, String[] data, String post) {
-        super();
-        this.pre = new Label(pre);
-        table = new TableView();
-        TableColumn code = new TableColumn("Code");
-        TableColumn spot = new TableColumn("Spot");
-        TableColumn abs = new TableColumn("Abs");
-        TableColumn perc = new TableColumn("Perc");
-        table.getColumns().addAll(code, spot, abs, perc);
-        this.post = new Label(post);
-
-        final ObservableList<String> dat = FXCollections.observableArrayList();
-        for (int i = 0; i < data.length; i++) {
-            dat.add(data[i]);
-        }
-
-        table.setItems(dat);
-
-        getChildren().addAll(this.pre, table, this.post);
+        // super();
+        // this.pre = new Label(pre);
+        // table = new TableView();
+        // TableColumn code = new TableColumn("Code");
+        // TableColumn spot = new TableColumn("Spot");
+        // TableColumn abs = new TableColumn("Abs");
+        // TableColumn perc = new TableColumn("Perc");
+        // table.getColumns().addAll(code, spot, abs, perc);
+        // this.post = new Label(post);
+        //
+        // // final ObservableList<String> dat = FXCollections.observableArrayList();
+        // // for (int i = 0; i < data.length; i++) {
+        // //     dat.add(data[i]);
+        // // }
+        // //
+        // // table.setItems(dat);
+        //
+        // getChildren().addAll(this.pre, table, this.post);
     }
 }

@@ -90,7 +90,7 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        onTradingHour();
+        // onTradingHour();
 
         if(runTradingHourTest){
             try{
@@ -595,6 +595,10 @@ public class Core extends Application {
             }
             System.out.println(result);
         }
+    }
+
+    public void updateSettings(String time, Double change) {
+        System.out.println("Updating the settings with a time of " + time + " and a change of " + change.toString());
     }
 
    /**

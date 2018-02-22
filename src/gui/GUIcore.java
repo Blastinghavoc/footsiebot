@@ -21,6 +21,8 @@ import javafx.beans.*;
 import javafx.beans.property.*;
 import javafx.util.Duration;
 import javafx.application.Platform;
+import javafx.collections.*;
+import java.util.ArrayList;
 
 import footsiebot.ai.Suggestion;
 
@@ -55,8 +57,8 @@ public class GUIcore implements IGraphicalUserInterface {
     private FadeTransition newsPaneTrans;
     private RotateTransition settingsIconTrans;
     private Label noNews;
-    private ComboBox timeSelector;
-    private Spinner changeSelector;
+    private ComboBox<String> timeSelector;
+    private Spinner<Double> changeSelector;
 
    /**
     * Constructor for the user interface using default styling
@@ -203,6 +205,26 @@ public class GUIcore implements IGraphicalUserInterface {
         newsBoard.setId("news-board");
         newsBoard.setVgap(10);
 
+        timeSelector = new ComboBox<String>();
+        ObservableList<String> timeOptions = FXCollections.observableArrayList();
+        int hour = 8;
+        for (int i = 0; i < 20; i++) {
+            if (i%2 == 0)
+                timeOptions.add(hour + ":00");
+            else
+                timeOptions.add(hour++ + ":30");
+        }
+        timeSelector.setItems(timeOptions);
+
+        changeSelector = new Spinner<Double>(-10.00, 10.00, -2.50, 0.10);
+        changeSelector.setEditable(true);
+
+        Button saveChanges = new Button("Save Changes");
+        saveChanges.setOnAction(e -> {
+            if ((String) timeSelector.getValue() != null)
+                core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
+        });
+
         Button btnStyle = new Button("Update style");
         btnStyle.setOnAction(e -> {
             updateStyle();
@@ -217,8 +239,10 @@ public class GUIcore implements IGraphicalUserInterface {
         newsWrapper.setPadding(wrapperPadding);
         newsWrapper.setContent(newsBoard);
 
-        settingsPane.getChildren().add(btnStyle);
-        settingsPane.setAlignment(btnStyle, Pos.BOTTOM_CENTER);
+        settingsPane.getChildren().addAll(btnStyle, timeSelector, changeSelector, saveChanges);
+        settingsPane.setAlignment(btnStyle, Pos.BOTTOM_RIGHT);
+        settingsPane.setAlignment(timeSelector, Pos.TOP_LEFT);
+        settingsPane.setAlignment(saveChanges, Pos.BOTTOM_LEFT);
         newsPane.getChildren().addAll(newsWrapper, noNews);
         sidePane.getChildren().addAll(settingsPane, newsPane);
     }
@@ -550,7 +574,7 @@ public class GUIcore implements IGraphicalUserInterface {
     public void displaySummary(String pre, String[] data, String post) {
         messageBoard.getChildren().add(new SummaryMessage(pre, data, post));
     }
-    
+
     /*
     A message sent with no boolean defaults to not an AI message
     */

@@ -30,7 +30,10 @@ public class NewsBlock extends BorderPane {
         headline.setWrapText(true);
         headline.getStyleClass().add("headline");
 
-        String date = "21-Feb-2018"; //article.getDate();
+        String date = article.getPubDate().toString();
+        date = date.substring(0, date.indexOf("T"));
+        String[] dateComponents = date.split("-");
+        date = dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0];
         digest = new Label(date + "\n" + article.getDigest().trim());
         digest.getStyleClass().add("digest");
         digest.setWrapText(true);
