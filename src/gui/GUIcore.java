@@ -491,7 +491,6 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
-
    /**
     * Starts the tradingHourTimeline to run the core action regularly
     */

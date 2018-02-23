@@ -6,12 +6,11 @@ import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
-import javafx.scene.text.Text;
 import javafx.scene.shape.Rectangle;
 import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.util.Duration;
-import javafx.scene.text.Font;
+import javafx.scene.text.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -22,6 +21,14 @@ public class SummaryMessage extends VBox {
     private Label post;
 
     public SummaryMessage(String pre, String[] data, String post) {
+        super();
+        Text preText = new Text(pre);
+        preText.getStyleClass().add("green");
+        Text postText = new Text(post);
+        postText.getStyleClass().add("red");
+        // getChildren().addAll(preText, postText);
+        TextFlow finalText = new TextFlow(preText, postText);
+        getChildren().add(finalText);
         // super();
         // this.pre = new Label(pre);
         // table = new TableView();

@@ -93,6 +93,8 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
+        // String[] test = {"one", "two", "three"};
+        // ui.displaySummary("hello", test, "goodbye");
         // onTradingHour();
 
         if(runTradingHourTest){
