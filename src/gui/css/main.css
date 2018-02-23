@@ -33,6 +33,20 @@
     -fx-background-color: white;
 }
 
+.button {
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+    -fx-background-color: #6699CC;
+    -fx-cursor: hand;
+    -fx-arc-height: 50;
+    -fx-arc-width: 50;
+}
+
+.button:hover {
+    -fx-background-color: #5783af;
+}
+
+
 /*==============================================================================
 ================================ Message Board ================================
 ==============================================================================*/
@@ -204,10 +218,6 @@
 ==============================================================================*/
 
 #side-pane {
-    -fx-background-color: white;
-}
-
-#side-pane-empty {
     -fx-border-color: derive(white, -10%);
     -fx-border-width: 0 0 0 1;
     -fx-background-color: white;

@@ -173,12 +173,11 @@ public class Message extends FlowPane {
     *
     * @param stage the stage used to calculate widths
     */
-    public void resize(Stage stage) {
-        double chatPaneWidth = stage.getScene().getWidth() * 0.6875;
-        setMinWidth(chatPaneWidth - 36);
-        setMaxWidth(chatPaneWidth - 36);
+    public void resize(Double chatPaneWidth) {
+        setMinWidth(chatPaneWidth - 34);
+        setMaxWidth(chatPaneWidth - 34);
 
-        final double maxWidth = (chatPaneWidth - 36) * 0.55;
+        final double maxWidth = (chatPaneWidth - 34) * 0.55;
         Text sizing = new Text(msg.getText());
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);

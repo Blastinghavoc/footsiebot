@@ -43,7 +43,7 @@ public class GUIcore implements IGraphicalUserInterface {
     private StackPane sidePane;
     private StackPane topBar;
     private ScrollPane boardWrapper;
-    private FlowPane messageBoard;
+    private VBox messageBoard;
     private StackPane inputWrapper;
     private Rectangle inputVisual;
     private TextField input;
@@ -126,19 +126,26 @@ public class GUIcore implements IGraphicalUserInterface {
     private void initChat() {
         chatPane = new StackPane();
         chatPane.setId("chat-pane");
-        chatPane.setMinWidth(scene.getWidth() * 0.6875);
-        chatPane.setMaxWidth(scene.getWidth() * 0.6875);
+        chatPane.minHeightProperty().bind(scene.heightProperty().subtract(45));
+        chatPane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
+        chatPane.minWidthProperty().bind(scene.widthProperty().subtract(250));
+        chatPane.maxWidthProperty().bind(scene.widthProperty().subtract(250));
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
         boardWrapper.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        Insets boardWrapperPadding = new Insets(7, 0, 0, 0);
-        boardWrapper.setPadding(boardWrapperPadding);
+        boardWrapper.minWidthProperty().bind(chatPane.widthProperty());
+        boardWrapper.maxWidthProperty().bind(chatPane.widthProperty());
+        // Insets boardWrapperPadding = new Insets(7, 0, 0, 0);
+        // boardWrapper.setPadding(boardWrapperPadding);
 
-        messageBoard = new FlowPane();
+        messageBoard = new VBox();
         Insets boardPadding = new Insets(0, 0, 0, 16);
         messageBoard.setPadding(boardPadding);
         messageBoard.setId("message-board");
+        messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(34));
+        messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(34));
+        // messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
 
         inputWrapper = new StackPane();
         Insets inputPadding = new Insets(0, 5, 0, 5);
@@ -151,9 +158,12 @@ public class GUIcore implements IGraphicalUserInterface {
         inputVisual = new Rectangle();
         inputVisual.setHeight(35);
         inputVisual.setId("input-visual");
+        inputVisual.widthProperty().bind(chatPane.widthProperty().subtract(60));
 
         input = new TextField();
         input.setId("input");
+        input.minWidthProperty().bind(chatPane.widthProperty().subtract(65));
+        input.maxWidthProperty().bind(chatPane.widthProperty().subtract(65));
         input.setMinHeight(25);
         input.setMaxHeight(25);
         input.setPromptText("Type something here...");
@@ -179,11 +189,11 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     private void initSide() {
         sidePane = new StackPane();
-        sidePane.setId("side-pane-empty");
-        sidePane.setMinWidth(scene.getWidth() * 0.3125);
-        sidePane.setMaxWidth(scene.getWidth() * 0.3125);
-        sidePane.setMinHeight(scene.getHeight() - 45);
-        sidePane.setMaxHeight(scene.getHeight() - 45);
+        sidePane.setId("side-pane");
+        sidePane.setMinWidth(250);
+        sidePane.setMaxWidth(250);
+        sidePane.minHeightProperty().bind(scene.heightProperty().subtract(45));
+        sidePane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
 
         settingsPane = new StackPane();
         settingsPane.setId("settings-pane");
@@ -195,11 +205,15 @@ public class GUIcore implements IGraphicalUserInterface {
         newsPane = new StackPane();
         newsPane.setId("news-pane");
         newsPane.setVisible(true);
+        newsPane.minWidthProperty().bind(sidePane.widthProperty());
+        newsPane.maxWidthProperty().bind(sidePane.widthProperty());
         newsPaneTrans = new FadeTransition(Duration.millis(500), newsPane);
 
         newsWrapper = new ScrollPane();
         newsWrapper.setId("news-wrapper");
-        // newsWrapper.setFitToWidth(true);
+        newsWrapper.minWidthProperty().bind(sidePane.widthProperty());
+        newsWrapper.maxWidthProperty().bind(sidePane.widthProperty());
+        newsWrapper.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         newsBoard = new FlowPane();
         newsBoard.setId("news-board");
@@ -215,6 +229,7 @@ public class GUIcore implements IGraphicalUserInterface {
                 timeOptions.add(hour++ + ":30");
         }
         timeSelector.setItems(timeOptions);
+        timeSelector.setPromptText("Time");
 
         changeSelector = new Spinner<Double>(0.0, 10.00, 0.5, 0.05);
         changeSelector.setEditable(true);
@@ -253,9 +268,7 @@ public class GUIcore implements IGraphicalUserInterface {
     private void initTop() {
         topBar = new StackPane();
         topBar.setId("top-bar");
-        // topBar.widthProperty().bind(scene.widthProperty());
-        topBar.setMinWidth(scene.getWidth());
-        topBar.setMaxWidth(scene.getWidth());
+        // topBar.minWidthProperty().bind(scene.widthProperty());
         topBar.setMinHeight(45);
         topBar.setMaxHeight(45);
 
@@ -284,10 +297,6 @@ public class GUIcore implements IGraphicalUserInterface {
     private void setupListeners() {
         //resize nodes to conform to layout
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            chatPane.setMaxHeight(scene.getHeight() - 45);
-            chatPane.setMinHeight(scene.getHeight() - 45);
-            sidePane.setMaxHeight(scene.getHeight() - 45);
-            sidePane.setMinHeight(scene.getHeight() - 45);
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -301,25 +310,6 @@ public class GUIcore implements IGraphicalUserInterface {
 
         //resizes nodes to conform to layout
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            chatPane.setMinWidth(scene.getWidth() * 0.6875);
-            chatPane.setMaxWidth(scene.getWidth() * 0.6875);
-            sidePane.setMinWidth(scene.getWidth() * 0.3125);
-            sidePane.setMaxWidth(scene.getWidth() * 0.3125);
-            topBar.setMinWidth(scene.getWidth());
-            topBar.setMaxWidth(scene.getWidth());
-            inputWrapper.setMaxWidth(chatPane.getWidth());
-            inputWrapper.setMinWidth(chatPane.getWidth());
-            inputVisual.setWidth(chatPane.getWidth() - 60);
-            input.setMinWidth(chatPane.getWidth() - 65);
-            input.setMaxWidth(chatPane.getWidth() - 65);
-            boardWrapper.setMaxWidth(chatPane.getWidth());
-            boardWrapper.setMinWidth(chatPane.getWidth());
-            messageBoard.setMaxWidth(chatPane.getWidth() - 36);
-            messageBoard.setMinWidth(chatPane.getWidth() - 36);
-            newsPane.setMinWidth(sidePane.getWidth());
-            newsPane.setMaxWidth(sidePane.getWidth());
-            newsWrapper.setMinWidth(sidePane.getWidth());
-            newsWrapper.setMaxWidth(sidePane.getWidth());
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -330,13 +320,16 @@ public class GUIcore implements IGraphicalUserInterface {
 
             resizeMessages();
             resizeNews(newsBoard.getMinWidth());
-            stage.setScene(scene);
+
             messageBoard.applyCss();
             messageBoard.layout();
+            stage.setScene(scene);
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
             resizeMessages();
+            messageBoard.applyCss();
+            messageBoard.layout();
             boardWrapper.setVvalue(1);
         });
 
@@ -349,13 +342,7 @@ public class GUIcore implements IGraphicalUserInterface {
                 newsBoard.setMaxWidth(sidePane.getWidth());
             }
 
-            if (newsBoard.getChildren().size() == 0) {
-                sidePane.setId("side-pane-empty");
-                noNews.setVisible(true);
-            } else {
-                sidePane.setId("side-pane");
-                noNews.setVisible(false);
-            }
+            noNews.setVisible((newsBoard.getChildren().size() == 0));
 
             resizeNews(newsBoard.getMinWidth());
             newsBoard.applyCss();
@@ -615,7 +602,7 @@ public class GUIcore implements IGraphicalUserInterface {
         for (int i = 0; i < messageBoard.getChildren().size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
                 Message tmp = (Message) messageBoard.getChildren().get(i);
-                tmp.resize(stage);
+                tmp.resize(chatPane.getWidth());
             }
         }
     }
@@ -653,7 +640,7 @@ public class GUIcore implements IGraphicalUserInterface {
     *
     * @return the message board of the GUI
     */
-    public FlowPane getMessageBoard() {
+    public VBox getMessageBoard() {
         return messageBoard;
     }
 
