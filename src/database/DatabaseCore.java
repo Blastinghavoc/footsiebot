@@ -35,7 +35,6 @@ public class DatabaseCore implements IDatabaseManager {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-
     }
 
     /**
@@ -47,6 +46,7 @@ public class DatabaseCore implements IDatabaseManager {
     public boolean storeScraperResults(ScrapeResult sr) {
 
         int numCompanies = 100; // Constant
+        int tradingVolume = 0;
         Float price, absChange, percChange = 0.0f;
         String code, group, name = " ";
         Statement s1 = null;
@@ -81,6 +81,7 @@ public class DatabaseCore implements IDatabaseManager {
             price = sr.getPrice(i);
             absChange = sr.getAbsChange(i);
             percChange = sr.getPercChange(i);
+            tradingVolume = sr.getVolume(i);
 
             checkNewCompanyQuery = null; // Reseting
             addNewCompanyQuery = null;
@@ -114,10 +115,11 @@ public class DatabaseCore implements IDatabaseManager {
                 // Add the company data into the FTSECompanySnapshots table
                 addScrapeResultQuery 	= "INSERT INTO FTSECompanySnapshots "
                 						+ "(CompanyCode, SpotPrice, "
-                						+ "PercentageChange, AbsoluteChange) "
+                						+ "PercentageChange, AbsoluteChange, "
+                						+ "TradingVolume) "
                                         + "VALUES('" + code + "', " + price 
-                                        + ", " + percChange + ", " + absChange 
-                                        + ")";
+                                        + ", " + percChange + ", " + absChange
+                                        + "," + tradingVolume + ")";
                 s4 = conn.createStatement();
                 s4.executeUpdate(addScrapeResultQuery);
 
@@ -229,17 +231,22 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    // Returns the FTSE data asked for as well as other information about the
-    // company 
+    /** 
+    * Returns the FTSE data asked for as well as other information about the
+    * company 
+    *
+    * @param pr The parse result of the user's input
+    * @return An array list of strings containing the FTSE data requested and 
+    * other infomation about the company to be output
+    * */
     @SuppressWarnings("fallthrough")
     public String[] getFTSE(ParseResult pr) {
 
     	Intent intent = pr.getIntent();
     	ArrayList<String> output = new ArrayList<>();
 
-    	/* call relevant method to get a query for the intent data or a
-    	percentage change if the intent is to get trend data */
-
+    	// Call relevant method to get a query for the intent data or a
+    	// percentage change if the intent is to get trend data 
     	switch (intent) {
     		case SPOT_PRICE:
     			// fall through
@@ -253,9 +260,8 @@ public class DatabaseCore implements IDatabaseManager {
     			// fall through
     		case CLOSING_PRICE:
 
-    			// Created the query to get the data required, executes it and
+    			// Creates the query to get the data required, executes it and
     			// adds the result to the first index of output array list
-
     			String FTSEQuery = convertFTSEQuery(pr);
 		        Statement s1 = null;
 		        ResultSet results = null;
@@ -298,7 +304,8 @@ public class DatabaseCore implements IDatabaseManager {
             case OPENING_PRICE:
     			// fall through
             case CLOSING_PRICE:
-                output.add("Date, " + timeSpecifierToDate(pr.getTimeSpecifier()));
+                output.add("Date, " + timeSpecifierToDate
+                		(pr.getTimeSpecifier()));
                 // fall through
             default:
             	// add other data about company to other indexes of the array
@@ -797,7 +804,7 @@ public class DatabaseCore implements IDatabaseManager {
         switch(intent) {
             case SPOT_PRICE:
                 columns.add("PercentageChange");
-                // columns.add("TradingVolume");
+                columns.add("TradingVolume");
                 columns.add("AbsoluteChange");
                 break;
             case TRADING_VOLUME:
@@ -807,18 +814,18 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
             case PERCENT_CHANGE:
                 columns.add("SpotPrice");
-                //columns.add("TradingVolume");
+                columns.add("TradingVolume");
                 columns.add("AbsoluteChange");
                 break;
             case ABSOLUTE_CHANGE:
                 columns.add("SpotPrice");
-                //columns.add("TradingVolume");
+                columns.add("TradingVolume");
                 columns.add("PercentageChange");
                 break;
             case OPENING_PRICE:
             case CLOSING_PRICE:
                 columns.add("SpotPrice");
-                // columns.add("TradingVolume");
+                columns.add("TradingVolume");
                 columns.add("PercentageChange");
                 columns.add("AbsoluteChange");
                 break;
@@ -873,7 +880,7 @@ public class DatabaseCore implements IDatabaseManager {
                 name = "CompanySpotPriceCount";
                 break;
             case TRADING_VOLUME:
-                name = null;//Not implemented yet
+                name = "CompanyTradingVolumeCount";
                 break;
             case PERCENT_CHANGE:
                 name = "CompanyPercentageChangeCount";
