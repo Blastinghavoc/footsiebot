@@ -12,6 +12,7 @@ import java.lang.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.DayOfWeek;
+import java.lang.Integer;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
@@ -279,9 +280,16 @@ public class DatabaseCore implements IDatabaseManager {
 		                String nullArr[] = null;
 		                return nullArr; // return null array if no results
 		            } else {
-		                do {
-		                    output.add(((Float)results.getFloat(1)).toString());
-		                } while (results.next());
+		            	if (intent != intent.TRADING_VOLUME) {
+		            		do {
+		                    	output.add(((Float)results.getFloat(1)).toString());
+		                	} while (results.next());
+		            	} else {
+		            		do {
+		                    	output.add(Integer.toString(results.getInt(1)));
+		                	} while (results.next());
+		            	}
+		                
 		            }
 		        } catch (SQLException e) {
 		            e.printStackTrace();
