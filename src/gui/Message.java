@@ -144,6 +144,7 @@ public class Message extends FlowPane {
 
         why.setOnMouseClicked(e -> {
             ui.displayMessage(sugg.getReason(), false, this);
+            why.setVisible(false);
         });
 
         close.setOnMouseClicked(e -> {
