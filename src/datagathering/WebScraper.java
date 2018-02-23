@@ -7,6 +7,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.lang.Float;
 import java.lang.Integer;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class WebScraper {
@@ -32,7 +33,7 @@ public class WebScraper {
             try {
                 page = Jsoup.connect(url + i).get();
             } catch (IOException e) {
-                e.printStackTrace();
+                System.out.println("Internet appears to be down.");                
                 return null;
             }
 
@@ -63,7 +64,7 @@ public class WebScraper {
                             try {
                                 summary = Jsoup.connect(surl).get();
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                System.out.println("Internet appears to be down.");
                                 return null;
                             }
                             
