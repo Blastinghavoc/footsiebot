@@ -35,7 +35,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // intent detect
      AIIntent notToSuggestIntent = null;
      Intent oldIntent = pr.getIntent();
-     System.out.println("User has just asked : " + oldIntent);
+     //System.out.println("User has just asked : " + oldIntent);
      boolean doNotSuggestNews = false;
      switch (oldIntent) {
        case SPOT_PRICE: notToSuggestIntent = AIIntent.SPOT_PRICE;
@@ -89,11 +89,11 @@ public class IntelligenceCore implements IIntelligenceUnit {
          // DECIDING WHETHER to suggest news
          float newsPriority =  targetCompany.getNewsPriority();
 
-         System.out.println("Should not suggest " + notToSuggestIntent);
+         //System.out.println("Should not suggest " + notToSuggestIntent);
 
          AbstractMap.SimpleEntry<AIIntent,Float> topIntentData = targetCompany.getTopIntent(notToSuggestIntent);
          AIIntent topIntent = topIntentData.getKey();
-         System.out.println("Top intent is : " + topIntent);
+         //System.out.println("Top intent is : " + topIntent);
          Float topIntentPriority = topIntentData.getValue();
 
          if(topIntentPriority > newsPriority || doNotSuggestNews) {
@@ -117,7 +117,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
      groups = db.getAIGroups();
      // DEBUG
      if(companies == null) {
-       return null;
+         System.out.println("No companies to update.");
+         return null;
      }
      Collections.sort(companies);
      if(groups == null) {
@@ -126,16 +127,16 @@ public class IntelligenceCore implements IIntelligenceUnit {
        return null;
      }
      Collections.sort(groups);
-     // TODO treshold
+
      ArrayList<Company> changed = detectedImportantChange(threshold);
      if((changed == null ) || (changed.size() == 0)) return null;
 
      ArrayList<Suggestion> res = new ArrayList<>();
 
      for(Company c: changed) {
-       // NOTE parseresult is null
+
        System.out.println("Company " + c.getCode() + "has had a significant change ");
-       res.add(new Suggestion("Detected important change", c, false, null));
+       res.add(new Suggestion("Detected important change", c, false, new ParseResult(Intent.PERCENT_CHANGE,"Significant change!",c.getCode(),false,TimeSpecifier.TODAY)));
      }
 
      return res.toArray(new Suggestion[res.size()]);

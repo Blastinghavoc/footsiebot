@@ -1032,10 +1032,10 @@ public class DatabaseCore implements IDatabaseManager {
 
         while(rs.next()) {
           String companyName = rs.getString("CompanyCode");
-          // TODO Absolute value
+
           Float percChange = rs.getFloat("PercentageChange");
 
-          if(percChange > treshold) {
+          if(Math.abs(percChange) > Math.abs(treshold)) {
             companiesPercChangeMap.put(companyName, percChange);
           }
         }
@@ -1053,7 +1053,10 @@ public class DatabaseCore implements IDatabaseManager {
         if(rs != null) {tryClose(rs); }
       }
 
-      if(result.size() == 0) return null;
+      if(result.size() == 0){
+            System.out.println("No companies have percentage change exceeding the threshold");
+           return null;
+       }
       return result;
     }
 

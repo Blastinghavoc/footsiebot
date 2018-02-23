@@ -50,14 +50,14 @@ public class Company implements Comparable<Company> {
     //DEBUG
     System.out.println(startMaxValue);
 
-    AbstractMap.SimpleEntry<AIIntent,Float> result = new AbstractMap.SimpleEntry(currMax, startMaxValue);
+    AbstractMap.SimpleEntry<AIIntent,Float> result = new AbstractMap.SimpleEntry<AIIntent, Float>(currMax, startMaxValue);
 
     for(Map.Entry<AIIntent,Float[]> e: entrySet) {
       float value = e.getValue()[0] - e.getValue()[1];
       if(value > startMaxValue && e.getKey() != notToSuggestIntent) {
         currMax = e.getKey();
         startMaxValue = value;
-        result = new AbstractMap.SimpleEntry(currMax,startMaxValue);
+        result = new AbstractMap.SimpleEntry<AIIntent, Float>(currMax,startMaxValue);
       }
       // DEBUG
       System.out.println(result.getKey());

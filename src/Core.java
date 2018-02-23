@@ -331,7 +331,8 @@ public class Core extends Application {
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
 
         if(suggestion.isNews()){
-            outputNews(pr,suggestion);
+            outputNews(suggestion.getParseResult(),suggestion);//Outputting the news for the suggestion
+            ui.displayMessage("You may wish to view the news for "+suggestion.getParseResult().getOperand() + " in the news pane",suggestion);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
@@ -478,7 +479,7 @@ public class Core extends Application {
     Must only be called asynchronously from the GUIcore.
     Downloads new data to a local variable in the background.
     */
-    public void downloadNewData(){
+    public void downloadNewData() throws InterruptedException{
         System.out.println("Downloading new data");
         while(readingScrape){
             System.out.println("Waiting for data to be read");
@@ -490,6 +491,12 @@ public class Core extends Application {
         }
         writingScrape = true;
         ScrapeResult temp = dgc.getData();
+        if (Thread.interrupted()||Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException();
+        }
+        if(temp == null){
+            return;
+        }
         if((lastestScrape == null)){
             lastestScrape = temp;
             freshData = true;
@@ -539,7 +546,21 @@ public class Core extends Application {
         }
         freshData = false;
         readingScrape = false;
-        ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
+        Suggestion[] suggarr = ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
+        handleLargeChangeSuggestions(suggarr);
+    }
+
+    private void handleLargeChangeSuggestions(Suggestion[] suggarr){
+        if(suggarr == null){
+            return;
+        }
+        String output;
+        for (int i = 0;i < suggarr.length ;i++ ) {
+            ParseResult pr = suggarr[i].getParseResult();
+            String[] data = dbm.getFTSE(pr);
+            output = "Warning : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +- "+ LARGE_CHANGE_THRESHOLD+"%";
+            ui.displayMessage(output);//NOT passing the suggestion, as this cannot be marked irrelevant.
+        }
     }
 
    /**
