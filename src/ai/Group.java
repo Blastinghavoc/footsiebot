@@ -6,19 +6,19 @@ import java.lang.Comparable;
 public class Group implements Comparable<Group> {
   private ArrayList<Company> companies;
   private String code;
-  private Float priority;
-  private Float irrelevantSuggestionWeight;
+  private Float groupCount;
+  private Float adjustment;
 
 
   public Group(String code) {
     this.code = code;
   }
 
-  public Group(ArrayList<Company> companies, String code, Float priority, Float irrelevantSuggestionWeight) {
+  public Group(ArrayList<Company> companies, String code, Float groupCount, Float adjustment) {
     this.companies = companies;
     this.code = code;
-    this.priority = priority;
-    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
+    this.groupCount = groupCount;
+    this.adjustment = adjustment;
 
   }
 
@@ -34,33 +34,29 @@ public class Group implements Comparable<Group> {
 	   return code;
   }
 
-  public void setPriority(Float priority) {
-    this.priority = priority;
+  public void setGroupCount(Float groupCount) {
+    this.groupCount = groupCount;
   }
 
-  public void setIrrelevantSuggestionWeight(Float irrelevantSuggestionWeights) {
-    this.irrelevantSuggestionWeight = irrelevantSuggestionWeight;
+  public void setAdjustment(Float adjustments) {
+    this.adjustment = adjustment;
   }
 
-  public Float getPriority() {
-    return priority;
+  public Float getGroupPriority() {
+    return getGroupCount() - adjustment;
   }
 
-  public void incrementPriority(Float increment) {
-    priority+= increment;
+  public Float getGroupCount() {
+    return groupCount;
   }
 
-  public void decrementPriority(Float decrement) {
-    priority-= decrement;
-  }
-
-  public Float getIrrelevantSuggestionWeight() {
-    return irrelevantSuggestionWeight;
+  public Float getAdjustment() {
+    return adjustment;
   }
 
   @Override
   public int compareTo(Group g) {
-    Float r =  g.getPriority() - this.getPriority();
+    Float r =  g.getGroupPriority() - this.getGroupPriority();
 
     if(r < 0) {
       return -1;

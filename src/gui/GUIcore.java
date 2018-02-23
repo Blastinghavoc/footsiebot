@@ -2,6 +2,8 @@ package footsiebot.gui;
 
 import footsiebot.Core;
 import footsiebot.datagathering.Article;
+import java.util.Calendar;
+import java.time.Instant;
 import java.io.*;
 import java.time.*;
 import javafx.stage.*;
@@ -19,6 +21,8 @@ import javafx.beans.*;
 import javafx.beans.property.*;
 import javafx.util.Duration;
 import javafx.application.Platform;
+import javafx.collections.*;
+import java.util.ArrayList;
 
 import footsiebot.ai.Suggestion;
 
@@ -39,7 +43,7 @@ public class GUIcore implements IGraphicalUserInterface {
     private StackPane sidePane;
     private StackPane topBar;
     private ScrollPane boardWrapper;
-    private FlowPane messageBoard;
+    private VBox messageBoard;
     private StackPane inputWrapper;
     private Rectangle inputVisual;
     private TextField input;
@@ -53,6 +57,8 @@ public class GUIcore implements IGraphicalUserInterface {
     private FadeTransition newsPaneTrans;
     private RotateTransition settingsIconTrans;
     private Label noNews;
+    private ComboBox<String> timeSelector;
+    private Spinner<Double> changeSelector;
 
    /**
     * Constructor for the user interface using default styling
@@ -120,19 +126,26 @@ public class GUIcore implements IGraphicalUserInterface {
     private void initChat() {
         chatPane = new StackPane();
         chatPane.setId("chat-pane");
-        chatPane.setMinWidth(scene.getWidth() * 0.6875);
-        chatPane.setMaxWidth(scene.getWidth() * 0.6875);
+        chatPane.minHeightProperty().bind(scene.heightProperty().subtract(45));
+        chatPane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
+        chatPane.minWidthProperty().bind(scene.widthProperty().subtract(250));
+        chatPane.maxWidthProperty().bind(scene.widthProperty().subtract(250));
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
         boardWrapper.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        Insets boardWrapperPadding = new Insets(7, 0, 0, 0);
-        boardWrapper.setPadding(boardWrapperPadding);
+        boardWrapper.minWidthProperty().bind(chatPane.widthProperty());
+        boardWrapper.maxWidthProperty().bind(chatPane.widthProperty());
+        // Insets boardWrapperPadding = new Insets(7, 0, 0, 0);
+        // boardWrapper.setPadding(boardWrapperPadding);
 
-        messageBoard = new FlowPane();
+        messageBoard = new VBox();
         Insets boardPadding = new Insets(0, 0, 0, 16);
         messageBoard.setPadding(boardPadding);
         messageBoard.setId("message-board");
+        messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(34));
+        messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(34));
+        // messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
 
         inputWrapper = new StackPane();
         Insets inputPadding = new Insets(0, 5, 0, 5);
@@ -145,9 +158,12 @@ public class GUIcore implements IGraphicalUserInterface {
         inputVisual = new Rectangle();
         inputVisual.setHeight(35);
         inputVisual.setId("input-visual");
+        inputVisual.widthProperty().bind(chatPane.widthProperty().subtract(60));
 
         input = new TextField();
         input.setId("input");
+        input.minWidthProperty().bind(chatPane.widthProperty().subtract(65));
+        input.maxWidthProperty().bind(chatPane.widthProperty().subtract(65));
         input.setMinHeight(25);
         input.setMaxHeight(25);
         input.setPromptText("Type something here...");
@@ -173,11 +189,11 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     private void initSide() {
         sidePane = new StackPane();
-        sidePane.setId("side-pane-empty");
-        sidePane.setMinWidth(scene.getWidth() * 0.3125);
-        sidePane.setMaxWidth(scene.getWidth() * 0.3125);
-        sidePane.setMinHeight(scene.getHeight() - 45);
-        sidePane.setMaxHeight(scene.getHeight() - 45);
+        sidePane.setId("side-pane");
+        sidePane.setMinWidth(250);
+        sidePane.setMaxWidth(250);
+        sidePane.minHeightProperty().bind(scene.heightProperty().subtract(45));
+        sidePane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
 
         settingsPane = new StackPane();
         settingsPane.setId("settings-pane");
@@ -189,15 +205,44 @@ public class GUIcore implements IGraphicalUserInterface {
         newsPane = new StackPane();
         newsPane.setId("news-pane");
         newsPane.setVisible(true);
+        newsPane.minWidthProperty().bind(sidePane.widthProperty());
+        newsPane.maxWidthProperty().bind(sidePane.widthProperty());
         newsPaneTrans = new FadeTransition(Duration.millis(500), newsPane);
 
         newsWrapper = new ScrollPane();
         newsWrapper.setId("news-wrapper");
-        // newsWrapper.setFitToWidth(true);
+        newsWrapper.minWidthProperty().bind(sidePane.widthProperty());
+        newsWrapper.maxWidthProperty().bind(sidePane.widthProperty());
+        newsWrapper.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
 
         newsBoard = new FlowPane();
         newsBoard.setId("news-board");
         newsBoard.setVgap(10);
+
+        timeSelector = new ComboBox<String>();
+        ObservableList<String> timeOptions = FXCollections.observableArrayList();
+        int hour = 8;
+        for (int i = 0; i < 20; i++) {
+            if (i%2 == 0)
+                timeOptions.add(hour + ":00");
+            else
+                timeOptions.add(hour++ + ":30");
+        }
+        timeSelector.setItems(timeOptions);
+        timeSelector.setPromptText("Time");
+
+        changeSelector = new Spinner<Double>(0.0, 10.00, core.LARGE_CHANGE_THRESHOLD, 0.05);
+        changeSelector.setEditable(true);
+
+        Button saveChanges = new Button("Save Changes");
+        saveChanges.setOnAction(e -> {
+            if ((String) timeSelector.getValue() != null){
+                core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
+            }
+            else{
+                core.updateSettings(null, changeSelector.getValue());
+            }
+        });
 
         Button btnStyle = new Button("Update style");
         btnStyle.setOnAction(e -> {
@@ -213,8 +258,10 @@ public class GUIcore implements IGraphicalUserInterface {
         newsWrapper.setPadding(wrapperPadding);
         newsWrapper.setContent(newsBoard);
 
-        settingsPane.getChildren().add(btnStyle);
-        settingsPane.setAlignment(btnStyle, Pos.BOTTOM_CENTER);
+        settingsPane.getChildren().addAll(btnStyle, timeSelector, changeSelector, saveChanges);
+        settingsPane.setAlignment(btnStyle, Pos.BOTTOM_RIGHT);
+        settingsPane.setAlignment(timeSelector, Pos.TOP_LEFT);
+        settingsPane.setAlignment(saveChanges, Pos.BOTTOM_LEFT);
         newsPane.getChildren().addAll(newsWrapper, noNews);
         sidePane.getChildren().addAll(settingsPane, newsPane);
     }
@@ -225,20 +272,22 @@ public class GUIcore implements IGraphicalUserInterface {
     private void initTop() {
         topBar = new StackPane();
         topBar.setId("top-bar");
-        // topBar.widthProperty().bind(scene.widthProperty());
-        topBar.setMinWidth(scene.getWidth());
-        topBar.setMaxWidth(scene.getWidth());
+        // topBar.minWidthProperty().bind(scene.widthProperty());
         topBar.setMinHeight(45);
         topBar.setMaxHeight(45);
 
-        Label name = new Label("Footsiebot");
-        name.setId("name-label");
+        Label logo = new Label("Footsiebot");
+        Calendar today = Calendar.getInstance();
+        if ((today.get(Calendar.DAY_OF_MONTH) == 14) && (today.get(Calendar.MONTH) == Calendar.FEBRUARY))
+            logo.setId("logo-valentines");
+        else
+            logo.setId("logo");
 
         settingsIcon = new ImageView("file:src/img/settings.png");
         settingsIcon.setPreserveRatio(true);
         settingsIcon.setFitWidth(27);
         settingsIcon.setId("settings-icon");
-        topBar.getChildren().addAll(settingsIcon, name);
+        topBar.getChildren().addAll(settingsIcon, logo);
         topBar.setAlignment(settingsIcon, Pos.CENTER_RIGHT);
         // topBar.setAlignment(name, Pos.CENTER);
         Insets settingsIconMargin = new Insets(0, 10, 0, 0);
@@ -252,10 +301,6 @@ public class GUIcore implements IGraphicalUserInterface {
     private void setupListeners() {
         //resize nodes to conform to layout
         stage.heightProperty().addListener((obs, oldVal, newVal) -> {
-            chatPane.setMaxHeight(scene.getHeight() - 45);
-            chatPane.setMinHeight(scene.getHeight() - 45);
-            sidePane.setMaxHeight(scene.getHeight() - 45);
-            sidePane.setMinHeight(scene.getHeight() - 45);
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -269,25 +314,6 @@ public class GUIcore implements IGraphicalUserInterface {
 
         //resizes nodes to conform to layout
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            chatPane.setMinWidth(scene.getWidth() * 0.6875);
-            chatPane.setMaxWidth(scene.getWidth() * 0.6875);
-            sidePane.setMinWidth(scene.getWidth() * 0.3125);
-            sidePane.setMaxWidth(scene.getWidth() * 0.3125);
-            topBar.setMinWidth(scene.getWidth());
-            topBar.setMaxWidth(scene.getWidth());
-            inputWrapper.setMaxWidth(chatPane.getWidth());
-            inputWrapper.setMinWidth(chatPane.getWidth());
-            inputVisual.setWidth(chatPane.getWidth() - 60);
-            input.setMinWidth(chatPane.getWidth() - 65);
-            input.setMaxWidth(chatPane.getWidth() - 65);
-            boardWrapper.setMaxWidth(chatPane.getWidth());
-            boardWrapper.setMinWidth(chatPane.getWidth());
-            messageBoard.setMaxWidth(chatPane.getWidth() - 36);
-            messageBoard.setMinWidth(chatPane.getWidth() - 36);
-            newsPane.setMinWidth(sidePane.getWidth());
-            newsPane.setMaxWidth(sidePane.getWidth());
-            newsWrapper.setMinWidth(sidePane.getWidth());
-            newsWrapper.setMaxWidth(sidePane.getWidth());
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -298,13 +324,16 @@ public class GUIcore implements IGraphicalUserInterface {
 
             resizeMessages();
             resizeNews(newsBoard.getMinWidth());
-            stage.setScene(scene);
+
             messageBoard.applyCss();
             messageBoard.layout();
+            stage.setScene(scene);
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
             resizeMessages();
+            messageBoard.applyCss();
+            messageBoard.layout();
             boardWrapper.setVvalue(1);
         });
 
@@ -317,13 +346,7 @@ public class GUIcore implements IGraphicalUserInterface {
                 newsBoard.setMaxWidth(sidePane.getWidth());
             }
 
-            if (newsBoard.getChildren().size() == 0) {
-                sidePane.setId("side-pane-empty");
-                noNews.setVisible(true);
-            } else {
-                sidePane.setId("side-pane");
-                noNews.setVisible(false);
-            }
+            noNews.setVisible((newsBoard.getChildren().size() == 0));
 
             resizeNews(newsBoard.getMinWidth());
             newsBoard.applyCss();
@@ -408,18 +431,24 @@ public class GUIcore implements IGraphicalUserInterface {
             try {
                 while(!closing){
                     core.downloadNewData();
+                    if(closing){
+                        break;
+                    }
                     Thread.sleep(core.DOWNLOAD_RATE);
                 }
             }
             catch (InterruptedException e){
                 closing = true;
+                Thread.currentThread().interrupt();
+                System.out.println("Thread received interrupt");
+                return;//Maybe?
             }
             catch (Exception e) {
                 // should not be able to get here...
                 System.out.println("Error in thread");
                 e.printStackTrace();
             }
-        });
+        },"ddthread");
         dataDownload.start();
     }
 
@@ -429,7 +458,10 @@ public class GUIcore implements IGraphicalUserInterface {
     public void stopDataDownload(){
         closing = true;
         try {
-            dataDownload.interrupt();
+            dataDownload.interrupt();//NOTE: for some reason, this does not seems to set the Thread.interrupted() flag.
+            dataDownload.setName("closing");//Because of the above note, this appalling hack is used. I'm sorry.
+            System.out.println(dataDownload.getName());
+            System.out.println("Interrupted thread");
             dataDownload.join();
         } catch(Exception e) {
             e.printStackTrace();
@@ -453,10 +485,11 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
+
    /**
     * Starts the tradingHourTimeline to run the core action regularly
     */
-    private void startTradingHourTimeline() {
+    public void startTradingHourTimeline() {
         tradingHourTimeline = new Timeline(new KeyFrame(
             Duration.millis(86400000),//24 hour refresh time
             ae -> core.onTradingHour()));
@@ -477,6 +510,13 @@ public class GUIcore implements IGraphicalUserInterface {
         tradingHourTimeline.playFrom(Duration.millis(startDuration));
         // System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds"); //DEBUG
         //Skips forward by the current time of day + the trading hour time.
+    }
+
+    public void stopTradingHourTimeline(){
+        if(tradingHourTimeline != null){
+            tradingHourTimeline.stop();
+            tradingHourTimeline = null;
+        }
     }
 
    /**
@@ -538,11 +578,17 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+
+    public void displaySummary(String pre, String[] data, String post) {
+        messageBoard.getChildren().add(new SummaryMessage(pre, data, post));
+    }
+
     /*
     A message sent with no boolean defaults to not an AI message
     */
     public void displayMessage(String msg){
         displayMessage(msg,null);
+
     }
 
    /**
@@ -569,7 +615,7 @@ public class GUIcore implements IGraphicalUserInterface {
         for (int i = 0; i < messageBoard.getChildren().size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
                 Message tmp = (Message) messageBoard.getChildren().get(i);
-                tmp.resize(stage);
+                tmp.resize(chatPane.getWidth());
             }
         }
     }
@@ -607,7 +653,7 @@ public class GUIcore implements IGraphicalUserInterface {
     *
     * @return the message board of the GUI
     */
-    public FlowPane getMessageBoard() {
+    public VBox getMessageBoard() {
         return messageBoard;
     }
 
