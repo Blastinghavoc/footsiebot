@@ -972,8 +972,8 @@ public class DatabaseCore implements IDatabaseManager {
         //     if(rs0 != null) {tryClose(rs0); }
         //   }
         // }
-        
-        
+
+
         for(Map.Entry<String,Group> g: entrySet) {
             ArrayList<Company> list = new ArrayList<Company>();
             String[] companylist = getCompaniesInGroup(g.getValue().getGroupCode());
@@ -987,6 +987,7 @@ public class DatabaseCore implements IDatabaseManager {
                 }
             }
             g.getValue().addCompanies(list);
+            // TODO add group adjustment
         }
 
         // now add the remaining values to each group
@@ -994,13 +995,13 @@ public class DatabaseCore implements IDatabaseManager {
           ArrayList<Company> com = g.getCompanies();
           int numberOfCompanies = com.size();
 
-          Float priority = 0.0f;
-
+          Float groupCount = 0.0f;
+          // Calculate group count
           for(Company c: com) {
-            priority+= c.getPriority();
+            groupCount+= c.getIntentsCount() + c.getNewsCount();
           }
 
-          g.setPriority(priority);
+          g.setGroupCount(groupCount);
         }
 
       } catch (SQLException ex) {
@@ -1013,7 +1014,7 @@ public class DatabaseCore implements IDatabaseManager {
       return result;
     }
     //TODO
-    public ArrayList<String> detectedImportantChange() {
+    public ArrayList<String> detectedImportantChange(Float treshold) {
       String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
 
       ResultSet rs = null;
@@ -1022,7 +1023,6 @@ public class DatabaseCore implements IDatabaseManager {
 
       HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
       // TODO
-      Float treshold = 0.0f;
 
       try {
         stmt = conn.createStatement();

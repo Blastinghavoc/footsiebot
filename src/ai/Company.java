@@ -75,24 +75,32 @@ public class Company implements Comparable<Company> {
     return result;
   }
 
-  public float getIntentsPriority() {
+  public float getIntentsCount() {
     float spotPriority = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1] ;
     float openingPriority = mapping.get(AIIntent.OPENING_PRICE)[0] - mapping.get(AIIntent.OPENING_PRICE)[1] ;
     float closingPriority = mapping.get(AIIntent.CLOSING_PRICE)[0] - mapping.get(AIIntent.CLOSING_PRICE)[1] ;
     float absoluteChangePriority = mapping.get(AIIntent.ABSOLUTE_CHANGE)[0] - mapping.get(AIIntent.ABSOLUTE_CHANGE)[1] ;
     float percentageChangePriority = mapping.get(AIIntent.PERCENT_CHANGE)[0] - mapping.get(AIIntent.PERCENT_CHANGE)[1];
 
-    return intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority);
+    return (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority);
 
+  }
+
+  public float getIntentsPriority() {
+    return getIntentsCount() * intentScale;
   }
 
   public Float getPriority() {
     return getIntentsPriority() + getNewsPriority();
   }
 
-  public Float getNewsPriority() {
+  public Float getNewsCount() {
     float newsPriority = newsCount - newsAdj;
-    return newsScale * (newsPriority);
+    return (newsPriority);
+  }
+
+  public Float getNewsPriority() {
+    return getNewsCount() * newsScale;
   }
 
   @Override

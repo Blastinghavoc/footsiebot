@@ -56,42 +56,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
      Group targetGroup = null;
      Company targetCompany = null;
      // TODO: UPDATE TALLIES FOR THIS COMPANY LOCALLY
-     // If operand is a group
+     // If operand is a GROUP
      if(pr.isOperandGroup()) {
-         // no suggestion if they have asked news for this group  //NOTE
-         if(doNotSuggestNews) {
-           System.out.println("The user has just asked news for group " + pr.getOperand());
-           System.out.println("So will not suggest news for this group now ");
-           return null;
-         }
-         if(groups == null){
-             System.out.println("Groups was null, cannot make suggestion");//DEBUG
-             return null;
-         }
-       // search in groups if valid group
-       for(Group g: groups) {
-         if(g.getGroupCode().equals(companyOrGroup)) {
-           targetGroup = g;
-           break;
-         }
-       }
-       // if error will return null
-       if(targetGroup == null) return null;
-       // for group only suggest news
-       boolean doSuggestion = false;
-       // check if group is in top 5
-       for(int i = 0; i < TOP; i++) {
-         if(targetGroup.equals(groups.get(i))) {
-           doSuggestion = true;
-         }
-       }
-       if(doSuggestion) {
-         lastSuggestion = suggestNews(targetGroup);
-         return lastSuggestion;
-         // return Group to Core
-       } else {
-         return null;
-       }
+         // DOES NOT MAKE SENSE TO SUGGEST FOR GROUPS
+        return null;
      } else {
        // operand is a company
        for(Company c: companies) {
@@ -151,11 +119,13 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
      Collections.sort(companies);
      if(groups == null) {
+       // DEBUG
+       System.out.println("GROUPS ARE NULL");
        return null;
      }
      Collections.sort(groups);
-
-     ArrayList<Company> changed = detectedImportantChange();
+     // TODO treshold
+     ArrayList<Company> changed = detectedImportantChange(0.0f);
      if((changed == null ) || (changed.size() == 0)) return null;
 
      ArrayList<Suggestion> res = new ArrayList<>();
@@ -249,8 +219,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    // TODO
-   private ArrayList<Company> detectedImportantChange() {
-     ArrayList<String> names = db.detectedImportantChange();
+   private ArrayList<Company> detectedImportantChange(Float treshold) {
+     ArrayList<String> names = db.detectedImportantChange(treshold);
      if((names == null)||(names.size() == 0)) return null;
 
      ArrayList<Company> winningCompanies = new ArrayList<>();
