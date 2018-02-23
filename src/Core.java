@@ -331,7 +331,8 @@ public class Core extends Application {
     private void handleSuggestion(Suggestion suggestion,ParseResult pr){
 
         if(suggestion.isNews()){
-            outputNews(pr,suggestion);
+            outputNews(suggestion.getParseResult(),suggestion);//Outputting the news for the suggestion
+            ui.displayMessage("You may wish to view the news for "+suggestion.getParseResult().getOperand() + " in the news pane",suggestion);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
