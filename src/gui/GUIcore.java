@@ -28,6 +28,7 @@ import footsiebot.ai.Suggestion;
 
 public class GUIcore implements IGraphicalUserInterface {
     private String style;
+    private ListProperty<Node> messages;
 
     private Timeline newDataTimeline;
     private Timeline tradingHourTimeline;
@@ -100,6 +101,8 @@ public class GUIcore implements IGraphicalUserInterface {
         scene = new Scene(root, 800, 600);
         scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
 
+        messages = new SimpleListProperty<Node>();
+
         initChat();
         initSide();
         initTop();
@@ -145,7 +148,7 @@ public class GUIcore implements IGraphicalUserInterface {
         messageBoard.setId("message-board");
         messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(34));
         messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(34));
-        // messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
+        messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
 
         inputWrapper = new StackPane();
         Insets inputPadding = new Insets(0, 5, 0, 5);
@@ -331,7 +334,6 @@ public class GUIcore implements IGraphicalUserInterface {
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
-            resizeMessages();
             messageBoard.applyCss();
             messageBoard.layout();
             boardWrapper.setVvalue(1);
@@ -351,6 +353,10 @@ public class GUIcore implements IGraphicalUserInterface {
             resizeNews(newsBoard.getMinWidth());
             newsBoard.applyCss();
             newsBoard.layout();
+        });
+
+        messages.addListener((obs, oldVal, newVal) -> {
+            resizeMessages();
         });
     }
 
@@ -526,7 +532,7 @@ public class GUIcore implements IGraphicalUserInterface {
         if (checkInput()) {
             messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), true, null, this));
             core.onUserInput(input.getText().trim());
-            // messages.setValue(messageBoard.getChildren());
+            messages.setValue(messageBoard.getChildren());
             input.clear();
         }
     }
@@ -559,6 +565,7 @@ public class GUIcore implements IGraphicalUserInterface {
         if (msg != null) {
             messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, sugg, this));
         }
+        messages.setValue(messageBoard.getChildren());
     }
 
    /**
@@ -576,6 +583,7 @@ public class GUIcore implements IGraphicalUserInterface {
             else
                 messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, null, this));
         }
+        messages.setValue(messageBoard.getChildren());
     }
 
 
@@ -583,12 +591,14 @@ public class GUIcore implements IGraphicalUserInterface {
         messageBoard.getChildren().add(new SummaryMessage(pre, data, post));
     }
 
-    /*
-    A message sent with no boolean defaults to not an AI message
+   /**
+    * A message sent with no boolean defaults to not an AI message
+    *
+    * @param msg the message to be displayed
     */
     public void displayMessage(String msg){
         displayMessage(msg,null);
-
+        messages.setValue(messageBoard.getChildren());
     }
 
    /**
