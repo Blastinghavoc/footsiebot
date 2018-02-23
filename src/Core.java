@@ -546,7 +546,21 @@ public class Core extends Application {
         }
         freshData = false;
         readingScrape = false;
-        ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
+        Suggestion[] suggarr = ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
+        handleLargeChangeSuggestions(suggarr);
+    }
+
+    private void handleLargeChangeSuggestions(Suggestion[] suggarr){
+        if(suggarr == null){
+            return;
+        }
+        String output;
+        for (int i = 0;i < suggarr.length ;i++ ) {
+            ParseResult pr = suggarr[i].getParseResult();
+            String[] data = dbm.getFTSE(pr);
+            output = "Warning : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +- "+ LARGE_CHANGE_THRESHOLD+"%";
+            ui.displayMessage(output);//NOT passing the suggestion, as this cannot be marked irrelevant.
+        }
     }
 
    /**
