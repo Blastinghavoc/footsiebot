@@ -173,6 +173,8 @@ public class Core extends Application {
 
         suggestion = ic.getSuggestion(pr);
         if(suggestion != null){
+            // DEBUG
+            System.out.println(suggestion.getParseResult().getIntent());
             handleSuggestion(suggestion,pr);
         }
         else{
