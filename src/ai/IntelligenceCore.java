@@ -115,7 +115,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
      groups = db.getAIGroups();
      // DEBUG
      if(companies == null) {
-       return null;
+         System.out.println("No companies to update.");
+         return null;
      }
      Collections.sort(companies);
      if(groups == null) {
@@ -124,16 +125,16 @@ public class IntelligenceCore implements IIntelligenceUnit {
        return null;
      }
      Collections.sort(groups);
-     // TODO treshold
+
      ArrayList<Company> changed = detectedImportantChange(threshold);
      if((changed == null ) || (changed.size() == 0)) return null;
 
      ArrayList<Suggestion> res = new ArrayList<>();
 
      for(Company c: changed) {
-       // NOTE parseresult is null
+
        System.out.println("Company " + c.getCode() + "has had a significant change ");
-       res.add(new Suggestion("Detected important change", c, false, null));
+       res.add(new Suggestion("Detected important change", c, false, new ParseResult(Intent.PERCENT_CHANGE,"Significant change!",c.getCode(),false,TimeSpecifier.TODAY)));
      }
 
      return res.toArray(new Suggestion[res.size()]);
