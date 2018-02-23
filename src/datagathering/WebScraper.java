@@ -26,8 +26,6 @@ public class WebScraper {
 
         String url = "http://www.londonstockexchange.com/exchange/prices-and-markets/stocks/indices/summary/summary-indices-constituents.html?index=UKX&page=";
 
-        System.out.println(Thread.currentThread().getName());
-
         // for each possible LSE summary page
         for (int i = 1; i < 7; i++) {
             if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){

@@ -458,8 +458,8 @@ public class GUIcore implements IGraphicalUserInterface {
     public void stopDataDownload(){
         closing = true;
         try {
-            dataDownload.interrupt();
-            dataDownload.setName("closing");
+            dataDownload.interrupt();//NOTE: for some reason, this does not seems to set the Thread.interrupted() flag.
+            dataDownload.setName("closing");//Because of the above note, this appalling hack is used. I'm sorry.
             System.out.println(dataDownload.getName());
             System.out.println("Interrupted thread");
             dataDownload.join();
