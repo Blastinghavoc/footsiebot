@@ -216,7 +216,7 @@ public class GUIcore implements IGraphicalUserInterface {
         }
         timeSelector.setItems(timeOptions);
 
-        changeSelector = new Spinner<Double>(-10.00, 10.00, -2.50, 0.10);
+        changeSelector = new Spinner<Double>(0.0, 10.00, 0.5, 0.05);
         changeSelector.setEditable(true);
 
         Button saveChanges = new Button("Save Changes");

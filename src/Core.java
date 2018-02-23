@@ -23,6 +23,8 @@ public class Core extends Application {
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
+    public static Double LARGE_CHANGE_THRESHOLD = 0.5;
+
     public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
@@ -61,6 +63,7 @@ public class Core extends Application {
     */
     @Override
     public void start(Stage primaryStage) {
+        readSettings();//Loading from the config file
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
         Boolean runTradingHourTest = false;
@@ -617,10 +620,10 @@ public class Core extends Application {
         long newTradingTime = (3600000*hours) +(60000*minutes);
         System.out.println(newTradingTime);
         TRADING_TIME = newTradingTime;
+        LARGE_CHANGE_THRESHOLD = change;
         ui.stopTradingHourTimeline();
         ui.startTradingHourTimeline();
-        Long ntt = newTradingTime;
-        writeSettings(ntt,change);
+        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD);
     }
 
     private void writeSettings(Long time, Double change){
@@ -631,7 +634,7 @@ public class Core extends Application {
             bw = new BufferedWriter(new FileWriter(fl.getAbsolutePath().replace("\\", "/")));
             bw.write(time.toString());
             bw.newLine();
-            bw.write(change.toString());            
+            bw.write(change.toString());
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -639,6 +642,25 @@ public class Core extends Application {
             tryClose(bw);
         }
 
+    }
+
+    private void readSettings(){
+        File fl = null;
+        BufferedReader br = null;
+        try{
+            fl = new File("src/config.txt");
+            br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
+            TRADING_TIME = Long.parseLong(br.readLine());
+            LARGE_CHANGE_THRESHOLD = Double.parseDouble(br.readLine());
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(br);
+        }
+        System.out.println("Loaded TRADING_TIME as "+TRADING_TIME);
+        System.out.println("Loaded LARGE_CHANGE_THRESHOLD as "+LARGE_CHANGE_THRESHOLD);
     }
 
    /**
