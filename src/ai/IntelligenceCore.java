@@ -35,7 +35,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      // intent detect
      AIIntent notToSuggestIntent = null;
      Intent oldIntent = pr.getIntent();
-     System.out.println("User has just asked : " + oldIntent);
+     //System.out.println("User has just asked : " + oldIntent);
      boolean doNotSuggestNews = false;
      switch (oldIntent) {
        case SPOT_PRICE: notToSuggestIntent = AIIntent.SPOT_PRICE;
@@ -87,11 +87,11 @@ public class IntelligenceCore implements IIntelligenceUnit {
          // DECIDING WHETHER to suggest news
          float newsPriority =  targetCompany.getNewsPriority();
 
-         System.out.println("Should not suggest " + notToSuggestIntent);
+         //System.out.println("Should not suggest " + notToSuggestIntent);
 
          AbstractMap.SimpleEntry<AIIntent,Float> topIntentData = targetCompany.getTopIntent(notToSuggestIntent);
          AIIntent topIntent = topIntentData.getKey();
-         System.out.println("Top intent is : " + topIntent);
+         //System.out.println("Top intent is : " + topIntent);
          Float topIntentPriority = topIntentData.getValue();
 
          if(topIntentPriority > newsPriority || doNotSuggestNews) {
@@ -219,7 +219,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
 
-   private ArrayList<Company> detectedImportantChange(Float treshold) {      
+   private ArrayList<Company> detectedImportantChange(Float treshold) {
      ArrayList<String> names = db.detectedImportantChange(treshold);
      if((names == null)||(names.size() == 0)) return null;
 
