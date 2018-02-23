@@ -23,6 +23,8 @@ public class Core extends Application {
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
+    public static Double LARGE_CHANGE_THRESHOLD = 0.5;
+
     public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
@@ -61,6 +63,7 @@ public class Core extends Application {
     */
     @Override
     public void start(Stage primaryStage) {
+        readSettings();//Loading from the config file
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
         Boolean runTradingHourTest = false;
@@ -211,7 +214,9 @@ public class Core extends Application {
                 break;
             case OPENING_PRICE:
                 {
-                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    String date = data[1].split(",")[1].trim();
+                    String[] dateComponents = date.split("-");
+                    date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
@@ -221,7 +226,9 @@ public class Core extends Application {
                 break;
             case CLOSING_PRICE:
                 {
-                    String date = " ("+data[1].split(",")[1].trim()+")";
+                    String date = data[1].split(",")[1].trim();
+                    String[] dateComponents = date.split("-");
+                    date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
@@ -532,7 +539,7 @@ public class Core extends Application {
         }
         freshData = false;
         readingScrape = false;
-        ic.onUpdatedDatabase();
+        ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
     }
 
    /**
@@ -606,7 +613,66 @@ public class Core extends Application {
     }
 
     public void updateSettings(String time, Double change) {
-        System.out.println("Updating the settings with a time of " + time + " and a change of " + change.toString());
+        if(time == null && change == null){
+            return;
+        }
+        if(change < 0){//Want absolute value
+            change = 0 - change;
+        }
+
+        if(time != null && !time.equals("Time")){
+            String[] hm = time.split(":");
+            Integer hours = Integer.parseInt(hm[0]);
+            Integer minutes = Integer.parseInt(hm[1]);
+            long newTradingTime = (3600000*hours) +(60000*minutes);
+
+            TRADING_TIME = newTradingTime;
+        }
+
+        if(change != null){
+            LARGE_CHANGE_THRESHOLD = change;
+        }
+        ui.stopTradingHourTimeline();
+        ui.startTradingHourTimeline();
+        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD);
+        System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
+    }
+
+    private void writeSettings(Long time, Double change){
+        File fl = null;
+        BufferedWriter bw = null;
+        try{
+            fl = new File("src/config.txt");
+            bw = new BufferedWriter(new FileWriter(fl.getAbsolutePath().replace("\\", "/")));
+            bw.write(time.toString());
+            bw.newLine();
+            bw.write(change.toString());
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(bw);
+        }
+
+    }
+
+    private void readSettings(){
+        File fl = null;
+        BufferedReader br = null;
+        try{
+            fl = new File("src/config.txt");
+            br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
+            TRADING_TIME = Long.parseLong(br.readLine());
+            LARGE_CHANGE_THRESHOLD = Double.parseDouble(br.readLine());
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(br);
+        }
+        System.out.println("Loaded TRADING_TIME as "+TRADING_TIME);
+        System.out.println("Loaded LARGE_CHANGE_THRESHOLD as "+LARGE_CHANGE_THRESHOLD);
     }
 
    /**
@@ -616,6 +682,13 @@ public class Core extends Application {
     */
     public void openWebpage(String url) {
         getHostServices().showDocument(url);
+    }
+
+    private static void tryClose(Closeable c){
+        try{
+            c.close();
+        }catch(Exception ex){
+        }
     }
 
 }
