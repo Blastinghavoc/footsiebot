@@ -6,4 +6,5 @@ public enum AIIntent {
   CLOSING_PRICE,
   PERCENT_CHANGE,
   ABSOLUTE_CHANGE,
+  TREND
 }

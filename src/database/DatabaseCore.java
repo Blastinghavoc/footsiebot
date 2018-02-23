@@ -831,14 +831,15 @@ public class DatabaseCore implements IDatabaseManager {
       ArrayList<Company> companies = new ArrayList<Company>();
       // Get Counts for each intent
       String query = ""
-        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0) "
+        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(TrendCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0),coalesce(TrendAdjustment,0) "
         + "FROM FTSECompanies ftc "
         + "LEFT OUTER JOIN CompanyNewsCount cnc ON (cnc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanySpotPriceCount csc ON (csc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyOpeningPriceCount coc ON (coc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
-        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)";
+        + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)"
+        + "LEFT OUTER JOIN CompanyTrendCount ctc ON (ctc.CompanyCode = ftc.CompanyCode)";
 
 
       Statement stmt = null;
@@ -859,6 +860,8 @@ public class DatabaseCore implements IDatabaseManager {
           float absoluteChange = (float) rs.getInt("coalesce(AbsoluteChangeCount,0)");
           float closing = (float) rs.getInt("coalesce(ClosingPriceCount,0)");
           float percentageChange = (float) rs.getInt("coalesce(percentageChangeCount,0)");
+          float trend = (float) rs.getInt("coalesce(TrendCount,0)");
+
           // Now the  adjustments
           // for news
           float newsAdj =  rs.getFloat("coalesce(newsAdjustment,0)");
@@ -868,6 +871,8 @@ public class DatabaseCore implements IDatabaseManager {
           float absoluteChangeAdj =  rs.getFloat("coalesce(AbsoluteChangeAdjustment,0)");
           float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
           float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
+          float trendAdj =  rs.getFloat("coalesce(TrendAdjustment,0)");
+
 
           // intent priorities
           float spotPriority = spot - spotAdj;
@@ -875,16 +880,11 @@ public class DatabaseCore implements IDatabaseManager {
           float closingPriority = closing - closingPriceAdj;
           float absoluteChangePriority = absoluteChange - absoluteChangeAdj;
           float percentageChangePriority = percentageChange - percentageChangeAdj;
+          float trendPriority = trend - trendAdj;
+
+
           // news
           float newsPriority = newsCount - newsAdj;
-
-          // Instantiate IntentData List for this company
-          // TODO not having values for each intent for now
-          // intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
-          // intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
-          // intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
-          // intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
-          // intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
 
           HashMap<AIIntent, Float[]> mapping = new HashMap<>();
 
@@ -893,12 +893,14 @@ public class DatabaseCore implements IDatabaseManager {
           mapping.put(AIIntent.CLOSING_PRICE, new Float[]{closing, closingPriceAdj});
           mapping.put(AIIntent.PERCENT_CHANGE, new Float[]{percentageChange,percentageChangeAdj });
           mapping.put(AIIntent.ABSOLUTE_CHANGE, new Float[]{absoluteChange, absoluteChangeAdj});
+          mapping.put(AIIntent.TREND, new Float[]{trend, trendAdj});
+
 
 
           // Calculate priority for each company
           Float intentScale = 1.0f;
           Float newsScale = 1.0f;
-          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
+          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
 
           companies.add(new Company(rs.getString("CompanyCode"), mapping, intentScale, newsScale, newsCount, newsAdj));
@@ -1059,6 +1061,10 @@ public class DatabaseCore implements IDatabaseManager {
     //TODO
     public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
       String table = "";
+      if(intent == null) {
+        System.out.println("Intent was null");
+        return;
+      }
       if(!isNews) {
         switch(intent) {
           case SPOT_PRICE: table+= "CompanySpotPriceCount";
