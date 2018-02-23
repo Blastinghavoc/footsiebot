@@ -231,13 +231,17 @@ public class GUIcore implements IGraphicalUserInterface {
         timeSelector.setItems(timeOptions);
         timeSelector.setPromptText("Time");
 
-        changeSelector = new Spinner<Double>(-10.00, 10.00, -2.50, 0.10);
+        changeSelector = new Spinner<Double>(0.0, 10.00, core.LARGE_CHANGE_THRESHOLD, 0.05);
         changeSelector.setEditable(true);
 
         Button saveChanges = new Button("Save Changes");
         saveChanges.setOnAction(e -> {
-            if ((String) timeSelector.getValue() != null)
+            if ((String) timeSelector.getValue() != null){
                 core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
+            }
+            else{
+                core.updateSettings(null, changeSelector.getValue());
+            }
         });
 
         Button btnStyle = new Button("Update style");
@@ -472,10 +476,11 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
+
    /**
     * Starts the tradingHourTimeline to run the core action regularly
     */
-    private void startTradingHourTimeline() {
+    public void startTradingHourTimeline() {
         tradingHourTimeline = new Timeline(new KeyFrame(
             Duration.millis(86400000),//24 hour refresh time
             ae -> core.onTradingHour()));
@@ -496,6 +501,13 @@ public class GUIcore implements IGraphicalUserInterface {
         tradingHourTimeline.playFrom(Duration.millis(startDuration));
         // System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds"); //DEBUG
         //Skips forward by the current time of day + the trading hour time.
+    }
+
+    public void stopTradingHourTimeline(){
+        if(tradingHourTimeline != null){
+            tradingHourTimeline.stop();
+            tradingHourTimeline = null;
+        }
     }
 
    /**

@@ -23,6 +23,8 @@ public class Core extends Application {
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
+    public static Double LARGE_CHANGE_THRESHOLD = 0.5;
+
     public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
@@ -61,6 +63,7 @@ public class Core extends Application {
     */
     @Override
     public void start(Stage primaryStage) {
+        readSettings();//Loading from the config file
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
         Boolean runTradingHourTest = false;
@@ -170,6 +173,8 @@ public class Core extends Application {
 
         suggestion = ic.getSuggestion(pr);
         if(suggestion != null){
+            // DEBUG
+            System.out.println(suggestion.getParseResult().getIntent());
             handleSuggestion(suggestion,pr);
         }
         else{
@@ -185,7 +190,7 @@ public class Core extends Application {
     }
 
     private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
-        String output = "Whoops, something went wrong!";
+        String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
                 output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
@@ -232,8 +237,11 @@ public class Core extends Application {
                 }
                 break;
             case TREND:
+                if(data.length <4){
+                    break;
+                }
                 if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
-                    output = "So far today, "+ pr.getOperand() + " is ";
+                    output = "So far today, "+ pr.getOperand().toUpperCase() + " is ";
                     switch(data[1]){
                         case "rose":
                         output += "rising";
@@ -253,7 +261,7 @@ public class Core extends Application {
                     //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
                 }
                 else{
-                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
                     output += " "+data[1];
                     output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
                     output += "The opening price was GBX "+ data[2] + " and the closing price was GBX "+ data[3] + ".";
@@ -263,6 +271,9 @@ public class Core extends Application {
                 //Nothing to do here, should never run, TODO remove
                 break;
             case GROUP_FULL_SUMMARY:
+                if(data.length <6){
+                    break;
+                }
                 if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
                     output = "So far today, " + pr.getOperand() + " are ";
                     switch(data[1]){
@@ -281,25 +292,25 @@ public class Core extends Application {
                     }
                     output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
                     String[] high = data[2].split(",");
-                    output += high[0].trim() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
+                    output += high[0].trim().toUpperCase() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
-                    output += low[0].trim() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
+                    output += low[0].trim().toUpperCase() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
-                    output += mostRising[0].trim() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
                     String[] mostFalling = data[5].split(",");
-                    output += mostFalling[0].trim() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                    output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
                     output += data[1] + " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
                     String[] high = data[2].split(",");
-                    output += high[0].trim() + " had the highest closing price at GBX " + high[1].trim() + ".\n";
+                    output += high[0].trim().toUpperCase() + " had the highest closing price at GBX " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
-                    output += low[0].trim() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
+                    output += low[0].trim().toUpperCase() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
-                    output += mostRising[0].trim() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
                     String[] mostFalling = data[5].split(",");
-                    output += mostFalling[0].trim() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                    output += mostFalling[0].trim().toUpperCase() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
                 }
                 break;
             default:
@@ -528,7 +539,7 @@ public class Core extends Application {
         }
         freshData = false;
         readingScrape = false;
-        ic.onUpdatedDatabase();
+        ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
     }
 
    /**
@@ -602,7 +613,66 @@ public class Core extends Application {
     }
 
     public void updateSettings(String time, Double change) {
-        System.out.println("Updating the settings with a time of " + time + " and a change of " + change.toString());
+        if(time == null && change == null){
+            return;
+        }
+        if(change < 0){//Want absolute value
+            change = 0 - change;
+        }
+
+        if(time != null && !time.equals("Time")){
+            String[] hm = time.split(":");
+            Integer hours = Integer.parseInt(hm[0]);
+            Integer minutes = Integer.parseInt(hm[1]);
+            long newTradingTime = (3600000*hours) +(60000*minutes);
+
+            TRADING_TIME = newTradingTime;
+        }
+
+        if(change != null){
+            LARGE_CHANGE_THRESHOLD = change;
+        }
+        ui.stopTradingHourTimeline();
+        ui.startTradingHourTimeline();
+        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD);
+        System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
+    }
+
+    private void writeSettings(Long time, Double change){
+        File fl = null;
+        BufferedWriter bw = null;
+        try{
+            fl = new File("src/config.txt");
+            bw = new BufferedWriter(new FileWriter(fl.getAbsolutePath().replace("\\", "/")));
+            bw.write(time.toString());
+            bw.newLine();
+            bw.write(change.toString());
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(bw);
+        }
+
+    }
+
+    private void readSettings(){
+        File fl = null;
+        BufferedReader br = null;
+        try{
+            fl = new File("src/config.txt");
+            br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
+            TRADING_TIME = Long.parseLong(br.readLine());
+            LARGE_CHANGE_THRESHOLD = Double.parseDouble(br.readLine());
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(br);
+        }
+        System.out.println("Loaded TRADING_TIME as "+TRADING_TIME);
+        System.out.println("Loaded LARGE_CHANGE_THRESHOLD as "+LARGE_CHANGE_THRESHOLD);
     }
 
    /**
@@ -612,6 +682,13 @@ public class Core extends Application {
     */
     public void openWebpage(String url) {
         getHostServices().showDocument(url);
+    }
+
+    private static void tryClose(Closeable c){
+        try{
+            c.close();
+        }catch(Exception ex){
+        }
     }
 
 }

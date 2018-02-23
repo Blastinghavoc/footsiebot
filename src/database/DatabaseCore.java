@@ -285,7 +285,7 @@ public class DatabaseCore implements IDatabaseManager {
         		output.addAll(getAllCompanyInfo(pr));
                 break;
         }
-
+        System.out.println(Arrays.toString(output.toArray(new String[1])));
         return output.toArray(new String[1]);
     }
 
@@ -319,7 +319,11 @@ public class DatabaseCore implements IDatabaseManager {
     	/* gets percentage change and spot price/ closing price for each company
     	in group */
     	for (int i = 0; i < companies.length; i ++) {
-    		percChange = getTrendDataOnDate(companies[i], timeSpec).get(0);
+            ArrayList<Float> tmp = getTrendDataOnDate(companies[i], timeSpec);
+            if (tmp == null || tmp.size() == 0){
+                return new ArrayList<String>();//Returning an empty result
+            }
+    		percChange = tmp.get(0);
 			percChangeTotal += percChange;
 			percChangeMap.put(companies[i], percChange);
 
@@ -397,6 +401,9 @@ public class DatabaseCore implements IDatabaseManager {
     	switch (intent) {
     		case TREND:
     			trendData = getTrendDataOnDate(companyCode, timeSpec);
+    			if (trendData.isEmpty()) {
+    				return output;
+    			}
     			break;
             // case TREND_SINCE:
     		// 		percChange = getTrendDataSinceDate(companyCode, timeSpec);
@@ -470,6 +477,7 @@ public class DatabaseCore implements IDatabaseManager {
    				percChange = ((endPrice - startPrice) / startPrice) * 100;
    			} else {
    				System.out.println("Null start or end price");
+   				return trendData;
    			}
 
    		} catch (SQLException e) {
@@ -842,7 +850,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         while(rs.next()) {
           // Create list of intents for each company
-          ArrayList<IntentData> intents = new ArrayList<>();
+          // ArrayList<IntentData> intents = new ArrayList<>();
           // News counter
           float newsCount = (float) rs.getInt("coalesce(NewsCount,0)");
           // Intents
@@ -872,11 +880,11 @@ public class DatabaseCore implements IDatabaseManager {
 
           // Instantiate IntentData List for this company
           // TODO not having values for each intent for now
-          intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
-          intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
-          intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
-          intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
-          intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
+          // intents.add(new IntentData(AIIntent.SPOT_PRICE, spot, spotAdj));
+          // intents.add(new IntentData(AIIntent.OPENING_PRICE, opening, openingAdj));
+          // intents.add(new IntentData(AIIntent.ABSOLUTE_CHANGE, absoluteChange, absoluteChangeAdj));
+          // intents.add(new IntentData(AIIntent.CLOSING_PRICE, closing, closingPriceAdj));
+          // intents.add(new IntentData(AIIntent.PERCENT_CHANGE, percentageChange, percentageChangeAdj));
 
           HashMap<AIIntent, Float[]> mapping = new HashMap<>();
 
@@ -893,7 +901,7 @@ public class DatabaseCore implements IDatabaseManager {
           float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
 
-          companies.add(new Company(rs.getString("CompanyCode"), intents, mapping, intentScale, newsScale, newsCount, newsAdj));
+          companies.add(new Company(rs.getString("CompanyCode"), mapping, intentScale, newsScale, newsCount, newsAdj));
         }
 
         if(companies.size() != 0) {
@@ -965,7 +973,21 @@ public class DatabaseCore implements IDatabaseManager {
         //   }
         // }
 
+
         for(Map.Entry<String,Group> g: entrySet) {
+            ArrayList<Company> list = new ArrayList<Company>();
+            String[] companylist = getCompaniesInGroup(g.getValue().getGroupCode());
+            for (int i = 0; i < companylist.length; i++) {
+                for (int j = 0; j < companies.size(); j++) {
+                    Company current = companies.get(j);
+                    if (current.getCode() == companylist[i]) {
+                        list.add(current);
+                        break;
+                    }
+                }
+            }
+            g.getValue().addCompanies(list);
+            // TODO add group adjustment
         }
 
         // now add the remaining values to each group
@@ -973,26 +995,26 @@ public class DatabaseCore implements IDatabaseManager {
           ArrayList<Company> com = g.getCompanies();
           int numberOfCompanies = com.size();
 
-          Float priority = 0.0f;
-
+          Float groupCount = 0.0f;
+          // Calculate group count
           for(Company c: com) {
-            priority+= c.getPriority();
+            groupCount+= c.getIntentsCount() + c.getNewsCount();
           }
 
-          g.setPriority(priority);
+          g.setGroupCount(groupCount);
         }
 
       } catch (SQLException ex) {
         printSQLException(ex);
       } finally {
         if (stmt != null) { tryClose(stmt); }
-        if(rs != null) {tryClose(rs); }
+        if (rs != null) { tryClose(rs); }
       }
 
       return result;
     }
     //TODO
-    public ArrayList<String> detectedImportantChange() {
+    public ArrayList<String> detectedImportantChange(Float treshold) {
       String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
 
       ResultSet rs = null;
@@ -1001,7 +1023,6 @@ public class DatabaseCore implements IDatabaseManager {
 
       HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
       // TODO
-      Float treshold = 0.0f;
 
       try {
         stmt = conn.createStatement();
@@ -1009,6 +1030,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         while(rs.next()) {
           String companyName = rs.getString("CompanyCode");
+          // TODO Absolute value
           Float percChange = rs.getFloat("PercentageChange");
 
           if(percChange > treshold) {
@@ -1069,7 +1091,6 @@ public class DatabaseCore implements IDatabaseManager {
       } finally {
         if (stmt != null) { tryClose(stmt); }
       }
-
     }
 
     //TODO
@@ -1078,10 +1099,6 @@ public class DatabaseCore implements IDatabaseManager {
     //
     // }
 
-
-    public IntentData getIntentForCompany() {
-      return null;
-    }
 
     // This is potentially not needed couple of methods as
     // the database will always be updated i.e.
@@ -1115,7 +1132,7 @@ public class DatabaseCore implements IDatabaseManager {
             return null;
         } finally {
           if (s1 != null) { tryClose(s1); }
-          if(r1 != null) {tryClose(r1); }
+          if (r1 != null) { tryClose(r1); }
         }
         return companies.toArray(new String[1]);
     }
