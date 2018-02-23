@@ -393,22 +393,25 @@ public class DatabaseCore implements IDatabaseManager {
 				Collections.min(percChangeMap.entrySet(), valueComparator);
 
 		output.add(maxSpotPriceCompany.getKey() + ", " 
-				+ maxSpotPriceCompany.getValue().toString());
+				+ roundFloat(maxSpotPriceCompany.getValue()).toString());
 		output.add(minSpotPriceCompany.getKey() + ", " 
-				+ minSpotPriceCompany.getValue().toString());
+				+ roundFloat(minSpotPriceCompany.getValue()).toString());
 		output.add(maxPercChangeCompany.getKey() + ", " 
-				+ maxPercChangeCompany.getValue().toString());
+				+ roundFloat(maxPercChangeCompany.getValue()).toString());
 		output.add(minPercChangeCompany.getKey() + ", " 
-				+ minPercChangeCompany.getValue().toString());
+				+ roundFloat(minPercChangeCompany.getValue()).toString());
 
     	return output;
     }
 
-    /* Rounds float to 3 decimal places */
+    /**
+    * Rounds float to 3 decimal places 
+    *
+    * @param f The float to be rounded
+    * @return The rounded float as a string
+    */
     private Float roundFloat(Float f) {
-    	Float roundedF = 0.0f;
-
-    	return roundedF;
+    	return Math.round(f * 1000.0f) / 1000.0f;
     }
 
     /**
