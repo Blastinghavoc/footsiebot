@@ -1093,12 +1093,6 @@ public class DatabaseCore implements IDatabaseManager {
       }
     }
 
-    //TODO
-    // private void onSuggestionIrrelevant(Group group) {
-    //
-    //
-    // }
-
 
     // This is potentially not needed couple of methods as
     // the database will always be updated i.e.

@@ -189,10 +189,9 @@ public class IntelligenceCore implements IIntelligenceUnit {
         c.decrementPriorityOfIntent(intent);
         db.onSuggestionIrrelevant(c, intent, isNews);
         System.out.println("Priority is now "+ c.getPriority());
-      } else {
-        //groups
-
       }
+
+      return;
 
    }
 
