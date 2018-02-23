@@ -1,6 +1,8 @@
 package footsiebot.database;
 
-import footsiebot.nlp.*;
+import footsiebot.nlp.TimeSpecifier;
+import footsiebot.nlp.Intent;
+import footsiebot.nlp.ParseResult;
 import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
@@ -27,7 +29,8 @@ public class DatabaseCore implements IDatabaseManager {
         conn = null;
         try {
             // create a database connection
-            conn = DriverManager.getConnection("jdbc:sqlite:src/database/footsie_db.db");
+            conn = DriverManager
+            		.getConnection("jdbc:sqlite:src/database/footsie_db.db");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -219,9 +222,10 @@ public class DatabaseCore implements IDatabaseManager {
 
     /* Returns the FTSE data asked for as well as other information about the
     company */
+    @SuppressWarnings("fallthrough")
     public String[] getFTSE(ParseResult pr) {
 
-    	footsiebot.nlp.Intent intent = pr.getIntent();
+    	Intent intent = pr.getIntent();
     	ArrayList<String> output = new ArrayList<String>();
 
     	/* call relevant method to get a query for the intent data or a
@@ -229,10 +233,15 @@ public class DatabaseCore implements IDatabaseManager {
 
     	switch (intent) {
     		case SPOT_PRICE:
+    			// fall through
     		case TRADING_VOLUME:
+    			// fall through
     		case PERCENT_CHANGE:
+    			// fall through
     		case ABSOLUTE_CHANGE:
+    			// fall through
     		case OPENING_PRICE:
+    			// fall through
     		case CLOSING_PRICE:
 
     			/* get query for data required, execute it, add result to first
@@ -278,8 +287,10 @@ public class DatabaseCore implements IDatabaseManager {
         		output.addAll(getGroupData(pr));
         		break;
             case OPENING_PRICE:
+    			// fall through
             case CLOSING_PRICE:
                 output.add("Date, " + timeSpecifierToDate(pr.getTimeSpecifier()));
+                // fall through
             default:
             	// add other data about company to other indexes of the array
         		output.addAll(getAllCompanyInfo(pr));
@@ -290,25 +301,20 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /* Returns average percentage change for a group over time period specified
-    and whether a group is rising or falling */
+    and whether a group is rising or falling, company with maximum and 
+    minimum spot price,
+     */
     private ArrayList<String> getGroupData(ParseResult pr) {
-    	ArrayList<String> output = new ArrayList<String>();
-    	Float percChange = 0.0f;
+    	ArrayList<String> output = new ArrayList<>();
     	Float percChangeTotal = 0.0f;
-    	Float averagePercChange = 0.0f;
     	String groupName = pr.getOperand();
     	String[] companies = getCompaniesInGroup(groupName);
-    	footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
+    	TimeSpecifier timeSpec = pr.getTimeSpecifier();
     	String comparisonTime = "";
-    	HashMap<String, Float> spotPriceMap = new HashMap<String, Float>();
-    	HashMap<String, Float> percChangeMap = new HashMap<String, Float>();
-    	ArrayList<Float> spotPrices = new ArrayList<Float>();
-    	ArrayList<Float> percChanges = new ArrayList<Float>();
-    	Float maxSpotPrice = 0.0f;
-    	Float minSpotPrice = 0.0f;
-    	Float maxPercChange = 0.0f;
-    	Float minPercChange = 0.0f;
-    	String companyWithMaxSpotPrice, companyWithMinSpotPrice, companyWithMaxPercChange, companyWithMinPercChange;
+    	HashMap<String, Float> spotPriceMap = new HashMap<>();
+    	HashMap<String, Float> percChangeMap = new HashMap<>();
+    	ArrayList<Float> spotPrices = new ArrayList<>();
+    	ArrayList<Float> percChanges = new ArrayList<>();
 
     	String spotOrClosingPriceQry = "";
     	Statement s1 = null;
@@ -321,9 +327,9 @@ public class DatabaseCore implements IDatabaseManager {
     	for (int i = 0; i < companies.length; i ++) {
             ArrayList<Float> tmp = getTrendDataOnDate(companies[i], timeSpec);
             if (tmp == null || tmp.size() == 0){
-                return new ArrayList<String>();//Returning an empty result
+                return new ArrayList<String>(); // Returning an empty result
             }
-    		percChange = tmp.get(0);
+    		Float percChange = tmp.get(0);
 			percChangeTotal += percChange;
 			percChangeMap.put(companies[i], percChange);
 
@@ -350,7 +356,7 @@ public class DatabaseCore implements IDatabaseManager {
 
     	// calculates average percentage change for whole group and whether
     	// the overall group is rising or falling
-    	averagePercChange = percChangeTotal/ companies.length;
+    	Float averagePercChange = percChangeTotal / companies.length;
     	output.add(averagePercChange.toString());
     	if (averagePercChange > 0) {
 			output.add("rose");
@@ -360,21 +366,19 @@ public class DatabaseCore implements IDatabaseManager {
 			output.add("had no overall change");
 		}
 
-		Comparator<? super Map.Entry<String, Float>> valueComparator = ((entry1, entry2) -> entry1.getValue().compareTo(entry2.getValue()));
+		Comparator<? super Map.Entry<String, Float>> valueComparator = 
+				((entry1, entry2) ->
+				entry1.getValue().compareTo(entry2.getValue()));
 
-		maxSpotPrice = Collections.max(spotPriceMap.entrySet(), valueComparator).getValue();
-		companyWithMaxSpotPrice = Collections.max(spotPriceMap.entrySet(), valueComparator).getKey();
-		minSpotPrice = Collections.min(spotPriceMap.entrySet(), valueComparator).getValue();
-		companyWithMinSpotPrice = Collections.min(spotPriceMap.entrySet(), valueComparator).getKey();
-		maxPercChange = Collections.max(percChangeMap.entrySet(), valueComparator).getValue();
-		companyWithMaxPercChange = Collections.max(percChangeMap.entrySet(), valueComparator).getKey();
-		minPercChange = Collections.min(percChangeMap.entrySet(), valueComparator).getValue();
-		companyWithMinPercChange = Collections.min(percChangeMap.entrySet(), valueComparator).getKey();
+		Map.Entry<String, Float> maxSpotPriceCompany = Collections.max(spotPriceMap.entrySet(), valueComparator);
+		Map.Entry<String, Float> minSpotPriceCompany = Collections.min(spotPriceMap.entrySet(), valueComparator);
+		Map.Entry<String, Float> maxPercChangeCompany = Collections.max(percChangeMap.entrySet(), valueComparator);
+		Map.Entry<String, Float> minPercChangeCompany = Collections.min(percChangeMap.entrySet(), valueComparator);
 
-		output.add(companyWithMaxSpotPrice + ", " + maxSpotPrice.toString());
-		output.add(companyWithMinSpotPrice + ", " + minSpotPrice.toString());
-		output.add(companyWithMaxPercChange + ", " + maxPercChange.toString());
-		output.add(companyWithMinPercChange + ", " + minPercChange.toString());
+		output.add(maxSpotPriceCompany.getKey() + ", " + maxSpotPriceCompany.getValue().toString());
+		output.add(minSpotPriceCompany.getKey() + ", " + minSpotPriceCompany.getValue().toString());
+		output.add(maxPercChangeCompany.getKey() + ", " + maxPercChangeCompany.getValue().toString());
+		output.add(minPercChangeCompany.getKey() + ", " + minPercChangeCompany.getValue().toString());
 
 		System.out.println("PERC CHANGE " + output.get(0) + " " + output.get(1));
 		System.out.println(output.get(2));
@@ -384,14 +388,19 @@ public class DatabaseCore implements IDatabaseManager {
     	return output;
     }
 
+    /* Rounds float to 3 decimal places */
+    private void roundToThreePlaces(Float f) {
+
+    }
+
     /* Returns an array list  containing the data to be output by the Core
     for trend data */
     private ArrayList<String> getTrendData(ParseResult pr) {
 
     	ArrayList<Float> trendData = new ArrayList<Float>();
     	ArrayList<String> output = new ArrayList<String>();
-    	footsiebot.nlp.Intent intent = pr.getIntent();
-        footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
+    	Intent intent = pr.getIntent();
+        TimeSpecifier timeSpec = pr.getTimeSpecifier();
         String companyCode = pr.getOperand();
         Boolean isGroup = pr.isOperandGroup();
         Float percChange = 0.0f;
@@ -435,7 +444,8 @@ public class DatabaseCore implements IDatabaseManager {
     /* Returns array list containing percentage change in spot price,
     opening price and closing price or spot price(if time specifier is today)
     for a company on day specified */
-    private ArrayList<Float> getTrendDataOnDate(String companyCode, footsiebot.nlp.TimeSpecifier timeSpec) {
+    private ArrayList<Float> getTrendDataOnDate(String companyCode, 
+    		TimeSpecifier timeSpec) {
     	LocalDateTime currentTime = LocalDateTime.now();
         String comparisonTime = "";
         ArrayList<Float> trendData = new ArrayList<Float>();
@@ -473,7 +483,7 @@ public class DatabaseCore implements IDatabaseManager {
    				endPrice = endPriceRS.getFloat(1);
    			}
 
-   			if (startPrice != 0.0f && endPrice != 0.0f) {
+   			if (!startPrice.equals(0.0f) && !endPrice.equals(0.0f)) {
    				percChange = ((endPrice - startPrice) / startPrice) * 100;
    			} else {
    				System.out.println("Null start or end price");
@@ -499,16 +509,18 @@ public class DatabaseCore implements IDatabaseManager {
     /* if the time specifier is today, returns query to get spot price of
     company, otherwise returns query to get closing price of company on
     specified day*/
-    private String spotOrClosingPriceQuery(footsiebot.nlp.TimeSpecifier timeSpec, String companyCode, String comparisonTime) {
+    private String spotOrClosingPriceQuery(
+    		TimeSpecifier timeSpec, String companyCode, 
+    		String comparisonTime) {
    		String query = "";
-   		if (timeSpec == footsiebot.nlp.TimeSpecifier.TODAY) {
-   			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+   		if (timeSpec == TimeSpecifier.TODAY) {
+   			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
                 			+ "WHERE CompanyCode = '" + companyCode + "'";
    		} else {
    			query   	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
 	                        + "WHERE CompanyCode = '" + companyCode
-	                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
-	                        + "ORDER BY TimeOfData DESC LIMIT 1";
+	                        + "' AND DATE(TimeOfData) <= '" + comparisonTime + 
+	                        "' ORDER BY TimeOfData DESC LIMIT 1";
    		}
    		return query;
     }
@@ -516,7 +528,8 @@ public class DatabaseCore implements IDatabaseManager {
     /* Returns array list containing percentage change in spot price,
     opening price and closing price or spot price(if time specifier is today)
     for a company since the day specified */
-    private ArrayList<Float> getPercChangeSinceDate(String companyCode, footsiebot.nlp.TimeSpecifier timeSpec) {
+    private ArrayList<Float> getPercChangeSinceDate(String companyCode, 
+    		TimeSpecifier timeSpec) {
     	ArrayList<Float> trendData = new ArrayList<Float>();
     	LocalDateTime currentTime = LocalDateTime.now();
         String comparisonTime = "";
@@ -530,12 +543,12 @@ public class DatabaseCore implements IDatabaseManager {
         Float percChange = 0.0f;
 
     	comparisonTime = timeSpecifierToDate(timeSpec);
-    	spotPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+    	spotPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
                 		+ "WHERE CompanyCode = '" + companyCode;
-        openingPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+        openingPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
                 			+ "WHERE CompanyCode = '" + companyCode
-                			+ "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
-                			+ "ORDER BY TimeOfData ASC LIMIT 1";
+                			+ "' AND DATE(TimeOfData) <= '" + comparisonTime 
+                			+ "' ORDER BY TimeOfData ASC LIMIT 1";
         try {
         	s1 = conn.createStatement();
         	s2 = conn.createStatement();
@@ -550,7 +563,7 @@ public class DatabaseCore implements IDatabaseManager {
         		openingPrice = openingPriceRS.getFloat(1);
         	}
 
-        	if (spotPrice != 0.0f && openingPrice != 0.0f) {
+        	if (!spotPrice.equals(0.0f) && !openingPrice.equals(0.0f)) {
    				percChange = ((openingPrice - spotPrice) / openingPrice) * 100;
    			} else {
    				System.out.println("Null start or spot price");
@@ -581,8 +594,8 @@ public class DatabaseCore implements IDatabaseManager {
 
     /* Returns an SQL query to get the FTSE data required in the parse result */
     public String convertFTSEQuery(ParseResult pr) {
-        footsiebot.nlp.Intent intent = pr.getIntent();
-        footsiebot.nlp.TimeSpecifier timeSpec = pr.getTimeSpecifier();
+        Intent intent = pr.getIntent();
+        TimeSpecifier timeSpec = pr.getTimeSpecifier();
         String companyCode = pr.getOperand();
         Boolean isGroup = pr.isOperandGroup();
 
@@ -613,7 +626,7 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
             case OPENING_PRICE:
                 comparisonTime = timeSpecifierToDate(timeSpec);
-                query   = "SELECT SpotPrice FROM FTSECompanySnapshots\n"
+                query   = "SELECT (SpotPrice - AbsoluteChange) FROM FTSECompanySnapshots\n"
                         + "WHERE CompanyCode = '" + companyCode
                         + "' AND DATE(TimeOfData) <= '" + comparisonTime + "'\n"
                         + "ORDER BY TimeOfData ASC LIMIT 1";
@@ -646,8 +659,8 @@ public class DatabaseCore implements IDatabaseManager {
     private String timeSpecifierToDate(TimeSpecifier t) {
 
         LocalDateTime date = LocalDateTime.now();
-        //DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        DateTimeFormatter dateFormatter = DateTimeFormatter
+        		.ofPattern("yyyy-MM-dd");
         String formattedDate = "";
 
         switch (t) {
@@ -720,7 +733,7 @@ public class DatabaseCore implements IDatabaseManager {
     	ArrayList<String> rs = new ArrayList<String>();
 
     	String companyCode = pr.getOperand();
-    	footsiebot.nlp.Intent intent = pr.getIntent();
+    	Intent intent = pr.getIntent();
     	ArrayList<String> columns = new ArrayList<String>();
 
     	// get columns needed in query
@@ -980,7 +993,7 @@ public class DatabaseCore implements IDatabaseManager {
             for (int i = 0; i < companylist.length; i++) {
                 for (int j = 0; j < companies.size(); j++) {
                     Company current = companies.get(j);
-                    if (current.getCode() == companylist[i]) {
+                    if (current.getCode().equals(companylist[i])) {
                         list.add(current);
                         break;
                     }
