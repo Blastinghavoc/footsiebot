@@ -92,18 +92,18 @@ public class WebScraper {
                             // extracts the trading volume
                             current = summary.select("td:contains(volume) ~ td").first();
                             if (current == null) vollist.add(null);
-                            else vollist.add(Integer.parseInt(current.text().replace(",", "").trim()));
+                            else vollist.add(Integer.parseInt(clean(current.text())));
 
                             break;
                         case 3: break;
                         case 4: 
-                            pricelist.add(Float.parseFloat(column.text().replace(",", "").trim()));
+                            pricelist.add(Float.parseFloat(clean(column.text())));
                             break;
                         case 5: 
-                            abslist.add(Float.parseFloat(column.ownText().trim()));
+                            abslist.add(Float.parseFloat(clean(column.ownText())));
                             break;
                         case 6: 
-                            perclist.add(Float.parseFloat(column.ownText().trim()));
+                            perclist.add(Float.parseFloat(clean(column.ownText())));
                             break;
                         default: break elementloop;
                     }
@@ -123,5 +123,10 @@ public class WebScraper {
 
         // returns a occupied scraperesult
         return new ScrapeResult(codes, names, groups, prices, absChange, percChange, tradeVolume);
+    }
+
+    // cleans input string of html tags, commas and trailing whitespace
+    public String clean(String input) {
+        return input.replaceAll("<.*?>", "").replaceAll(",", "").trim();
     }
 }
