@@ -539,7 +539,7 @@ public class Core extends Application {
         }
         freshData = false;
         readingScrape = false;
-        ic.onUpdatedDatabase();
+        ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());
     }
 
    /**
@@ -613,23 +613,29 @@ public class Core extends Application {
     }
 
     public void updateSettings(String time, Double change) {
-        if(time == null || change == null){
+        if(time == null && change == null){
             return;
         }
         if(change < 0){//Want absolute value
             change = 0 - change;
         }
-        System.out.println("Updating the settings with a time of " + time + " and a change of " + change.toString());
-        String[] hm = time.split(":");
-        Integer hours = Integer.parseInt(hm[0]);
-        Integer minutes = Integer.parseInt(hm[1]);
-        long newTradingTime = (3600000*hours) +(60000*minutes);
-        System.out.println(newTradingTime);
-        TRADING_TIME = newTradingTime;
-        LARGE_CHANGE_THRESHOLD = change;
+
+        if(time != null && !time.equals("Time")){
+            String[] hm = time.split(":");
+            Integer hours = Integer.parseInt(hm[0]);
+            Integer minutes = Integer.parseInt(hm[1]);
+            long newTradingTime = (3600000*hours) +(60000*minutes);
+
+            TRADING_TIME = newTradingTime;
+        }
+
+        if(change != null){
+            LARGE_CHANGE_THRESHOLD = change;
+        }
         ui.stopTradingHourTimeline();
         ui.startTradingHourTimeline();
         writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD);
+        System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
     }
 
     private void writeSettings(Long time, Double change){

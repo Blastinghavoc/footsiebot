@@ -21,20 +21,11 @@ public class Company implements Comparable<Company> {
     this.newsCount = newsCount;
     this.newsAdj = newsAdj;
 
-    Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
-    // DEBUG
-    for(Map.Entry<AIIntent,Float[]> e: entrySet) {
-      System.out.println(e.getKey());
-      System.out.println(e.getValue());
-    }
-
   }
   //TOTEST
   public void decrementPriorityOfIntent(AIIntent i) {
 
-    Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
-
-    for(Map.Entry<AIIntent,Float[]> e: entrySet) {
+    for(Map.Entry<AIIntent,Float[]> e: mapping.entrySet()) {
       if(e.getKey().equals(i)) {
         Float[] current = mapping.get(i);
         float counter = current[0];

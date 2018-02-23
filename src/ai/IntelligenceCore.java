@@ -110,7 +110,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    //TODO return a suggestion object
-   public Suggestion[] onUpdatedDatabase() {
+   public Suggestion[] onUpdatedDatabase(Float threshold) {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      // DEBUG
@@ -125,7 +125,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
      Collections.sort(groups);
      // TODO treshold
-     ArrayList<Company> changed = detectedImportantChange(0.0f);
+     ArrayList<Company> changed = detectedImportantChange(threshold);
      if((changed == null ) || (changed.size() == 0)) return null;
 
      ArrayList<Suggestion> res = new ArrayList<>();
@@ -218,8 +218,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
     return result;
    }
 
-   // TODO
-   private ArrayList<Company> detectedImportantChange(Float treshold) {
+
+   private ArrayList<Company> detectedImportantChange(Float treshold) {      
      ArrayList<String> names = db.detectedImportantChange(treshold);
      if((names == null)||(names.size() == 0)) return null;
 

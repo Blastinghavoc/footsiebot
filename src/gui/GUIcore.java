@@ -231,13 +231,17 @@ public class GUIcore implements IGraphicalUserInterface {
         timeSelector.setItems(timeOptions);
         timeSelector.setPromptText("Time");
 
-        changeSelector = new Spinner<Double>(0.0, 10.00, 0.5, 0.05);
+        changeSelector = new Spinner<Double>(0.0, 10.00, core.LARGE_CHANGE_THRESHOLD, 0.05);
         changeSelector.setEditable(true);
 
         Button saveChanges = new Button("Save Changes");
         saveChanges.setOnAction(e -> {
-            if ((String) timeSelector.getValue() != null)
+            if ((String) timeSelector.getValue() != null){
                 core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
+            }
+            else{
+                core.updateSettings(null, changeSelector.getValue());
+            }
         });
 
         Button btnStyle = new Button("Update style");
