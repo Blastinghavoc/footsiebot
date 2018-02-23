@@ -25,15 +25,21 @@ public class WebScraper {
         ArrayList<Integer> vollist = new ArrayList<Integer>();
 
         String url = "http://www.londonstockexchange.com/exchange/prices-and-markets/stocks/indices/summary/summary-indices-constituents.html?index=UKX&page=";
-        
+
+        System.out.println(Thread.currentThread().getName());
+
         // for each possible LSE summary page
         for (int i = 1; i < 7; i++) {
+            if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){
+                System.out.println("Scraper interrupted");
+                return null;
+            }
 
             // attempts connection
             try {
                 page = Jsoup.connect(url + i).get();
             } catch (IOException e) {
-                System.out.println("Internet appears to be down.");                
+                System.out.println("Internet appears to be down.");
                 return null;
             }
 
@@ -44,13 +50,22 @@ public class WebScraper {
 
             // for each table entry
             for (Element entry : entries) {
+                if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){
+                    System.out.println("Scraper interrupted");
+                    return null;
+                }
+
                 // seperates each row into its columns
                 Elements columns = entry.select("td");
                 int j = 1;
 
                 // for each column (up to the percentage change column)
                 elementloop: for (Element column : columns) {
-                    // extracts stored information and stores it into 
+                    if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){
+                        System.out.println("Scraper interrupted");
+                        return null;
+                    }
+                    // extracts stored information and stores it into
                     // the relevant ArrayList
                     switch (j) {
                         case 1:
@@ -67,7 +82,7 @@ public class WebScraper {
                                 System.out.println("Internet appears to be down.");
                                 return null;
                             }
-                            
+
                             // extracts the company name, removing all surplus information
                             current = summary.select(".tesummary").first();
                             if (current == null) namelist.add("NAME N/A");
@@ -96,13 +111,13 @@ public class WebScraper {
 
                             break;
                         case 3: break;
-                        case 4: 
+                        case 4:
                             pricelist.add(Float.parseFloat(column.text().replace(",", "").trim()));
                             break;
-                        case 5: 
+                        case 5:
                             abslist.add(Float.parseFloat(column.ownText().trim()));
                             break;
-                        case 6: 
+                        case 6:
                             perclist.add(Float.parseFloat(column.ownText().trim()));
                             break;
                         default: break elementloop;

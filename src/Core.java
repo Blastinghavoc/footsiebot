@@ -479,7 +479,7 @@ public class Core extends Application {
     Must only be called asynchronously from the GUIcore.
     Downloads new data to a local variable in the background.
     */
-    public void downloadNewData(){
+    public void downloadNewData() throws InterruptedException{
         System.out.println("Downloading new data");
         while(readingScrape){
             System.out.println("Waiting for data to be read");
@@ -491,6 +491,12 @@ public class Core extends Application {
         }
         writingScrape = true;
         ScrapeResult temp = dgc.getData();
+        if (Thread.interrupted()||Thread.currentThread().isInterrupted()) {
+            throw new InterruptedException();
+        }
+        if(temp == null){
+            return;
+        }
         if((lastestScrape == null)){
             lastestScrape = temp;
             freshData = true;

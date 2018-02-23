@@ -431,18 +431,24 @@ public class GUIcore implements IGraphicalUserInterface {
             try {
                 while(!closing){
                     core.downloadNewData();
+                    if(closing){
+                        break;
+                    }
                     Thread.sleep(core.DOWNLOAD_RATE);
                 }
             }
             catch (InterruptedException e){
                 closing = true;
+                Thread.currentThread().interrupt();
+                System.out.println("Thread received interrupt");
+                return;//Maybe?
             }
             catch (Exception e) {
                 // should not be able to get here...
                 System.out.println("Error in thread");
                 e.printStackTrace();
             }
-        });
+        },"ddthread");
         dataDownload.start();
     }
 
@@ -453,6 +459,9 @@ public class GUIcore implements IGraphicalUserInterface {
         closing = true;
         try {
             dataDownload.interrupt();
+            dataDownload.setName("closing");
+            System.out.println(dataDownload.getName());
+            System.out.println("Interrupted thread");
             dataDownload.join();
         } catch(Exception e) {
             e.printStackTrace();
