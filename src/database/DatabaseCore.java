@@ -434,12 +434,15 @@ public class DatabaseCore implements IDatabaseManager {
     	return Math.round(f * 1000.0f) / 1000.0f;
     }
 
+    /**
+    * Converts a float into GBX currency format
+    *
+    * @param num The number to be converted
+    * @return The converted number
+    */
     private String convertToGBX(Float num) {
-        Locale english = new Locale("en", "GB");
-        NumberFormat formatter = NumberFormat.getCurrencyInstance(english);
-        DecimalFormatSymbols GBXFormat = new DecimalFormatSymbols();
-        GBXFormat.setCurrencySymbol("GBX ");
-        ((DecimalFormat) formatter).setDecimalFormatSymbols(GBXFormat);
+        DecimalFormat formatter = new DecimalFormat(
+                "GBX #,##0.00;GBX -#,##0.00");
         return formatter.format(num);
     }
 
@@ -880,12 +883,25 @@ public class DatabaseCore implements IDatabaseManager {
 
     		for (int i = 1; i <= columnCount; i++) {
     			String colName = rsmd.getColumnName(i);
-                if (colName.equals("TradingVolume")) {
-                    rs.add(colName + ", " + (Integer.toString(results
-                            .getInt(i))));
-                } else {
-                    rs.add(colName + ", " + ((Float)results.getFloat(i))
-                            .toString());
+                switch (colName) {
+                    case "TradingVolume":
+                        rs.add("Trading volume, " + (Integer.toString(
+                                results.getInt(i))));
+                        break;
+                    case "SpotPrice":
+                        rs.add("Spot price, " + (convertToGBX((Float)results
+                                .getFloat(i))));
+                        break;
+                    case "PercentageChange":
+                        rs.add("Percentage change, " + ((Float)results
+                                .getFloat(i)).toString() + "%");
+                        break;
+                    case "AbsoluteChange":
+                        rs.add("Absolute change," + (convertToGBX((Float)results
+                                .getFloat(i))));
+                        break;
+                    default:
+                        break;
                 }
     		}
 

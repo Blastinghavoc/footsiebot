@@ -211,7 +211,7 @@ public class Core extends Application {
                 }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is "+ data[0] + " since the market opened.";
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
