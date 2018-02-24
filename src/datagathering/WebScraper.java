@@ -38,6 +38,7 @@ public class WebScraper {
                 page = Jsoup.connect(url + i).get();
             } catch (IOException e) {
                 System.out.println("Internet appears to be down.");
+                e.printStackTrace();
                 return null;
             }
 
@@ -78,6 +79,7 @@ public class WebScraper {
                                 summary = Jsoup.connect(surl).get();
                             } catch (IOException e) {
                                 System.out.println("Internet appears to be down.");
+                                e.printStackTrace();
                                 return null;
                             }
 
