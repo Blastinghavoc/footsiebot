@@ -1107,7 +1107,7 @@ public class DatabaseCore implements IDatabaseManager {
     }
     //TODO
     public ArrayList<String> detectedImportantChange(Float treshold) {
-      String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 1";
+      String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 101";
 
       ResultSet rs = null;
       Statement stmt = null;
