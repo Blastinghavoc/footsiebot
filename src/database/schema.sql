@@ -8,10 +8,8 @@ DROP TABLE CompanyOpeningPriceCount;
 DROP TABLE CompanyAbsoluteChangeCount;
 DROP TABLE CompanyClosingPriceCount;
 DROP TABLE CompanyPercentageChangeCount;
-
 DROP TABLE CompanyTrendCount;
-
-DROP TABLE AISettings;
+DROP TABLE CompanyTradingVolumeCount;
 
 CREATE TABLE FTSECompanies (
 	CompanyCode varchar(10),
@@ -24,6 +22,7 @@ CREATE TABLE FTSECompanySnapshots (
 	SpotPrice decimal(5,2),
 	PercentageChange decimal(2,2),
 	AbsoluteChange decimal(4,2),
+	TradingVolume integer,
 	TimeOfData TimeStamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	primary key(CompanyCode, TimeOfData),
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
@@ -101,9 +100,10 @@ CREATE TABLE CompanyTrendCount (
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
 
-CREATE TABLE AISettings (
-	NewsTime integer,
-	SpotPriceChange decimal(2,2),
-	StartUpNum integer,
-	primary key(NewsTime)
+CREATE TABLE CompanyTradingVolumeCount (
+	CompanyCode varchar(10),
+	TradingVolumeCount integer,
+	TradingVolumeAdjustment decimal(2,2),
+	primary key(CompanyCode),
+	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
