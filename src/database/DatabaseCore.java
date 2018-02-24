@@ -1175,6 +1175,10 @@ public class DatabaseCore implements IDatabaseManager {
           break;
           case ABSOLUTE_CHANGE: table+= "CompanySpotPriceCount";
           break;
+          case TREND: table+= "CompanyTrendCount";
+          break;
+          case TRADING_VOLUME: table+= "CompanyTradingVolumeCount";
+          break;
         }
       } else {
         // is news
