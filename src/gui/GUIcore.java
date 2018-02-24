@@ -92,7 +92,7 @@ public class GUIcore implements IGraphicalUserInterface {
     * Builds the user interface on the initial stage of the application
     */
     private void setup() {
-        stage.setMinWidth(350);
+        stage.setMinWidth(500);
         stage.setMinHeight(250);
 
         root = new StackPane();
@@ -146,9 +146,9 @@ public class GUIcore implements IGraphicalUserInterface {
         Insets boardPadding = new Insets(0, 0, 0, 16);
         messageBoard.setPadding(boardPadding);
         messageBoard.setId("message-board");
-        messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(34));
-        messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(34));
-        messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
+        messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(18));
+        messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(18));
+        // messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
 
         inputWrapper = new StackPane();
         Insets inputPadding = new Insets(0, 5, 0, 5);
