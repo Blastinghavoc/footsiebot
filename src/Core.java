@@ -93,7 +93,7 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        // onTradingHour();
+        ui.displayMessage("Hello Dave! Welcome to Footsiebot! How can I help you?");
 
         if(runTradingHourTest){
             try{
