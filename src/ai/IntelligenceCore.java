@@ -50,6 +50,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
        break;
        case TREND: notToSuggestIntent = AIIntent.TREND;
        break;
+       case TRADING_VOLUME: notToSuggestIntent = AIIntent.TRADING_VOLUME;
+       break;
        case NEWS : doNotSuggestNews = true;
        break;
      }
@@ -188,6 +190,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
           break;
           case TREND : intent = AIIntent.TREND;
           break;
+          case TRADING_VOLUME : intent = AIIntent.TRADING_VOLUME;
+          break;
           default : intent = null;
         }
         System.out.println("Priority is "+ c.getPriority());
@@ -269,6 +273,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
        case ABSOLUTE_CHANGE : i = footsiebot.nlp.Intent.ABSOLUTE_CHANGE;
        break;
        case TREND : i = footsiebot.nlp.Intent.TREND;
+       break;
+       case TRADING_VOLUME : i = footsiebot.nlp.Intent.TRADING_VOLUME;
        break;
      }
 

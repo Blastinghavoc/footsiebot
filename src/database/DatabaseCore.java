@@ -39,7 +39,7 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    * Stores FTSE data in the database 
+    * Stores FTSE data in the database
     *
 	* @param sr The scrape result given by the web scraper
 	* @return true if the FTSE data is successfully store, false otherwise
@@ -61,9 +61,9 @@ public class DatabaseCore implements IDatabaseManager {
         String addScrapeResultQuery = null;
         ResultSet companyCheck = null;
 
-        // Will treat the following as a transaction, so that it can be rolled 
+        // Will treat the following as a transaction, so that it can be rolled
         // back if it fails
-        trySetAutoCommit(false); 
+        trySetAutoCommit(false);
 
         // may not need if storing older data as well
         deleteOldFTSEData();
@@ -91,7 +91,7 @@ public class DatabaseCore implements IDatabaseManager {
 
             try {
 
-                // If the company is a new FTSE company, add it to the 
+                // If the company is a new FTSE company, add it to the
                 // FTSECompanies and FTSEGroupMappings table
                 checkNewCompanyQuery 	= "SELECT * FROM FTSECompanies "
                 						+ "WHERE CompanyCode = '" + code + "'";
@@ -118,7 +118,7 @@ public class DatabaseCore implements IDatabaseManager {
                 						+ "(CompanyCode, SpotPrice, "
                 						+ "PercentageChange, AbsoluteChange, "
                 						+ "TradingVolume) "
-                                        + "VALUES('" + code + "', " + price 
+                                        + "VALUES('" + code + "', " + price
                                         + ", " + percChange + ", " + absChange
                                         + "," + tradingVolume + ")";
                 s4 = conn.createStatement();
@@ -232,12 +232,12 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /** 
+    /**
     * Returns the FTSE data asked for as well as other information about the
-    * company 
+    * company
     *
     * @param pr The parse result of the user's input
-    * @return An array list of strings containing the FTSE data requested and 
+    * @return An array list of strings containing the FTSE data requested and
     * other infomation about the company to be output
     * */
     @SuppressWarnings("fallthrough")
@@ -247,7 +247,7 @@ public class DatabaseCore implements IDatabaseManager {
     	ArrayList<String> output = new ArrayList<>();
 
     	// Call relevant method to get a query for the intent data or a
-    	// percentage change if the intent is to get trend data 
+    	// percentage change if the intent is to get trend data
     	switch (intent) {
     		case SPOT_PRICE:
     			// fall through
@@ -289,7 +289,7 @@ public class DatabaseCore implements IDatabaseManager {
 		                    	output.add(Integer.toString(results.getInt(1)));
 		                	} while (results.next());
 		            	}
-		                
+
 		            }
 		        } catch (SQLException e) {
 		            e.printStackTrace();
@@ -326,16 +326,16 @@ public class DatabaseCore implements IDatabaseManager {
 
     /**
     * Gets data about a group of companies over the time period specified
-    * 
+    *
     * @param pr The parse result from the user's input
-    * @return Array list of strings containing the average percentage change 
-    * for a group over time period specified, whether a group is rising or 
+    * @return Array list of strings containing the average percentage change
+    * for a group over time period specified, whether a group is rising or
     * falling, the company with maximum spot price, the company with the minimum
     * spot price, the company with the maxium percentage change, the company
     * with the minimum percentage change
     */
     private ArrayList<String> getGroupData(ParseResult pr) {
-    	
+
     	ArrayList<String> output = new ArrayList<>();
     	HashMap<String, Float> spotPriceMap = new HashMap<>();
     	HashMap<String, Float> percChangeMap = new HashMap<>();
@@ -350,7 +350,7 @@ public class DatabaseCore implements IDatabaseManager {
     	String date = timeSpecifierToDate(timeSpec);
 
     	// Gets percentage change and spot price/ closing price for each company
-    	// in group 
+    	// in group
     	for (int i = 0; i < companies.length; i ++) {
             ArrayList<Float> tmp = getTrendDataOnDate(companies[i], timeSpec);
             if (tmp == null || tmp.size() == 0){
@@ -362,7 +362,7 @@ public class DatabaseCore implements IDatabaseManager {
 
 			// Gets spot price if the time specifier is today, otherwise gets
 			// closing price
-			String spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec, 
+			String spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec,
 					companies[i], date);
 			try {
 				s1 = conn.createStatement();
@@ -394,33 +394,33 @@ public class DatabaseCore implements IDatabaseManager {
 			output.add("had no overall change");
 		}
 
-		Comparator<? super Map.Entry<String, Float>> valueComparator = 
+		Comparator<? super Map.Entry<String, Float>> valueComparator =
 				((entry1, entry2) ->
 				entry1.getValue().compareTo(entry2.getValue()));
 
-		Map.Entry<String, Float> maxSpotPriceCompany = 
+		Map.Entry<String, Float> maxSpotPriceCompany =
 				Collections.max(spotPriceMap.entrySet(), valueComparator);
-		Map.Entry<String, Float> minSpotPriceCompany = 
+		Map.Entry<String, Float> minSpotPriceCompany =
 				Collections.min(spotPriceMap.entrySet(), valueComparator);
-		Map.Entry<String, Float> maxPercChangeCompany = 
+		Map.Entry<String, Float> maxPercChangeCompany =
 				Collections.max(percChangeMap.entrySet(), valueComparator);
-		Map.Entry<String, Float> minPercChangeCompany = 
+		Map.Entry<String, Float> minPercChangeCompany =
 				Collections.min(percChangeMap.entrySet(), valueComparator);
 
-		output.add(maxSpotPriceCompany.getKey() + ", " 
+		output.add(maxSpotPriceCompany.getKey() + ", "
 				+ roundFloat(maxSpotPriceCompany.getValue()).toString());
-		output.add(minSpotPriceCompany.getKey() + ", " 
+		output.add(minSpotPriceCompany.getKey() + ", "
 				+ roundFloat(minSpotPriceCompany.getValue()).toString());
-		output.add(maxPercChangeCompany.getKey() + ", " 
+		output.add(maxPercChangeCompany.getKey() + ", "
 				+ roundFloat(maxPercChangeCompany.getValue()).toString());
-		output.add(minPercChangeCompany.getKey() + ", " 
+		output.add(minPercChangeCompany.getKey() + ", "
 				+ roundFloat(minPercChangeCompany.getValue()).toString());
 
     	return output;
     }
 
     /**
-    * Rounds float to 3 decimal places 
+    * Rounds float to 3 decimal places
     *
     * @param f The float to be rounded
     * @return The rounded float as a string
@@ -430,11 +430,11 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    * Gets trend data 
+    * Gets trend data
 	*
 	* @param pr The parse result from the user's input
 	* @return An array list of strings containing the percentage change, whether
-	* the company has risen or fallen, the start price and the end price 
+	* the company has risen or fallen, the start price and the end price
     */
     private ArrayList<String> getTrendData(ParseResult pr) {
 
@@ -500,17 +500,17 @@ public class DatabaseCore implements IDatabaseManager {
 
     /**
     * Calculates the percentage change between the opening price and the
-    * closing price (or spot price if time specifier is today) for a company 
-    * on day specified 
+    * closing price (or spot price if time specifier is today) for a company
+    * on day specified
     *
     * @param companyCode The company's code
     * @param timeSpec The time specifier to get the trend data from
     * @return An array list of floats containing the percentage change, start
     * price and end price
     */
-    private ArrayList<Float> getTrendDataOnDate(String companyCode, 
+    private ArrayList<Float> getTrendDataOnDate(String companyCode,
     		TimeSpecifier timeSpec) {
-    	
+
     	LocalDateTime currentTime = LocalDateTime.now();
         ArrayList<Float> trendData = new ArrayList<>();
     	Statement s1 = null;
@@ -525,7 +525,7 @@ public class DatabaseCore implements IDatabaseManager {
    		// query to get opening price of day specified
    		String startTimeQuery = getOpeningPriceQuery(companyCode, date);
 
-   		String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode, 
+   		String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode,
    				date);
 
    		// If able to get start and end prices, calculate the percentage
@@ -567,17 +567,17 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    * Calculates the percentage change between the opening price on the day 
+    * Calculates the percentage change between the opening price on the day
     * specified  and the current spot price for a company
     *
     * @param companyCode The company's code
     * @param timeSpec The time specifier
-    * @return An array list of floats containing the percentage change, opening 
+    * @return An array list of floats containing the percentage change, opening
     * price and spot price
     */
-    private ArrayList<Float> getTrendDataSinceDate(String companyCode, 
+    private ArrayList<Float> getTrendDataSinceDate(String companyCode,
     		TimeSpecifier timeSpec) {
-    	
+
     	ArrayList<Float> trendData = new ArrayList<>();
     	LocalDateTime currentTime = LocalDateTime.now();
     	Statement s1 = null;
@@ -627,20 +627,20 @@ public class DatabaseCore implements IDatabaseManager {
     	return trendData;
     }
 
-    /** 
+    /**
     * Returns query to get spot price of company if the time specifer is today
     * or the closing price if it isn't
     *
-    * @param timeSpec The time specifier 
+    * @param timeSpec The time specifier
     * @param companyCode The company's code
     * @param date The time specifier converted to a date
     * @return query to get spot price of company if the time specifier is today,
     * otherwise query to get closing price of compnay on the specified day
     */
     private String spotOrClosingPriceQuery(
-    		TimeSpecifier timeSpec, String companyCode, 
+    		TimeSpecifier timeSpec, String companyCode,
     		String date) {
-   		
+
    		String query = "";
    		if (timeSpec == TimeSpecifier.TODAY) {
    			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
@@ -648,7 +648,7 @@ public class DatabaseCore implements IDatabaseManager {
    		} else {
    			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
 	                + "WHERE CompanyCode = '" + companyCode
-	                + "' AND DATE(TimeOfData) <= '" + date 
+	                + "' AND DATE(TimeOfData) <= '" + date
 	                + "' ORDER BY TimeOfData DESC LIMIT 1";
    		}
    		return query;
@@ -705,7 +705,7 @@ public class DatabaseCore implements IDatabaseManager {
         // get current data requested from database
         if (isFetchCurrentQuery) {
             query   = "SELECT " + colName + " FROM FTSECompanySnapshots "
-                    + "WHERE CompanyCode = '" + companyCode 
+                    + "WHERE CompanyCode = '" + companyCode
                     + "' ORDER BY TimeOfData DESC LIMIT 1";
         }
 
@@ -713,7 +713,7 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    * Converts time specifier to date 
+    * Converts time specifier to date
     *
     * @param t The time specifier
     * @return The time specifier converted to a date in the format yyyy-MM-dd
@@ -726,7 +726,7 @@ public class DatabaseCore implements IDatabaseManager {
         String formattedDate = "";
 
         switch (t) {
-            // If the time specifier is today and yesterday, get date of most 
+            // If the time specifier is today and yesterday, get date of most
     		// recent trading day
             case TODAY:
                 formattedDate = getMostRecentTradingDay(date);
@@ -769,8 +769,8 @@ public class DatabaseCore implements IDatabaseManager {
     * Finds date of most recent trading day if it is a non trading day
     *
     * @param currentTime The current time
-    * @return If it is a trading day, the current date, otherwise the date of 
-    * the most recent trading day 
+    * @return If it is a trading day, the current date, otherwise the date of
+    * the most recent trading day
     */
     private String getMostRecentTradingDay(LocalDateTime currentTime) {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -794,7 +794,7 @@ public class DatabaseCore implements IDatabaseManager {
     /**
     *
     * Returns othe relevant information stored about a company except the
-    * information asked for by the user 
+    * information asked for by the user
     *
     * @param pr The parse result of the user's input
     * @return An array list of strings containing the other company information
@@ -850,8 +850,8 @@ public class DatabaseCore implements IDatabaseManager {
     			query += ", ";
     		}
     	}
-    	query 	+= " FROM FTSECompanySnapshots WHERE CompanyCode = '" 
-    			+ companyCode 
+    	query 	+= " FROM FTSECompanySnapshots WHERE CompanyCode = '"
+    			+ companyCode
     			+ "' ORDER BY TimeOfData DESC LIMIT 1";
 
     	// Execute and store query results
@@ -875,8 +875,8 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    * Gets the table name where the count of queries regarding an intent is 
-    * stored 
+    * Gets the table name where the count of queries regarding an intent is
+    * stored
     *
     * @param i The intent
     * @return The name of the table
@@ -923,7 +923,7 @@ public class DatabaseCore implements IDatabaseManager {
       ArrayList<Company> companies = new ArrayList<>();
       // Get Counts for each intent
       String query = ""
-        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(TrendCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0),coalesce(TrendAdjustment,0) "
+        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(TrendCount,0),coalesce(TradingVolumeCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0),coalesce(TrendAdjustment,0),coalesce(TradingVolumeAdjustment,0) "
         + "FROM FTSECompanies ftc "
         + "LEFT OUTER JOIN CompanyNewsCount cnc ON (cnc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanySpotPriceCount csc ON (csc.CompanyCode = ftc.CompanyCode) "
@@ -931,7 +931,9 @@ public class DatabaseCore implements IDatabaseManager {
         + "LEFT OUTER JOIN CompanyAbsoluteChangeCount cac ON (cac.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)"
-        + "LEFT OUTER JOIN CompanyTrendCount ctc ON (ctc.CompanyCode = ftc.CompanyCode)";
+        + "LEFT OUTER JOIN CompanyTrendCount ctc ON (ctc.CompanyCode = ftc.CompanyCode)"
+        + "LEFT OUTER JOIN CompanyTradingVolumeCount ctvc ON (ctvc.CompanyCode = ftc.CompanyCode)";
+
 
 
       Statement stmt = null;
@@ -953,6 +955,8 @@ public class DatabaseCore implements IDatabaseManager {
           float closing = (float) rs.getInt("coalesce(ClosingPriceCount,0)");
           float percentageChange = (float) rs.getInt("coalesce(percentageChangeCount,0)");
           float trend = (float) rs.getInt("coalesce(TrendCount,0)");
+          float volume = (float) rs.getInt("coalesce(TradingVolumeCount,0)");
+
 
           // Now the  adjustments
           // for news
@@ -964,7 +968,7 @@ public class DatabaseCore implements IDatabaseManager {
           float closingPriceAdj =  rs.getFloat("coalesce(ClosingPriceAdjustment,0)");
           float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
           float trendAdj =  rs.getFloat("coalesce(TrendAdjustment,0)");
-
+          float volumeAdj =  rs.getFloat("coalesce(TradingVolumeAdjustment,0)");
 
           // intent priorities
           float spotPriority = spot - spotAdj;
@@ -973,7 +977,7 @@ public class DatabaseCore implements IDatabaseManager {
           float absoluteChangePriority = absoluteChange - absoluteChangeAdj;
           float percentageChangePriority = percentageChange - percentageChangeAdj;
           float trendPriority = trend - trendAdj;
-
+          float volumePriority = volume - volumeAdj;
 
           // news
           float newsPriority = newsCount - newsAdj;
@@ -986,13 +990,12 @@ public class DatabaseCore implements IDatabaseManager {
           mapping.put(AIIntent.PERCENT_CHANGE, new Float[]{percentageChange,percentageChangeAdj });
           mapping.put(AIIntent.ABSOLUTE_CHANGE, new Float[]{absoluteChange, absoluteChangeAdj});
           mapping.put(AIIntent.TREND, new Float[]{trend, trendAdj});
-
-
+          mapping.put(AIIntent.TRADING_VOLUME, new Float[]{volume, volumeAdj});
 
           // Calculate priority for each company
           Float intentScale = 1.0f;
           Float newsScale = 1.0f;
-          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority) + newsScale * (newsPriority);
+          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority + volumePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
 
           companies.add(new Company(rs.getString("CompanyCode"), mapping, intentScale, newsScale, newsCount, newsAdj));
