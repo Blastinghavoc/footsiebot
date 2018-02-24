@@ -7,7 +7,7 @@ public class Group implements Comparable<Group> {
   private ArrayList<Company> companies;
   private String code;
   private Float groupCount;
-  private Float adjustment;
+  private Float adjustment = 0.0f;
 
 
   public Group(String code) {

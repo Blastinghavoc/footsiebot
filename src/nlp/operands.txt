@@ -72,7 +72,8 @@ RTO,Rentokil Initial
 RIO,Rio Tinto Group
 RR.,Rolls-Royce Holdings
 RBS,The Royal Bank of Scotland Group
-RDSA,Royal Dutch Shell
+RDSA,Royal Dutch Shell A
+RDSB,Royal Dutch Shell B
 RSA,RSA Insurance Group
 SGE,Sage Group
 SBRY,Sainsbury's
