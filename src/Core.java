@@ -199,6 +199,10 @@ public class Core extends Application {
                 }
                 break;
             case TRADING_VOLUME:
+                output = "The trading volume of " + pr.getOperand().toUpperCase() + " is "+ data[0];
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case PERCENT_CHANGE:
                 output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened.";
@@ -434,6 +438,9 @@ public class Core extends Application {
             break;
             case TRADING_VOLUME:
                 if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
                     return false;
                 }
             break;
