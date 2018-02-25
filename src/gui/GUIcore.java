@@ -334,6 +334,8 @@ public class GUIcore implements IGraphicalUserInterface {
         settingsPane.add(saveChanges, 0, 2);
         settingsPane.add(summaryBtn, 0, 3);
 
+        settingsPane.add(btnStyle, 0, 3);
+
         settingsPane.setColumnSpan(timeDesc, 3);
         settingsPane.setColumnSpan(changeDesc, 3);
         settingsPane.setColumnSpan(saveChanges, 2);
@@ -669,6 +671,14 @@ public class GUIcore implements IGraphicalUserInterface {
         messages.setValue(messageBoard.getChildren());
     }
 
+    public void displayMessage(String msg, Suggestion sugg, boolean isSummary) {
+        System.out.println("Printing summary");
+        if (msg != null) {
+            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, sugg, this, isSummary));
+        }
+        messages.setValue(messageBoard.getChildren());
+    }
+
    /**
     * Displays a child message from the system to the user
     *
@@ -685,11 +695,6 @@ public class GUIcore implements IGraphicalUserInterface {
                 messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, null, this));
         }
         messages.setValue(messageBoard.getChildren());
-    }
-
-
-    public void displaySummary(String pre, String[] data, String post) {
-        messageBoard.getChildren().add(new SummaryMessage(pre, data, post));
     }
 
    /**
