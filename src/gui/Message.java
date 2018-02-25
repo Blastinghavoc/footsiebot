@@ -6,7 +6,7 @@ import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
-import javafx.scene.text.Text;
+import javafx.scene.text.*;
 import javafx.scene.shape.Rectangle;
 import javafx.geometry.*;
 import javafx.animation.*;
@@ -23,6 +23,7 @@ public class Message extends FlowPane {
     private GUIcore ui;
     private boolean isAI;
     private Message parent;
+    private boolean isSummary;
 
     private StackPane msgWrapper;
     private Label msg;
@@ -44,6 +45,7 @@ public class Message extends FlowPane {
         this.sent = sent;
         this.ui = ui;
         this.isAI = (s!= null);
+        isSummary = false;
         sugg = s;
         parent = null;
         setPrefWidth(chatPaneWidth - 36);
@@ -51,8 +53,58 @@ public class Message extends FlowPane {
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
+
+        // System.out.println(sizing.getFont());
+
+        width = Math.ceil(sizing.getLayoutBounds().getWidth());
+        height = Math.ceil(sizing.getLayoutBounds().getHeight() + 200);
+
+        initMessage(text);
+
+        aiNote = new Tooltip("Why am I seeing this?");
+        removeNote = new Tooltip("This isn't important to me");
+
+        if (isAI)
+            setupAI();
+
+        if (sent) {
+            if (isAI)
+                getChildren().add(btnWrapper);
+            getChildren().add(msgWrapper);
+            finishSetup("user");
+            setAlignment(Pos.CENTER_RIGHT);
+        } else {
+            getChildren().addAll(msgWrapper);
+            if (isAI)
+                getChildren().add(btnWrapper);
+            finishSetup("system");
+            setAlignment(Pos.CENTER_LEFT);
+        }
+    }
+
+    public Message(String text, LocalDateTime timestamp, boolean sent, Suggestion s, GUIcore ui, boolean isSummary) {
+        super();
+        double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
+
+        this.timestamp = timestamp;
+        this.sent = sent;
+        this.ui = ui;
+        this.isAI = (s!= null);
+        sugg = s;
+        parent = null;
+        setPrefWidth(chatPaneWidth - 36);
+        setMaxWidth(chatPaneWidth - 36);
+
+        final double maxWidth = (chatPaneWidth - 36) * 0.55;
+        Text sizing = new Text(text);
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
+        if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
+            sizing.setWrappingWidth(maxWidth);
+
+        // System.out.println(sizing.getFont());
 
         width = Math.ceil(sizing.getLayoutBounds().getWidth());
         height = Math.ceil(sizing.getLayoutBounds().getHeight());
@@ -88,12 +140,14 @@ public class Message extends FlowPane {
         sent = false;
         this.ui = ui;
         isAI = false;
+        isSummary = false;
         this.parent = parent;
         setPrefWidth(chatPaneWidth - 36);
         setMaxWidth(chatPaneWidth - 36);
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
@@ -167,6 +221,9 @@ public class Message extends FlowPane {
         visual.getStyleClass().add(sender + "-visual");
         getStyleClass().add(sender + "-message");
         msg.setAlignment(Pos.CENTER_LEFT);
+        // setMinHeight(height);
+        // setMaxHeight(height);
+        // System.out.println(msg.getFont());
     }
 
    /**
@@ -180,6 +237,7 @@ public class Message extends FlowPane {
 
         final double maxWidth = (chatPaneWidth - 34) * 0.55;
         Text sizing = new Text(msg.getText());
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
@@ -255,5 +313,8 @@ public class Message extends FlowPane {
         return timestamp;
     }
 
+    public boolean isSummary() {
+        return isSummary;
+    }
 
 }
