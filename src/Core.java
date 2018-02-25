@@ -565,7 +565,7 @@ public class Core extends Application {
         for (int i = 0;i < suggarr.length ;i++ ) {
             ParseResult pr = suggarr[i].getParseResult();
             String[] data = dbm.getFTSE(pr);
-            output = "Warning : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +- "+ LARGE_CHANGE_THRESHOLD+"%";
+            output = "Warning : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which exceeds the threshold of +- "+ LARGE_CHANGE_THRESHOLD+"%";
             ui.displayMessage(output);//NOT passing the suggestion, as this cannot be marked irrelevant.
         }
     }
@@ -574,44 +574,30 @@ public class Core extends Application {
     *
     */
     public void onTradingHour() {
-        System.out.println("It's time for your daily news summary!");//DEBUG
+        System.out.println("It's time for your daily summary!");//DEBUG
         Company[] companies = ic.onNewsTime();
         String[] companyCodes = new String[companies.length];
-        String output = "Hi Dave, it's time for your daily summary!\nI've detected the following companies as important to you:";
+        String output = "Hi Dave, it's time for your daily summary!\nI've detected that the following companies are important to you:";
         if((companies == null) || (companies.length < 1)){
             return;
         }
-        output += "\ncode  : spot     abs      perc     ";//"open  ";
+
         for(int i = 0;i < companies.length;i++){
             Company c = companies[i];
-            String resizedCode = c.getCode();
-            companyCodes[i] = resizedCode;
-            while(resizedCode.length() <= 5){
-                resizedCode += " ";
-            }
-            output += "\n"+resizedCode + " : ";
+            companyCodes[i] = c.getCode();
             String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
             String[] temp;
-            for(String s:data){
-                temp = s.split(",");
-                String val;
-                if(temp.length < 2){
-                    val = temp[0];
-                }
-                else{
-                    val = temp[1];
-                }
-
-                while(val.length() < 8){
-                    val += " ";
-                }
-                output += val+" ";
+            output+= "\n"+c.getCode().toUpperCase()+" :\n";
+            output+= "    Spot price = "+data[0]+"\n";
+            for(int j = 1; j< data.length; j++){
+                temp = data[j].split(",");
+                output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
             }
         }
-        output += "\n\nYou may also view the latest news for these companies in the news pane";
+        output += "You may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayResults(news,null);
         ui.displayMessage(output,null);
+        ui.displayResults(news,null);
     }
 
    /**
