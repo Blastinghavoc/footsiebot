@@ -95,8 +95,12 @@ public class Core extends Application {
             // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
-        
-        ui.displayMessage("Hello Dave! Welcome to Footsiebot! How can I help you?");
+
+        if(!nameless){
+            ui.displayMessage("Hello "+USER_NAME+"! Welcome to Footsiebot! How can I help you?");
+        }else{
+            ui.displayMessage("Hi there! I am Footsiebot! Before we continue, what is your name?");
+        }
 
         if(runTradingHourTest){
             try{
@@ -143,10 +147,24 @@ public class Core extends Application {
     * @param raw the String input by the user
     */
     public void onUserInput(String raw) {
+        if(nameless){
+            handleUserNameChange(raw);
+            String message = "If this is not your name, or you decide you want";
+            message += " me to call you something else, just say 'Call me YOURNAME'";
+            message += " at any point.";
+            return;
+        }
+        else{
+            if(raw.toLowerCase().startsWith("call me ")){
+                String newName = raw.substring(8, raw.length());
+                handleUserNameChange(newName);
+                return;
+            }
+        }
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
         if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
-            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
             return;
         }
         System.out.println(pr); //DEBUG
@@ -598,7 +616,7 @@ public class Core extends Application {
         System.out.println("It's time for your daily summary!");//DEBUG
         Company[] companies = ic.onNewsTime();
         String[] companyCodes = new String[companies.length];
-        String output = "Hi Dave, it's time for your daily summary!\nI've detected that the following companies are important to you:";
+        String output = "Hi "+USER_NAME+", it's time for your daily summary!\nI've detected that the following companies are important to you:";
         if((companies == null) || (companies.length < 1)){
             return;
         }
@@ -722,7 +740,7 @@ public class Core extends Application {
         finally{
             tryClose(br);
         }
-        if(USER_NAME == null){
+        if(USER_NAME == null || USER_NAME.isEmpty()){
             nameless = true;
         }
         System.out.println("Loaded TRADING_TIME as "+TRADING_TIME);
