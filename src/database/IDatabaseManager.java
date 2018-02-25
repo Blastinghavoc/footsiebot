@@ -26,5 +26,5 @@ public interface IDatabaseManager {
 
   public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews);
 
-  public ArrayList<String> detectedImportantChange(Float treshold);
+  public ArrayList<String> detectedImportantChange(Float threshold);
 }
