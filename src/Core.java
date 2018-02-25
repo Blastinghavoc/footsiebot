@@ -472,6 +472,14 @@ public class Core extends Application {
                     return false;
                 }
             break;
+            case TREND_SINCE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    return false;
+                }
+            break;
             case NEWS:
             break;
             case GROUP_FULL_SUMMARY:

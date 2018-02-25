@@ -285,9 +285,10 @@ public class DatabaseCore implements IDatabaseManager {
 		                String nullArr[] = null;
 		                return nullArr; // return null array if no results
 		            } else {
-		            	if (intent != intent.TRADING_VOLUME) {
+		            	if (intent != Intent.TRADING_VOLUME) {
 		            		do {
-		                    	output.add(convertToGBX(((Float)results.getFloat(1))));
+		                    	output.add(convertToGBX(((Float)results
+                                        .getFloat(1))));
 		                	} while (results.next());
 		            	} else {
 		            		do {
@@ -309,6 +310,8 @@ public class DatabaseCore implements IDatabaseManager {
         // add other company data to array list
         switch (intent) {
         	case TREND:
+                // fall through
+            case TREND_SINCE:
         		output.addAll(getTrendData(pr));
         		break;
         	case GROUP_FULL_SUMMARY:
@@ -468,14 +471,12 @@ public class DatabaseCore implements IDatabaseManager {
     				return output;
     			}
     			break;
-    		/*
             case TREND_SINCE:
     		 	trendData = getTrendDataSinceDate(companyCode, timeSpec);
     			if (trendData.isEmpty()) {
     				return output;
     			}
     			break;
-    		*/
     		default:
     			break;
     	}
