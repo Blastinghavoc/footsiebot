@@ -8,7 +8,7 @@ public enum Intent {
   PERCENT_CHANGE,
   ABSOLUTE_CHANGE,
   TREND,//rising or falling
-
+  TREND_SINCE,
   NEWS,
 
   //GROUP_TREND,//Are X rising or falling

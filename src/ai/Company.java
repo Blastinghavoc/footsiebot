@@ -20,9 +20,8 @@ public class Company implements Comparable<Company> {
     this.newsScale = newsScale;
     this.newsCount = newsCount;
     this.newsAdj = newsAdj;
-
   }
-  //TOTEST
+
   public void decrementPriorityOfIntent(AIIntent i) {
 
     for(Map.Entry<AIIntent,Float[]> e: mapping.entrySet()) {
@@ -32,9 +31,7 @@ public class Company implements Comparable<Company> {
         float adjustment = current[1];
         mapping.put(i, new Float[]{counter, 1.0f + 0.5f * adjustment});
       }
-
     }
-
   }
 
   public String getCode() {

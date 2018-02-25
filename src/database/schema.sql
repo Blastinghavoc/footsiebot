@@ -10,6 +10,7 @@ DROP TABLE CompanyClosingPriceCount;
 DROP TABLE CompanyPercentageChangeCount;
 DROP TABLE CompanyTrendCount;
 DROP TABLE CompanyTradingVolumeCount;
+DROP TABLE CompanyTrendSinceCount;
 
 CREATE TABLE FTSECompanies (
 	CompanyCode varchar(10),
@@ -107,3 +108,12 @@ CREATE TABLE CompanyTradingVolumeCount (
 	primary key(CompanyCode),
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
+
+CREATE TABLE CompanyTrendSinceCount (
+	CompanyCode varchar(10),
+	TrendSinceCount integer,
+	TrendSinceAdjustment decimal(2,2),
+	primary key(CompanyCode),
+	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
+);
+

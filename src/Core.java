@@ -149,13 +149,13 @@ public class Core extends Application {
             ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
             return;
         }
-
+        System.out.println(pr); //DEBUG
         if(!checkParseResultValid(pr)){
             ui.displayMessage("Sorry, that was not a valid query.");
             return;
         }
 
-        System.out.println(pr); //DEBUG
+
 
         extraDataAddedToLastOutput = null;//Reseting this.
 
@@ -196,7 +196,7 @@ public class Core extends Application {
         String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is "+ data[0];
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -214,7 +214,7 @@ public class Core extends Application {
                 }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is "+ data[0] + " since the market opened.";
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -224,7 +224,7 @@ public class Core extends Application {
                     String date = data[1].split(",")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
+                    output = "The opening price of "+ pr.getOperand()+" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -236,7 +236,7 @@ public class Core extends Application {
                     String date = data[1].split(",")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
+                    output = "The closing price of "+ pr.getOperand()+" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -264,16 +264,26 @@ public class Core extends Application {
                         break;
                     }
                     output += " with a net change of "+data[0].trim() + "%.\n";
-                    output += "The opening price was GBX "+ data[2] + " and the most recent price is GBX "+ data[3] + ".";
+                    output += "The opening price was "+ data[2] + " and the most recent price is "+ data[3] + ".";
                     //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
                     output += " "+data[1];
                     output += " with a net change of "+data[0].trim() + "%.\n";
-                    output += "The opening price was GBX "+ data[2] + " and the closing price was GBX "+ data[3] + ".";
+                    output += "The opening price was "+ data[2] + " and the closing price was "+ data[3] + ".";
                 }
                 break;
+                case TREND_SINCE:
+                    if(data.length <4){
+                        break;
+                    }
+                    output = "Since "+pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
+                    output += " "+data[1];
+                    output += " with a net change of "+data[0].trim() + "%.\n";
+                    output += "The opening price was "+ data[2] + " and the current spot price is "+ data[3] + ".";
+
+                    break;
             case NEWS:
                 //Nothing to do here, should never run, TODO remove
                 break;
@@ -299,9 +309,9 @@ public class Core extends Application {
                     }
                     output += " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split(",");
-                    output += high[0].trim().toUpperCase() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
+                    output += high[0].trim().toUpperCase() + " has the highest spot price at " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
-                    output += low[0].trim().toUpperCase() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
+                    output += low[0].trim().toUpperCase() + " has the lowest spot price at " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
                     output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
                     String[] mostFalling = data[5].split(",");
@@ -311,9 +321,9 @@ public class Core extends Application {
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
                     output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split(",");
-                    output += high[0].trim().toUpperCase() + " had the highest closing price at GBX " + high[1].trim() + ".\n";
+                    output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
-                    output += low[0].trim().toUpperCase() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
+                    output += low[0].trim().toUpperCase() + " had the lowest closing price at " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
                     output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
                     String[] mostFalling = data[5].split(",");
@@ -475,6 +485,14 @@ public class Core extends Application {
                     return false;
                 }
             break;
+            case TREND_SINCE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
+                    return false;
+                }
+            break;
             case NEWS:
             break;
             case GROUP_FULL_SUMMARY:
@@ -577,44 +595,30 @@ public class Core extends Application {
     *
     */
     public void onTradingHour() {
-        System.out.println("It's time for your daily news summary!");//DEBUG
+        System.out.println("It's time for your daily summary!");//DEBUG
         Company[] companies = ic.onNewsTime();
         String[] companyCodes = new String[companies.length];
-        String output = "Hi Dave, it's time for your daily summary!\nI've detected the following companies as important to you:";
+        String output = "Hi Dave, it's time for your daily summary!\nI've detected that the following companies are important to you:";
         if((companies == null) || (companies.length < 1)){
             return;
         }
-        output += "\ncode  : spot     abs      perc     ";//"open  ";
+
         for(int i = 0;i < companies.length;i++){
             Company c = companies[i];
-            String resizedCode = c.getCode();
-            companyCodes[i] = resizedCode;
-            while(resizedCode.length() <= 5){
-                resizedCode += " ";
-            }
-            output += "\n"+resizedCode + " : ";
+            companyCodes[i] = c.getCode();
             String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
             String[] temp;
-            for(String s:data){
-                temp = s.split(",");
-                String val;
-                if(temp.length < 2){
-                    val = temp[0];
-                }
-                else{
-                    val = temp[1];
-                }
-
-                while(val.length() < 8){
-                    val += " ";
-                }
-                output += val+" ";
+            output+= "\n"+c.getCode().toUpperCase()+" :\n";
+            output+= "    Spot price = "+data[0]+"\n";
+            for(int j = 1; j< data.length; j++){
+                temp = data[j].split(",");
+                output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
             }
         }
-        output += "\n\nYou may also view the latest news for these companies in the news pane";
+        output += "You may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayResults(news,null);
         ui.displayMessage(output,null);
+        ui.displayResults(news,null);
     }
 
    /**
