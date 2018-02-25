@@ -21,11 +21,14 @@ public class Core extends Application {
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
-    public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
+    public long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
-    public static Double LARGE_CHANGE_THRESHOLD = 0.5;
+    public Double LARGE_CHANGE_THRESHOLD = 0.5;
 
-    public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
+    public String USER_NAME = "Dave";
+    private Boolean nameless = false;
+
+    public long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
     private Boolean readingScrape = false;
@@ -92,8 +95,6 @@ public class Core extends Application {
             // System.out.println(e.getMessage()); //DEBUG
             ui = new GUIcore(primaryStage, this);
         }
-
-        // onTradingHour();
 
         if(runTradingHourTest){
             try{
@@ -633,6 +634,16 @@ public class Core extends Application {
         }
     }
 
+
+    private void handleUserNameChange(String name){
+        USER_NAME = name;
+        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
+        ui.displayMessage("Thanks "+name+"! How can I help you?");
+    }
+
+    /*
+    Handles updating the settings when the user makes a change to them in the gui.
+    */
     public void updateSettings(String time, Double change) {
         if(time == null && change == null){
             return;
@@ -655,11 +666,14 @@ public class Core extends Application {
         }
         ui.stopTradingHourTimeline();
         ui.startTradingHourTimeline();
-        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD);
+        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
         System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
     }
 
-    private void writeSettings(Long time, Double change){
+    /*
+    Stores settings when updated
+    */
+    private void writeSettings(Long time, Double change,String userName){
         File fl = null;
         BufferedWriter bw = null;
         try{
@@ -668,6 +682,8 @@ public class Core extends Application {
             bw.write(time.toString());
             bw.newLine();
             bw.write(change.toString());
+            bw.newLine();
+            bw.write(userName);
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -685,12 +701,16 @@ public class Core extends Application {
             br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
             TRADING_TIME = Long.parseLong(br.readLine());
             LARGE_CHANGE_THRESHOLD = Double.parseDouble(br.readLine());
+            USER_NAME = br.readLine();
 
         }catch(Exception e){
             e.printStackTrace();
         }
         finally{
             tryClose(br);
+        }
+        if(USER_NAME == null){
+            nameless = true;
         }
         System.out.println("Loaded TRADING_TIME as "+TRADING_TIME);
         System.out.println("Loaded LARGE_CHANGE_THRESHOLD as "+LARGE_CHANGE_THRESHOLD);
