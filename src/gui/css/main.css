@@ -1,5 +1,5 @@
 @font-face {
-    src: url("fonts/Above.ttf");
+    src: url("fonts/ABOVE.ttf");
 }
 
 @font-face {
@@ -55,6 +55,48 @@
     -fx-fill: green;
 }
 
+.scroll-bar {
+    -fx-opacity: 1;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .thumb {
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.3;
+    -fx-background-radius: 2em;
+}
+
+.scroll-bar > .thumb:pressed {
+    /*derive(#6699CC, -15%)*/
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.4;
+}
+
+.scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: black;
+    -fx-opacity: 0.4;
+}
+
+.scroll-bar > .increment-button > .increment-arrow:pressed,
+.scroll-bar > .decrement-button > .decrement-arrow:pressed {
+    -fx-background-color: black;
+    -fx-opacity: 0.55;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
 /*==============================================================================
 ================================ Message Board ================================
 ==============================================================================*/
@@ -64,48 +106,6 @@
 }
 
 #message-board {
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar {
-    -fx-opacity: 1;
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar > .thumb {
-    -fx-background-color: transparent, black, transparent;
-    -fx-opacity: 0.3;
-    -fx-background-radius: 2em;
-}
-
-#board-wrapper > .scroll-bar > .thumb:pressed {
-    /*derive(#6699CC, -15%)*/
-    -fx-background-color: transparent, black, transparent;
-    -fx-opacity: 0.4;
-}
-
-#board-wrapper > .scroll-bar > .track {
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar > .increment-button,
-#board-wrapper > .scroll-bar > .decrement-button {
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar > .increment-button > .increment-arrow,
-#board-wrapper > .scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: black;
-    -fx-opacity: 0.4;
-}
-
-#board-wrapper > .scroll-bar > .increment-button > .increment-arrow:pressed,
-#board-wrapper > .scroll-bar > .decrement-button > .decrement-arrow:pressed {
-    -fx-background-color: black;
-    -fx-opacity: 0.55;
-}
-
-.scroll-pane > .corner {
     -fx-background-color: transparent;
 }
 
@@ -204,7 +204,7 @@
     -fx-background-color: transparent;
 }
 
-#send-button {
+/*#send-button {
     -fx-font-size: 12px;
     -fx-text-fill: white;
     -fx-background-color: #6699CC;
@@ -215,7 +215,7 @@
 
 #send-button:hover {
     -fx-background-color: #5783af;
-}
+}*/
 
 #settings-icon {
     -fx-cursor: hand;
@@ -333,7 +333,7 @@
     /*-fx-background-color: pink;*/
     -fx-cursor: hand;
     -fx-font-size: 9.5pt;
-    -fx-text-fill: #0000EE;
+    -fx-text-fill: derive(navy, 30%);
 }
 
 .url-visited {
