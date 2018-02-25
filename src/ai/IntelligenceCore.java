@@ -23,7 +23,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
      onStartUp();
    }
 
-
    public Suggestion getSuggestion(ParseResult pr) {
      // Fetch operand and intent and increment intent priority
      // TODO needs converting to AIIntent
@@ -51,6 +50,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
        case TREND: notToSuggestIntent = AIIntent.TREND;
        break;
        case TRADING_VOLUME: notToSuggestIntent = AIIntent.TRADING_VOLUME;
+       break;
+       case TREND_SINCE: notToSuggestIntent = AIIntent.TREND_SINCE;
        break;
        case NEWS : doNotSuggestNews = true;
        break;
@@ -192,6 +193,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
           break;
           case TRADING_VOLUME : intent = AIIntent.TRADING_VOLUME;
           break;
+          case TREND_SINCE : intent = AIIntent.TREND_SINCE;
+          break;
           default : intent = null;
         }
         System.out.println("Priority is "+ c.getPriority());
@@ -250,7 +253,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
     * @return         [description]
     */
    private Suggestion suggestIntent(Company company ,AIIntent topIntent) {
-     String reason = "Company is in top 5";
+     String reason = "";
      // String description = "Suggesting ";
 
      // Create IParseResult
@@ -276,6 +279,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
        break;
        case TRADING_VOLUME : i = footsiebot.nlp.Intent.TRADING_VOLUME;
        break;
+       case TREND_SINCE : i = footsiebot.nlp.Intent.TREND_SINCE;
+       break;
      }
 
      if(i == null) return null;
@@ -288,14 +293,14 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    private Suggestion suggestNews(Company company) {
-     String reason = "Company is in top 5";
+     String reason = "";
      ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", company.getCode(), false, footsiebot.nlp.TimeSpecifier.TODAY);
      Suggestion result = new Suggestion(reason, company, true, pr);
      return result;
    }
 
    private Suggestion suggestNews(Group group) {
-     String reason = "Group is in top 5";
+     String reason = "";
      ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", group.getGroupCode(), true,footsiebot.nlp.TimeSpecifier.TODAY );
      Suggestion result = new Suggestion(reason, group, pr );
      return result;

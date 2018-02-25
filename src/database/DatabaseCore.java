@@ -671,8 +671,8 @@ public class DatabaseCore implements IDatabaseManager {
    		return query;
     }
 
-    /** 
-    * Returns an SQL query to get the FTSE data required in the parse result 
+    /**
+    * Returns an SQL query to get the FTSE data required in the parse result
 	*
 	* @param pr The parse result from the user's input
 	* @return An SQL query to get the FTSE data required
@@ -962,7 +962,7 @@ public class DatabaseCore implements IDatabaseManager {
       ArrayList<Company> companies = new ArrayList<>();
       // Get Counts for each intent
       String query = ""
-        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(TrendCount,0),coalesce(TradingVolumeCount,0),coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0),coalesce(TrendAdjustment,0),coalesce(TradingVolumeAdjustment,0) "
+        + "SELECT ftc.CompanyCode,coalesce(NewsCount,0),coalesce(SpotPriceCount,0),coalesce(OpeningPriceCount,0),coalesce(AbsoluteChangeCount,0),coalesce(ClosingPriceCount,0),coalesce(percentageChangeCount,0),coalesce(TrendCount,0),coalesce(TradingVolumeCount,0), coalesce(TrendSinceCount,0), coalesce(newsAdjustment,0),coalesce(SpotPriceAdjustment,0),coalesce(OpeningPriceAdjustment,0),coalesce(AbsoluteChangeAdjustment,0),coalesce(ClosingPriceAdjustment,0),coalesce(percentageChangeAdjustment,0),coalesce(TrendAdjustment,0),coalesce(TradingVolumeAdjustment,0), coalesce(TrendSinceAdjustment,0)  "
         + "FROM FTSECompanies ftc "
         + "LEFT OUTER JOIN CompanyNewsCount cnc ON (cnc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanySpotPriceCount csc ON (csc.CompanyCode = ftc.CompanyCode) "
@@ -971,7 +971,9 @@ public class DatabaseCore implements IDatabaseManager {
         + "LEFT OUTER JOIN CompanyClosingPriceCount ccc ON (ccc.CompanyCode = ftc.CompanyCode) "
         + "LEFT OUTER JOIN CompanyPercentageChangeCount cpc ON (cpc.CompanyCode = ftc.CompanyCode)"
         + "LEFT OUTER JOIN CompanyTrendCount ctc ON (ctc.CompanyCode = ftc.CompanyCode)"
-        + "LEFT OUTER JOIN CompanyTradingVolumeCount ctvc ON (ctvc.CompanyCode = ftc.CompanyCode)";
+        + "LEFT OUTER JOIN CompanyTradingVolumeCount ctvc ON (ctvc.CompanyCode = ftc.CompanyCode)"
+        + "LEFT OUTER JOIN CompanyTrendSinceCount ctsc ON (ctsc.CompanyCode = ftc.CompanyCode)";
+
 
 
 
@@ -995,6 +997,7 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChange = (float) rs.getInt("coalesce(percentageChangeCount,0)");
           float trend = (float) rs.getInt("coalesce(TrendCount,0)");
           float volume = (float) rs.getInt("coalesce(TradingVolumeCount,0)");
+          float trendSince = (float) rs.getInt("coalesce(TrendSinceCount,0)");
 
 
           // Now the  adjustments
@@ -1008,6 +1011,7 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChangeAdj =  rs.getFloat("coalesce(percentageChangeAdjustment,0)");
           float trendAdj =  rs.getFloat("coalesce(TrendAdjustment,0)");
           float volumeAdj =  rs.getFloat("coalesce(TradingVolumeAdjustment,0)");
+          float trendSinceAdj =  rs.getFloat("coalesce(TrendSinceAdjustment,0)");
 
           // intent priorities
           float spotPriority = spot - spotAdj;
@@ -1017,6 +1021,7 @@ public class DatabaseCore implements IDatabaseManager {
           float percentageChangePriority = percentageChange - percentageChangeAdj;
           float trendPriority = trend - trendAdj;
           float volumePriority = volume - volumeAdj;
+          float trendSincePriority = trendSince - trendSinceAdj;
 
           // news
           float newsPriority = newsCount - newsAdj;
@@ -1030,11 +1035,12 @@ public class DatabaseCore implements IDatabaseManager {
           mapping.put(AIIntent.ABSOLUTE_CHANGE, new Float[]{absoluteChange, absoluteChangeAdj});
           mapping.put(AIIntent.TREND, new Float[]{trend, trendAdj});
           mapping.put(AIIntent.TRADING_VOLUME, new Float[]{volume, volumeAdj});
+          mapping.put(AIIntent.TREND_SINCE, new Float[]{trendSince, trendSinceAdj});
 
           // Calculate priority for each company
           Float intentScale = 1.0f;
           Float newsScale = 1.0f;
-          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority + volumePriority) + newsScale * (newsPriority);
+          float priority = intentScale * (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority + volumePriority + trendSincePriority) + newsScale * (newsPriority);
           // average of all intent's irrelevantSuggestionWeight
 
           companies.add(new Company(rs.getString("CompanyCode"), mapping, intentScale, newsScale, newsCount, newsAdj));
@@ -1217,6 +1223,8 @@ public class DatabaseCore implements IDatabaseManager {
           case TREND: table+= "CompanyTrendCount";
           break;
           case TRADING_VOLUME: table+= "CompanyTradingVolumeCount";
+          break;
+          case TREND_SINCE: table+= "CompanyTrendSinceCount";
           break;
         }
       } else {

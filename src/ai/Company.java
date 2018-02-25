@@ -56,9 +56,7 @@ public class Company implements Comparable<Company> {
         startMaxValue = value;
         result = new AbstractMap.SimpleEntry<AIIntent, Float>(currMax,startMaxValue);
       }
-      // DEBUG
-      System.out.println(result.getKey());
-      System.out.println(result.getValue());
+
     }
     return result;
   }
@@ -71,9 +69,10 @@ public class Company implements Comparable<Company> {
     float percentageChangePriority = mapping.get(AIIntent.PERCENT_CHANGE)[0] - mapping.get(AIIntent.PERCENT_CHANGE)[1];
     float trendPriority = mapping.get(AIIntent.TREND)[0] - mapping.get(AIIntent.TREND)[1];
     float volumePriority = mapping.get(AIIntent.TRADING_VOLUME)[0] - mapping.get(AIIntent.TRADING_VOLUME)[1];
+    float trendSincePriority = mapping.get(AIIntent.TREND_SINCE)[0] - mapping.get(AIIntent.TREND_SINCE)[1];
 
 
-    return (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority + volumePriority);
+    return (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority + volumePriority + trendSincePriority);
 
   }
 
