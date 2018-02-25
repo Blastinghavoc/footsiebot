@@ -28,6 +28,7 @@ import footsiebot.ai.Suggestion;
 
 public class GUIcore implements IGraphicalUserInterface {
     private String style;
+    private ListProperty<Node> messages;
 
     private Timeline newDataTimeline;
     private Timeline tradingHourTimeline;
@@ -48,7 +49,7 @@ public class GUIcore implements IGraphicalUserInterface {
     private Rectangle inputVisual;
     private TextField input;
     private Button btnSend;
-    private StackPane settingsPane;
+    private GridPane settingsPane;
     private StackPane newsPane;
     private ScrollPane newsWrapper;
     private FlowPane newsBoard;
@@ -91,7 +92,7 @@ public class GUIcore implements IGraphicalUserInterface {
     * Builds the user interface on the initial stage of the application
     */
     private void setup() {
-        stage.setMinWidth(350);
+        stage.setMinWidth(500);
         stage.setMinHeight(250);
 
         root = new StackPane();
@@ -99,6 +100,8 @@ public class GUIcore implements IGraphicalUserInterface {
 
         scene = new Scene(root, 800, 600);
         scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
+
+        messages = new SimpleListProperty<Node>();
 
         initChat();
         initSide();
@@ -143,8 +146,8 @@ public class GUIcore implements IGraphicalUserInterface {
         Insets boardPadding = new Insets(0, 0, 0, 16);
         messageBoard.setPadding(boardPadding);
         messageBoard.setId("message-board");
-        messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(34));
-        messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(34));
+        messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(18));
+        messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(18));
         // messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
 
         inputWrapper = new StackPane();
@@ -195,7 +198,7 @@ public class GUIcore implements IGraphicalUserInterface {
         sidePane.minHeightProperty().bind(scene.heightProperty().subtract(45));
         sidePane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
 
-        settingsPane = new StackPane();
+        settingsPane = new GridPane();
         settingsPane.setId("settings-pane");
         settingsPane.setVisible(false);
         Insets settingsPadding = new Insets(10, 10, 10, 10);
@@ -219,36 +222,6 @@ public class GUIcore implements IGraphicalUserInterface {
         newsBoard.setId("news-board");
         newsBoard.setVgap(10);
 
-        timeSelector = new ComboBox<String>();
-        ObservableList<String> timeOptions = FXCollections.observableArrayList();
-        int hour = 8;
-        for (int i = 0; i < 20; i++) {
-            if (i%2 == 0)
-                timeOptions.add(hour + ":00");
-            else
-                timeOptions.add(hour++ + ":30");
-        }
-        timeSelector.setItems(timeOptions);
-        timeSelector.setPromptText("Time");
-
-        changeSelector = new Spinner<Double>(0.0, 10.00, core.LARGE_CHANGE_THRESHOLD, 0.05);
-        changeSelector.setEditable(true);
-
-        Button saveChanges = new Button("Save Changes");
-        saveChanges.setOnAction(e -> {
-            if ((String) timeSelector.getValue() != null){
-                core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
-            }
-            else{
-                core.updateSettings(null, changeSelector.getValue());
-            }
-        });
-
-        Button btnStyle = new Button("Update style");
-        btnStyle.setOnAction(e -> {
-            updateStyle();
-        });
-
         noNews = new Label("Oh no! It looks like we don't have any news for you right now!");
         noNews.setId("no-news");
         noNews.setWrapText(true);
@@ -258,12 +231,127 @@ public class GUIcore implements IGraphicalUserInterface {
         newsWrapper.setPadding(wrapperPadding);
         newsWrapper.setContent(newsBoard);
 
-        settingsPane.getChildren().addAll(btnStyle, timeSelector, changeSelector, saveChanges);
-        settingsPane.setAlignment(btnStyle, Pos.BOTTOM_RIGHT);
-        settingsPane.setAlignment(timeSelector, Pos.TOP_LEFT);
-        settingsPane.setAlignment(saveChanges, Pos.BOTTOM_LEFT);
+        initSettings();
+
         newsPane.getChildren().addAll(newsWrapper, noNews);
         sidePane.getChildren().addAll(settingsPane, newsPane);
+    }
+
+   /**
+    * Initialises the settings page
+    */
+    private void initSettings() {
+        timeSelector = new ComboBox<String>();
+        timeSelector.setMaxWidth(85);
+        timeSelector.setMinWidth(85);
+        ObservableList<String> timeOptions = FXCollections.observableArrayList();
+        int hour = 8;
+        for (int i = 0; i  < 20; i++) {
+            if (i%2 == 0)
+                timeOptions.add(hour + ":00");
+            else
+                timeOptions.add(hour++ + ":30");
+        }
+        timeSelector.setItems(timeOptions);
+        timeSelector.setValue(tradingTimeToString());
+
+        changeSelector = new Spinner<Double>(new SpinnerValueFactory.DoubleSpinnerValueFactory(0.00, 10.00, core.LARGE_CHANGE_THRESHOLD, 0.05));
+        changeSelector.setMaxWidth(85);
+        changeSelector.setMinWidth(85);
+        changeSelector.setEditable(true);
+
+        Button saveChanges = new Button("Save Changes");
+        saveChanges.setMinWidth(100);
+        saveChanges.setMaxWidth(100);
+        saveChanges.setOnAction(e -> {
+            if ((String) timeSelector.getValue() != null)
+                core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
+            else
+                core.updateSettings(null, changeSelector.getValue());
+
+            saveChanges.setDisable(true);
+        });
+
+        saveChanges.setDisable(true);
+
+        Button cancelChanges = new Button("Cancel");
+        cancelChanges.setMinWidth(100);
+        cancelChanges.setMaxWidth(100);
+        cancelChanges.setOnAction(e -> {
+            timeSelector.setValue(tradingTimeToString());
+            changeSelector.getValueFactory().setValue(core.LARGE_CHANGE_THRESHOLD);
+            saveChanges.setDisable(true);
+        });
+
+        Button btnStyle = new Button("Update style");
+        btnStyle.setOnAction(e -> {
+            updateStyle();
+        });
+
+        Button summaryBtn = new Button("Show Daily Summary");
+        summaryBtn.setOnAction(e -> {
+            core.onTradingHour();
+        });
+
+        ColumnConstraints labelCol = new ColumnConstraints(22.8, 22.8, 22.8);
+        // labelCol.setPercentWidth(10);
+        labelCol.setHalignment(HPos.RIGHT);
+        ColumnConstraints buttonLeftCol = new ColumnConstraints(91.2, 91.2, 91.2);
+        // buttonLeftCol.setPercentWidth(40);
+        ColumnConstraints buttonRightCol = new ColumnConstraints(22.8, 22.8, 22.8);
+        // buttonRightCol.setPercentWidth(10);
+        ColumnConstraints inputCol = new ColumnConstraints(91.2, 91.2, 91.2);
+        // inputCol.setPercentWidth(40);
+
+        // 228
+        // 10% = 22.8
+        // 40% = 91.2
+
+        RowConstraints timeRow = new RowConstraints(50, 50, 50);
+        RowConstraints changeRow = new RowConstraints(50, 50, 50);
+        RowConstraints buttonsRow = new RowConstraints(50, 50, 50);
+        RowConstraints summaryRow = new RowConstraints(30, 30, 30);
+
+        Insets labelPadding = new Insets(0, 7, 0, 0);
+
+        Label timeDesc = new Label("Time for daily summary:");
+        timeDesc.setWrapText(true);
+        timeDesc.setTextAlignment(TextAlignment.RIGHT);
+        timeDesc.setPadding(labelPadding);
+        Label changeDesc = new Label("Percentage change for warnings:");
+        changeDesc.setWrapText(true);
+        changeDesc.setTextAlignment(TextAlignment.RIGHT);
+        changeDesc.setPadding(labelPadding);
+
+        // settingsPane.setGridLinesVisible(true);
+        settingsPane.getColumnConstraints().addAll(labelCol, buttonLeftCol, buttonRightCol, inputCol);
+        settingsPane.getRowConstraints().addAll(timeRow, changeRow, buttonsRow, summaryRow);
+        settingsPane.add(timeDesc, 0, 0);
+        settingsPane.add(timeSelector, 3, 0);
+        settingsPane.add(changeDesc, 0, 1);
+        settingsPane.add(changeSelector, 3, 1);
+        settingsPane.add(cancelChanges, 2, 2);
+        settingsPane.add(saveChanges, 0, 2);
+        settingsPane.add(summaryBtn, 0, 3);
+
+        settingsPane.setColumnSpan(timeDesc, 3);
+        settingsPane.setColumnSpan(changeDesc, 3);
+        settingsPane.setColumnSpan(saveChanges, 2);
+        settingsPane.setColumnSpan(cancelChanges, 2);
+        settingsPane.setColumnSpan(summaryBtn, 4);
+        settingsPane.setHalignment(saveChanges, HPos.CENTER);
+        settingsPane.setHalignment(cancelChanges, HPos.CENTER);
+        settingsPane.setHalignment(summaryBtn, HPos.CENTER);
+
+        timeSelector.valueProperty().addListener(e -> {
+            if (timeSelector.getValue() != tradingTimeToString())
+                saveChanges.setDisable(false);
+        });
+
+        changeSelector.valueProperty().addListener(e -> {
+            if (changeSelector.getValue() != core.LARGE_CHANGE_THRESHOLD)
+                saveChanges.setDisable(false);
+        });
     }
 
    /**
@@ -331,7 +419,6 @@ public class GUIcore implements IGraphicalUserInterface {
         });
 
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
-            resizeMessages();
             messageBoard.applyCss();
             messageBoard.layout();
             boardWrapper.setVvalue(1);
@@ -351,6 +438,10 @@ public class GUIcore implements IGraphicalUserInterface {
             resizeNews(newsBoard.getMinWidth());
             newsBoard.applyCss();
             newsBoard.layout();
+        });
+
+        messages.addListener((obs, oldVal, newVal) -> {
+            resizeMessages();
         });
     }
 
@@ -382,44 +473,61 @@ public class GUIcore implements IGraphicalUserInterface {
         });
 
         settingsIcon.setOnMouseClicked(e -> {
-            if (settingsPane.visibleProperty().getValue() == Boolean.FALSE) {
-                newsPaneTrans.setFromValue(1);
-                newsPaneTrans.setToValue(0);
-                newsPaneTrans.setOnFinished(event -> {
-                    newsPane.setVisible(false);
-                });
-
-                settingsPane.setVisible(true);
-                settingsPaneTrans.setFromValue(0);
-                settingsPaneTrans.setToValue(1);
-                settingsPaneTrans.setOnFinished(event -> {
-                    settingsPane.setVisible(true);
-                });
-                newsPane.setDisable(true);
-                newsPaneTrans.play();
-                settingsPaneTrans.play();
-                settingsPane.setDisable(false);
-            } else {
-                newsPane.setVisible(true);
-                newsPaneTrans.setFromValue(0);
-                newsPaneTrans.setToValue(1);
-                newsPaneTrans.setOnFinished(event -> {
-                    newsPane.setVisible(true);
-                });
-
-                settingsPane.setVisible(true);
-                settingsPaneTrans.setFromValue(1);
-                settingsPaneTrans.setToValue(0);
-                settingsPaneTrans.setOnFinished(event -> {
-                    settingsPane.setVisible(false);
-                });
-
-                settingsPane.setDisable(true);
-                newsPaneTrans.play();
-                settingsPaneTrans.play();
-                newsPane.setDisable(false);
-            }
+            changeSidePane();
         });
+    }
+
+    private void changeSidePane() {
+        if (settingsPane.visibleProperty().getValue()) {
+            newsPane.setVisible(true);
+            newsPaneTrans.setFromValue(0);
+            newsPaneTrans.setToValue(1);
+            newsPaneTrans.setOnFinished(event -> {
+                newsPane.setVisible(true);
+            });
+
+            settingsPane.setVisible(true);
+            settingsPaneTrans.setFromValue(1);
+            settingsPaneTrans.setToValue(0);
+            settingsPaneTrans.setOnFinished(event -> {
+                settingsPane.setVisible(false);
+            });
+
+            settingsPane.setDisable(true);
+            newsPaneTrans.play();
+            settingsPaneTrans.play();
+            newsPane.setDisable(false);
+        } else {
+            newsPaneTrans.setFromValue(1);
+            newsPaneTrans.setToValue(0);
+            newsPaneTrans.setOnFinished(event -> {
+                newsPane.setVisible(false);
+            });
+
+            settingsPane.setVisible(true);
+            settingsPaneTrans.setFromValue(0);
+            settingsPaneTrans.setToValue(1);
+            settingsPaneTrans.setOnFinished(event -> {
+                settingsPane.setVisible(true);
+            });
+            newsPane.setDisable(true);
+            newsPaneTrans.play();
+            settingsPaneTrans.play();
+            settingsPane.setDisable(false);
+        }
+    }
+
+    private String tradingTimeToString() {
+        Long hr = core.TRADING_TIME / 3600000;
+        String hrStr = hr.toString();
+
+        if (hr < 10)
+            hrStr = "0" + hr;
+
+        if (core.TRADING_TIME % 3600000 != 0)
+            return hrStr + ":30";
+        else
+            return hrStr + ":00";
     }
 
    /**
@@ -485,7 +593,6 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
-
    /**
     * Starts the tradingHourTimeline to run the core action regularly
     */
@@ -526,7 +633,7 @@ public class GUIcore implements IGraphicalUserInterface {
         if (checkInput()) {
             messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), true, null, this));
             core.onUserInput(input.getText().trim());
-            // messages.setValue(messageBoard.getChildren());
+            messages.setValue(messageBoard.getChildren());
             input.clear();
         }
     }
@@ -559,6 +666,7 @@ public class GUIcore implements IGraphicalUserInterface {
         if (msg != null) {
             messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, sugg, this));
         }
+        messages.setValue(messageBoard.getChildren());
     }
 
    /**
@@ -576,6 +684,7 @@ public class GUIcore implements IGraphicalUserInterface {
             else
                 messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, null, this));
         }
+        messages.setValue(messageBoard.getChildren());
     }
 
 
@@ -583,12 +692,14 @@ public class GUIcore implements IGraphicalUserInterface {
         messageBoard.getChildren().add(new SummaryMessage(pre, data, post));
     }
 
-    /*
-    A message sent with no boolean defaults to not an AI message
+   /**
+    * A message sent with no boolean defaults to not an AI message
+    *
+    * @param msg the message to be displayed
     */
     public void displayMessage(String msg){
         displayMessage(msg,null);
-
+        messages.setValue(messageBoard.getChildren());
     }
 
    /**
@@ -612,6 +723,9 @@ public class GUIcore implements IGraphicalUserInterface {
     * Resizes the messages displayed
     */
     private void resizeMessages() {
+        if (messageBoard.getChildren().size() > 100)
+            messageBoard.getChildren().remove(0, (messageBoard.getChildren().size() - 100));
+
         for (int i = 0; i < messageBoard.getChildren().size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
                 Message tmp = (Message) messageBoard.getChildren().get(i);
