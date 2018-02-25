@@ -11,7 +11,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 /**
- * Accesses the LSE website to extract FTSE 100 data
+ * Accesses the LSE website to extract FTSE 100 data.
  */
 public class WebScraper {
 
