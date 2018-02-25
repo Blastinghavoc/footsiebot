@@ -8,5 +8,4 @@ public interface IDataGathering {
 
   public Article[] getNews(String[] company);
 
-
 }

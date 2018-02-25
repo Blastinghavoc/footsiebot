@@ -10,10 +10,22 @@ import java.lang.Integer;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
+/**
+ * Accesses the LSE website to extract FTSE 100 data.
+ */
 public class WebScraper {
 
+    /**
+     * Constructor method for Webscraper.
+     * @return A Webscraper object.
+     */
     public WebScraper() {}
 
+    /**
+     * "Scrapes" the LSE website for FTSE 100 data.
+     * @return A ScrapeResult object occupied with up to date FTSE 100 data.
+     * @see    ScrapeResult
+     */
     public ScrapeResult scrape() {
         Document page;
         ArrayList<String> codelist = new ArrayList<String>();
@@ -28,7 +40,8 @@ public class WebScraper {
 
         // for each possible LSE summary page
         for (int i = 1; i < 7; i++) {
-            if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){
+            // checks if webscraper thread has been interrupted
+            if (Thread.interrupted() || Thread.currentThread().isInterrupted() || Thread.currentThread().getName().equals("closing")) {
                 System.out.println("Scraper interrupted");
                 return null;
             }
@@ -49,18 +62,21 @@ public class WebScraper {
 
             // for each table entry
             for (Element entry : entries) {
-                if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){
+                // checks if webscraper thread has been interrupted
+                if (Thread.interrupted() || Thread.currentThread().isInterrupted() || Thread.currentThread().getName().equals("closing")) {
                     System.out.println("Scraper interrupted");
                     return null;
                 }
 
                 // seperates each row into its columns
                 Elements columns = entry.select("td");
+                // integer variable used to keep track of column number.
                 int j = 1;
 
                 // for each column (up to the percentage change column)
                 elementloop: for (Element column : columns) {
-                    if(Thread.interrupted()||Thread.currentThread().isInterrupted()||Thread.currentThread().getName().equals("closing")){
+                    // checks if webscraper thread has been interrupted
+                    if (Thread.interrupted() || Thread.currentThread().isInterrupted() || Thread.currentThread().getName().equals("closing")) {
                         System.out.println("Scraper interrupted");
                         return null;
                     }
@@ -68,10 +84,11 @@ public class WebScraper {
                     // the relevant ArrayList
                     switch (j) {
                         case 1:
+                            // extracts company code
                             codelist.add(column.text());
                             break;
                         case 2:
-                            // attemptes connection to the companies summary page.
+                            // attempts connection to the companies summary page.
                             Document summary;
                             Element current;
                             String surl = column.select("a").first().attr("abs:href");
@@ -108,18 +125,19 @@ public class WebScraper {
                             current = summary.select("td:contains(volume) ~ td").first();
                             if (current == null) vollist.add(null);
                             else vollist.add(Integer.parseInt(clean(current.text())));
-
                             break;
                         case 3: break;
                         case 4: 
+                            // Extracts spot price
                             pricelist.add(Float.parseFloat(clean(column.text())));
                             break;
                         case 5: 
+                            // Extracts absolute change
                             abslist.add(Float.parseFloat(clean(column.ownText())));
                             break;
                         case 6: 
+                            // Extracts percentage change                        
                             perclist.add(Float.parseFloat(clean(column.ownText())));
-
                             break;
                         default: break elementloop;
                     }
@@ -137,11 +155,17 @@ public class WebScraper {
         Float[] percChange = perclist.toArray(new Float[0]);
         Integer[] tradeVolume = vollist.toArray(new Integer[0]);
 
-        // returns a occupied scraperesult
+        // returns an occupied scraperesult
         return new ScrapeResult(codes, names, groups, prices, absChange, percChange, tradeVolume);
     }
 
-    // cleans input string of html tags, commas and trailing whitespace
+    /**
+     * "Cleans" an input string of html tags, commas and trailing whitespace.
+     * @param input A input string that may contain invalid characters or 
+     *              trailing whitespace.
+     * @return      The input string with the invalid characters and/or 
+     *              trailing whitespace removed.
+     */
     public String clean(String input) {
         return input.replaceAll("<.*?>", "").replaceAll(",", "").trim();
     }

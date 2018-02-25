@@ -637,7 +637,7 @@ public class Core extends Application {
         }
         output += "You may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayMessage(output,null);
+        ui.displayMessage(output,null, true);
         ui.displayResults(news,null);
     }
 
