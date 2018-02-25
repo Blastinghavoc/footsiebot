@@ -146,13 +146,13 @@ public class Core extends Application {
             ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
             return;
         }
-
+        System.out.println(pr); //DEBUG
         if(!checkParseResultValid(pr)){
             ui.displayMessage("Sorry, that was not a valid query.");
             return;
         }
 
-        System.out.println(pr); //DEBUG
+
 
         extraDataAddedToLastOutput = null;//Reseting this.
 

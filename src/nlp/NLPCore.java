@@ -43,18 +43,24 @@ public class NLPCore implements INaturalLanguageProcessor{
         s = s.toLowerCase();
     	  //STRIP INTENT OUT OF STRING USING STRING.REPLACE AND STRING.CONTAINS
         Boolean valid = false;
+        int longestMatchingTokenLength = 0;
+        String finalIntent = null;
         for ( String i: intentList) {
           if(s.contains(i)){
-            in = intentMap.get(i);
-            s = s.replace(i,"");
-            //System.out.println("Found intent '"+ in + "' as string '" + i + "' in raw '" + raw + "'");//DEBUG
-            valid = true;
-            break;
+            if(i.length() > longestMatchingTokenLength){
+                in = intentMap.get(i);
+                finalIntent = i;
+                valid = true;
+                longestMatchingTokenLength = i.length();
+            }
           }
         }
 
         if(!valid){
           return new ParseResult(null,raw,null,operandIsGroup,null);//Replace with error enums?
+        }
+        else{
+            s = s.replace(finalIntent,"");//Removing the detected intent from the string.
         }
 
         //System.out.println("s is now '"+s+"'");
@@ -164,6 +170,10 @@ public class NLPCore implements INaturalLanguageProcessor{
 
     intentMap.put("absolute change",Intent.ABSOLUTE_CHANGE);
     intentMap.put("abs change",Intent.ABSOLUTE_CHANGE);
+
+    intentMap.put("trend since",Intent.TREND_SINCE);
+    intentMap.put("risen since",Intent.TREND_SINCE);
+    intentMap.put("fallen since",Intent.TREND_SINCE);
 
     intentMap.put("rising",Intent.TREND);
     intentMap.put("falling",Intent.TREND);
