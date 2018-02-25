@@ -93,6 +93,9 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
+        // String[] test = {"one", "two", "three"};
+        // ui.displaySummary("hello", test, "goodbye");
+        // onTradingHour()
         ui.displayMessage("Hello Dave! Welcome to Footsiebot! How can I help you?");
 
         if(runTradingHourTest){
@@ -583,7 +586,7 @@ public class Core extends Application {
         for (int i = 0;i < suggarr.length ;i++ ) {
             ParseResult pr = suggarr[i].getParseResult();
             String[] data = dbm.getFTSE(pr);
-            output = "Warning : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which exceeds the threshold of +- "+ LARGE_CHANGE_THRESHOLD+"%";
+            output = "WARNING : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +-"+ LARGE_CHANGE_THRESHOLD+"%";
             ui.displayMessage(output);//NOT passing the suggestion, as this cannot be marked irrelevant.
         }
     }
@@ -652,7 +655,7 @@ public class Core extends Application {
             change = 0 - change;
         }
 
-        if(time != null && !time.equals("Time")){
+        if (time != null) {
             String[] hm = time.split(":");
             Integer hours = Integer.parseInt(hm[0]);
             Integer minutes = Integer.parseInt(hm[1]);

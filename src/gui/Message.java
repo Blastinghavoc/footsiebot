@@ -60,7 +60,7 @@ public class Message extends FlowPane {
         initMessage(text);
 
         aiNote = new Tooltip("Why am I seeing this?");
-        removeNote = new Tooltip("Remove message");
+        removeNote = new Tooltip("This isn't important to me");
 
         if (isAI)
             setupAI();
