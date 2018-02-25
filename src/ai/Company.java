@@ -20,9 +20,8 @@ public class Company implements Comparable<Company> {
     this.newsScale = newsScale;
     this.newsCount = newsCount;
     this.newsAdj = newsAdj;
-
   }
-  //TOTEST
+
   public void decrementPriorityOfIntent(AIIntent i) {
 
     for(Map.Entry<AIIntent,Float[]> e: mapping.entrySet()) {
@@ -32,9 +31,7 @@ public class Company implements Comparable<Company> {
         float adjustment = current[1];
         mapping.put(i, new Float[]{counter, 1.0f + 0.5f * adjustment});
       }
-
     }
-
   }
 
   public String getCode() {
@@ -72,8 +69,11 @@ public class Company implements Comparable<Company> {
     float closingPriority = mapping.get(AIIntent.CLOSING_PRICE)[0] - mapping.get(AIIntent.CLOSING_PRICE)[1] ;
     float absoluteChangePriority = mapping.get(AIIntent.ABSOLUTE_CHANGE)[0] - mapping.get(AIIntent.ABSOLUTE_CHANGE)[1] ;
     float percentageChangePriority = mapping.get(AIIntent.PERCENT_CHANGE)[0] - mapping.get(AIIntent.PERCENT_CHANGE)[1];
+    float trendPriority = mapping.get(AIIntent.TREND)[0] - mapping.get(AIIntent.TREND)[1];
+    float volumePriority = mapping.get(AIIntent.TRADING_VOLUME)[0] - mapping.get(AIIntent.TRADING_VOLUME)[1];
 
-    return (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority);
+
+    return (spotPriority + openingPriority + closingPriority + absoluteChangePriority + percentageChangePriority + trendPriority + volumePriority);
 
   }
 
