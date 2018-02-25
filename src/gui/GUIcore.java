@@ -334,7 +334,7 @@ public class GUIcore implements IGraphicalUserInterface {
         settingsPane.add(saveChanges, 0, 2);
         settingsPane.add(summaryBtn, 0, 3);
 
-        settingsPane.add(btnStyle, 0, 3);
+        // settingsPane.add(btnStyle, 0, 3);
 
         settingsPane.setColumnSpan(timeDesc, 3);
         settingsPane.setColumnSpan(changeDesc, 3);

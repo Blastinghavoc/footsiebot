@@ -6,7 +6,7 @@ import javafx.event.EventHandler;
 import javafx.stage.Stage;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
-import javafx.scene.text.Text;
+import javafx.scene.text.*;
 import javafx.scene.shape.Rectangle;
 import javafx.geometry.*;
 import javafx.animation.*;
@@ -53,6 +53,7 @@ public class Message extends FlowPane {
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
@@ -99,6 +100,7 @@ public class Message extends FlowPane {
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
@@ -145,6 +147,7 @@ public class Message extends FlowPane {
 
         final double maxWidth = (chatPaneWidth - 36) * 0.55;
         Text sizing = new Text(text);
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
@@ -234,6 +237,7 @@ public class Message extends FlowPane {
 
         final double maxWidth = (chatPaneWidth - 34) * 0.55;
         Text sizing = new Text(msg.getText());
+        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
 
