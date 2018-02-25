@@ -70,7 +70,6 @@ public class DatabaseCore implements IDatabaseManager {
         // back if it fails
         trySetAutoCommit(false);
 
-        // may not need if storing older data as well
         deleteOldFTSEData();
 
         // Store all scraper data in the database
@@ -155,8 +154,10 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /* Deletes FTSE data from over 5 trading days ago
-    MAY NOT NEED */
+    /* 
+    * Deletes FTSE data from over 5 trading days ago
+    *
+    */
     private void deleteOldFTSEData() {
 
         LocalDateTime currentTime = LocalDateTime.now();
@@ -177,17 +178,16 @@ public class DatabaseCore implements IDatabaseManager {
         tryClose(s1);
     }
 
-    /*Probably doesn't actually need the time. The database can do that
-    automatically
+    /**
+    * Stores the user's queries
+    *
+    * @param pr The parse result from the user's input
+    * @param date The date and time the query was made
+    * @return true if the query was successfully stored, false otherwise
     */
     public boolean storeQuery(ParseResult pr, LocalDateTime date) {
 
-        // if("DEBUG".equals("DEBUG")){
-        //     return false;//DEBUG
-        // }
-
-        //TODO: need branch to process group queries sepparately.
-        if(pr.isOperandGroup()){
+        if (pr.isOperandGroup()) {
             return true;
         }
 
@@ -195,37 +195,44 @@ public class DatabaseCore implements IDatabaseManager {
         String intent = pr.getIntent().toString();
         String timeSpecifier = pr.getTimeSpecifier().toString();
 
-        String query = "INSERT INTO Queries(CompanyCode,Intent,TimeSpecifier) VALUES('"+companyCode+"','"+intent+"','"+timeSpecifier+"')";
+        String query    = "INSERT INTO Queries"
+                        + "(CompanyCode, Intent, TimeSpecifier) "
+                        + "VALUES('" + companyCode + "','" + intent + "','" 
+                        + timeSpecifier + "')";
         Statement s1 = null;
         ResultSet r1 = null;
         String table = intentToTableName(pr.getIntent());
-        if(table == null){
+        if (table == null) {
             return false;
         }
-        String rowName = table.replace("Company","");//The count row in the tables has the same name as the table, minus the prefix "Company"
+        // The count row in the tables has the same name as the table, 
+        // minus the prefix "Company"
+        String rowName = table.replace("Company","");
         trySetAutoCommit(false);
-        try{
+        try {
             s1 = conn.createStatement();
             s1.executeUpdate(query);
-            /*
-            check if a row with the relevant CompanyCode exists in the relevant
-            count table. If not, create that row.
-            If it does, increment the value of the relevant count row (rowName)
-            */
-            query = "SELECT * FROM "+table+" WHERE CompanyCode = '" + companyCode+"'";
+
+            // Check if a row with the relevant CompanyCode exists in the 
+            // relevant count table. If not, create that row. If it does, 
+            // increment the value of the relevant count row (rowName)
+            query   = "SELECT * FROM " + table + " WHERE CompanyCode = '" 
+                    + companyCode + "'";
             r1 = s1.executeQuery(query);
-            //If the row does not exist, create it.
-            if(!r1.next()){
-                query = "INSERT INTO "+table+" VALUES ('"+companyCode+"',1,0)";
+            // If the row does not exist, create it.
+            if (!r1.next()) {
+                query   = "INSERT INTO " + table + " VALUES ('" + companyCode 
+                        + "',1,0)";
                 s1.executeUpdate(query);
-            }
-            else{
+            } else {
                 //Row does exist, so just increment the count.
-                query = "UPDATE "+table+" SET "+rowName+" = "+rowName+" + 1 WHERE CompanyCode = '"+companyCode+"'";
+                query   = "UPDATE " + table + " SET " + rowName + " = " 
+                        + rowName + " + 1 WHERE CompanyCode = '" + companyCode 
+                        + "'";
                 s1.executeUpdate(query);
             }
             tryCommit();
-        }catch(SQLException e){
+        } catch (SQLException e) {
             e.printStackTrace();
             tryClose(s1,r1);
             tryRollback();
@@ -328,7 +335,6 @@ public class DatabaseCore implements IDatabaseManager {
         		output.addAll(getAllCompanyInfo(pr));
                 break;
         }
-        System.out.println(Arrays.toString(output.toArray(new String[1])));
         return output.toArray(new String[1]);
     }
 
@@ -416,9 +422,9 @@ public class DatabaseCore implements IDatabaseManager {
 				Collections.min(percChangeMap.entrySet(), valueComparator);
 
 		output.add(maxSpotPriceCompany.getKey() + ", "
-				+ roundFloat(maxSpotPriceCompany.getValue()).toString());
+				+ convertToGBX(maxSpotPriceCompany.getValue()));
 		output.add(minSpotPriceCompany.getKey() + ", "
-				+ roundFloat(minSpotPriceCompany.getValue()).toString());
+				+ convertToGBX(minSpotPriceCompany.getValue()));
 		output.add(maxPercChangeCompany.getKey() + ", "
 				+ roundFloat(maxPercChangeCompany.getValue()).toString());
 		output.add(minPercChangeCompany.getKey() + ", "
@@ -494,8 +500,8 @@ public class DatabaseCore implements IDatabaseManager {
 		} else {
 			output.add("had no overall change");
 		}
-		output.add(startPrice.toString());
-		output.add(endPrice.toString());
+		output.add(convertToGBX(startPrice));
+		output.add(convertToGBX(endPrice));
 
     	return output;
     }
@@ -540,9 +546,7 @@ public class DatabaseCore implements IDatabaseManager {
         Float percChange = 0.0f;
    		String date = timeSpecifierToDate(timeSpec);
 
-   		// query to get opening price of day specified
    		String startTimeQuery = getOpeningPriceQuery(companyCode, date);
-
    		String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode,
    				date);
 
@@ -945,6 +949,9 @@ public class DatabaseCore implements IDatabaseManager {
             case TREND:
                 name = "CompanyTrendCount";
                 break;
+            case TREND_SINCE:
+                name = "CompanyTrendSinceCount";
+                break;
             case NEWS:
                 name = "CompanyNewsCount";
                 break;
@@ -958,6 +965,11 @@ public class DatabaseCore implements IDatabaseManager {
         return  name;
     }
 
+    /**
+    * 
+    * 
+    * @return
+    */
     public ArrayList<Company> getAICompanies() {
 
       ArrayList<Company> companies = new ArrayList<>();
@@ -974,8 +986,6 @@ public class DatabaseCore implements IDatabaseManager {
         + "LEFT OUTER JOIN CompanyTrendCount ctc ON (ctc.CompanyCode = ftc.CompanyCode)"
         + "LEFT OUTER JOIN CompanyTradingVolumeCount ctvc ON (ctvc.CompanyCode = ftc.CompanyCode)";
 
-
-
       Statement stmt = null;
       ResultSet rs = null;
 
@@ -983,7 +993,7 @@ public class DatabaseCore implements IDatabaseManager {
         stmt = conn.createStatement();
         rs = stmt.executeQuery(query);
 
-        while(rs.next()) {
+        while (rs.next()) {
           // Create list of intents for each company
           // ArrayList<IntentData> intents = new ArrayList<>();
           // News counter
@@ -1049,7 +1059,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
       } catch (SQLException e) {
-        printSQLException(e);
+        e.printStackTrace();
         return null;
       } finally {
         if (stmt != null) { tryClose(stmt); }
@@ -1111,7 +1121,7 @@ public class DatabaseCore implements IDatabaseManager {
         // }
 
 
-        for(Map.Entry<String,Group> g: entrySet) {
+        for (Map.Entry<String,Group> g: entrySet) {
             ArrayList<Company> list = new ArrayList<>();
             String[] companylist = getCompaniesInGroup(g.getValue().getGroupCode());
             for (int i = 0; i < companylist.length; i++) {
@@ -1142,7 +1152,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
       } catch (SQLException ex) {
-        printSQLException(ex);
+        ex.printStackTrace();
       } finally {
         if (stmt != null) { tryClose(stmt); }
         if (rs != null) { tryClose(rs); }
@@ -1150,8 +1160,15 @@ public class DatabaseCore implements IDatabaseManager {
 
       return result;
     }
+
+    /**
+    *
+    *
+    * @param threshold
+    * @return
+    */
     //TODO
-    public ArrayList<String> detectedImportantChange(Float treshold) {
+    public ArrayList<String> detectedImportantChange(Float treshhold) {
       String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 101";
 
       ResultSet rs = null;
@@ -1170,7 +1187,7 @@ public class DatabaseCore implements IDatabaseManager {
 
           Float percChange = rs.getFloat("PercentageChange");
 
-          if(Math.abs(percChange) > Math.abs(treshold)) {
+          if(Math.abs(percChange) > Math.abs(treshhold)) {
             companiesPercChangeMap.put(companyName, percChange);
           }
         }
@@ -1182,7 +1199,7 @@ public class DatabaseCore implements IDatabaseManager {
         }
 
       } catch (SQLException e) {
-        printSQLException(e);
+        e.printStackTrace();
       } finally {
         if (stmt != null) { tryClose(stmt); }
         if(rs != null) {tryClose(rs); }
@@ -1195,7 +1212,14 @@ public class DatabaseCore implements IDatabaseManager {
       return result;
     }
 
-
+    /**
+    *
+    *
+    * @param company
+    * @param intent
+    * @param isNews
+    * @return 
+    */
     //TODO
     public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
       String table = "";
@@ -1235,25 +1259,27 @@ public class DatabaseCore implements IDatabaseManager {
         stmt.executeUpdate(query);
 
       } catch (SQLException e) {
-        printSQLException(e);
+        e.printStackTrace();
       } finally {
         if (stmt != null) { tryClose(stmt); }
       }
     }
 
-
-    // This is potentially not needed couple of methods as
-    // the database will always be updated i.e.
-    // the only changes the intelligence core makes locally
-    // are on tallies and it will update the database accordingly immediately
-    public void storeAICompanies(ArrayList<Company> companies) {
-
-    }
-
+    // DO WE NEED THIS???
     public void storeAIGroups(ArrayList<Group> groups) {
-
+        
     }
 
+    public void storeAICompanies(ArrayList<Company> companies) {
+        
+    }
+
+    /**
+    *
+    *
+    * @param groupName
+    * @return
+    */
     public String[] getCompaniesInGroup(String groupName){
         groupName.toLowerCase();
         ArrayList<String> companies = new ArrayList<>();
@@ -1278,104 +1304,76 @@ public class DatabaseCore implements IDatabaseManager {
         }
         return companies.toArray(new String[1]);
     }
+
     /**
-     *  Nicked from JDBC tutorial
-     *  Found it useful for debugging
-     * @param SQLException
-     */
-    public void printSQLException(SQLException ex) {
-
-      for (Throwable e : ex) {
-          if (e instanceof SQLException) {
-              if (ignoreSQLException(((SQLException)e).getSQLState()) == false) {
-
-                  e.printStackTrace(System.err);
-                  System.err.println("SQLState: " +
-                      ((SQLException)e).getSQLState());
-
-                  System.err.println("Error Code: " +
-                      ((SQLException)e).getErrorCode());
-
-                  System.err.println("Message: " + e.getMessage());
-
-                  Throwable t = ex.getCause();
-                  while(t != null) {
-                      System.out.println("Cause: " + t);
-                      t = t.getCause();
-                  }
-              }
-          }
-      }
-    }
-
-    public static boolean ignoreSQLException(String sqlState) {
-
-      if (sqlState == null) {
-          System.out.println("The SQL state is not defined!");
-          return false;
-      }
-
-      // X0Y32: Jar file already exists in schema
-      if (sqlState.equalsIgnoreCase("X0Y32"))
-          return true;
-
-      // 42Y55: Table already exists in schema
-      if (sqlState.equalsIgnoreCase("42Y55"))
-          return true;
-
-      return false;
-  }
-
-    //Handy methods to close statements and ResultSets
-    private void tryClose(Statement s){
-        try{
+    * Closes statement
+    *
+    * @param s The statement
+    */
+    private void tryClose(Statement s) {
+        try {
             s.close();
-        }
-        catch(Exception e){
-            //Do nothing
+        } catch(Exception e) {
+            // Do nothing
         }
     }
 
-    private void tryClose(ResultSet s){
-        try{
+    /**
+    * Closes result set
+    *
+    * @param s The result set
+    */
+    private void tryClose(ResultSet s) {
+        try {
             s.close();
-        }
-        catch(Exception e){
-            //Do nothing
+        } catch(Exception e) {
+            // Do nothing
         }
     }
 
-    private void tryClose(Statement s,ResultSet rs){
+    /**
+    * Closes a statement and result set
+    *
+    * @param s The statement
+    * @param rs The results set
+    */
+    private void tryClose(Statement s, ResultSet rs) {
         tryClose(s);
         tryClose(rs);
     }
 
-    //Similar methods for rollback and commit
-    private void trySetAutoCommit(Boolean b){
+    /**
+    * Sets the auto commit field
+    *
+    * @param b The boolean to see the autocommit field to
+    */
+    private void trySetAutoCommit(Boolean b) {
         try{
             conn.setAutoCommit(b);
-        }
-        catch(Exception e){
+        } catch(Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void tryRollback(){
+    /**
+    * Rolls back the database
+    */
+    private void tryRollback() {
         try{
             conn.rollback();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void tryCommit(){
-        try{
+    /**
+    * Commits the database
+    */
+    private void tryCommit() {
+        try {
             conn.commit();
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
 }
