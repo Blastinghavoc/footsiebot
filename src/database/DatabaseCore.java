@@ -13,6 +13,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.DayOfWeek;
 import java.lang.Integer;
+import java.util.Currency;
+import java.util.Locale;
+import java.text.NumberFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
@@ -282,7 +287,7 @@ public class DatabaseCore implements IDatabaseManager {
 		            } else {
 		            	if (intent != intent.TRADING_VOLUME) {
 		            		do {
-		                    	output.add(((Float)results.getFloat(1)).toString());
+		                    	output.add(convertToGBX(((Float)results.getFloat(1))));
 		                	} while (results.next());
 		            	} else {
 		            		do {
@@ -427,6 +432,18 @@ public class DatabaseCore implements IDatabaseManager {
     */
     private Float roundFloat(Float f) {
     	return Math.round(f * 1000.0f) / 1000.0f;
+    }
+
+    /**
+    * Converts a float into GBX currency format
+    *
+    * @param num The number to be converted
+    * @return The converted number
+    */
+    private String convertToGBX(Float num) {
+        DecimalFormat formatter = new DecimalFormat(
+                "GBX #,##0.00;GBX -#,##0.00");
+        return formatter.format(num);
     }
 
     /**
@@ -654,7 +671,12 @@ public class DatabaseCore implements IDatabaseManager {
    		return query;
     }
 
-    /* Returns an SQL query to get the FTSE data required in the parse result */
+    /** 
+    * Returns an SQL query to get the FTSE data required in the parse result 
+	*
+	* @param pr The parse result from the user's input
+	* @return An SQL query to get the FTSE data required
+    */
     public String convertFTSEQuery(ParseResult pr) {
         Intent intent = pr.getIntent();
         TimeSpecifier timeSpec = pr.getTimeSpecifier();
@@ -674,7 +696,7 @@ public class DatabaseCore implements IDatabaseManager {
                 isFetchCurrentQuery = true;
                 colName = "SpotPrice";
                 break;
-            case TRADING_VOLUME: // haven't got this column yet so won't work
+            case TRADING_VOLUME:
                 isFetchCurrentQuery = true;
                 colName = "TradingVolume";
                 break;
@@ -694,8 +716,6 @@ public class DatabaseCore implements IDatabaseManager {
                         + "WHERE CompanyCode = '" + companyCode
                         + "' AND DATE(TimeOfData) <= '" + date + "' "
                         + "ORDER BY TimeOfData DESC LIMIT 1";
-                break;
-            case GROUP_FULL_SUMMARY://NOTE: Not required
                 break;
             default:
                 System.out.println("No cases ran");
@@ -863,7 +883,26 @@ public class DatabaseCore implements IDatabaseManager {
 
     		for (int i = 1; i <= columnCount; i++) {
     			String colName = rsmd.getColumnName(i);
-    			rs.add(colName + ", " + ((Float)results.getFloat(i)).toString());
+                switch (colName) {
+                    case "TradingVolume":
+                        rs.add("Trading volume, " + (Integer.toString(
+                                results.getInt(i))));
+                        break;
+                    case "SpotPrice":
+                        rs.add("Spot price, " + (convertToGBX((Float)results
+                                .getFloat(i))));
+                        break;
+                    case "PercentageChange":
+                        rs.add("Percentage change, " + ((Float)results
+                                .getFloat(i)).toString() + "%");
+                        break;
+                    case "AbsoluteChange":
+                        rs.add("Absolute change," + (convertToGBX((Float)results
+                                .getFloat(i))));
+                        break;
+                    default:
+                        break;
+                }
     		}
 
     	} catch (SQLException e) {

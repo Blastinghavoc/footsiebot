@@ -193,7 +193,7 @@ public class Core extends Application {
         String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is "+ data[0];
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -211,7 +211,7 @@ public class Core extends Application {
                 }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is "+ data[0] + " since the market opened.";
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -221,7 +221,7 @@ public class Core extends Application {
                     String date = data[1].split(",")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
+                    output = "The opening price of "+ pr.getOperand()+" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -233,7 +233,7 @@ public class Core extends Application {
                     String date = data[1].split(",")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
+                    output = "The closing price of "+ pr.getOperand()+" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
