@@ -281,14 +281,15 @@ public class IntelligenceCore implements IIntelligenceUnit {
      if(i == null) return null;
 
      ParseResult pr = new ParseResult(i, "", company.getCode(), false, tm);
-
+     reason = "You have asked for the "+i.toString().toLowerCase().replace("_"," ");
+     reason += " of this company quite a lot recently.";
      // false == suggestion is not news
      Suggestion result = new Suggestion(reason, company, false, pr);
      return result;
    }
 
    private Suggestion suggestNews(Company company) {
-     String reason = "Company is in top 5";
+     String reason = "You have asked for news on this company quite a lot recently.";
      ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", company.getCode(), false, footsiebot.nlp.TimeSpecifier.TODAY);
      Suggestion result = new Suggestion(reason, company, true, pr);
      return result;
