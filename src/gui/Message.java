@@ -1,5 +1,6 @@
 package footsiebot.gui;
 
+import footsiebot.ai.Suggestion;
 import java.time.LocalDateTime;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -11,9 +12,7 @@ import javafx.scene.shape.Rectangle;
 import javafx.geometry.*;
 import javafx.animation.*;
 import javafx.util.Duration;
-import javafx.scene.text.Font;
 
-import footsiebot.ai.Suggestion;
 
 public class Message extends FlowPane {
     private LocalDateTime timestamp;
@@ -23,7 +22,6 @@ public class Message extends FlowPane {
     private GUIcore ui;
     private boolean isAI;
     private Message parent;
-    private boolean isSummary;
 
     private StackPane msgWrapper;
     private Label msg;
@@ -45,7 +43,6 @@ public class Message extends FlowPane {
         this.sent = sent;
         this.ui = ui;
         this.isAI = (s!= null);
-        isSummary = false;
         sugg = s;
         parent = null;
         setPrefWidth(chatPaneWidth - 36);
@@ -85,53 +82,6 @@ public class Message extends FlowPane {
         }
     }
 
-    public Message(String text, LocalDateTime timestamp, boolean sent, Suggestion s, GUIcore ui, boolean isSummary) {
-        super();
-        double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
-
-        this.timestamp = timestamp;
-        this.sent = sent;
-        this.ui = ui;
-        this.isAI = (s!= null);
-        sugg = s;
-        parent = null;
-        setPrefWidth(chatPaneWidth - 36);
-        setMaxWidth(chatPaneWidth - 36);
-
-        final double maxWidth = (chatPaneWidth - 36) * 0.55;
-        Text sizing = new Text(text);
-        sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
-        if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
-            sizing.setWrappingWidth(maxWidth);
-
-        // System.out.println(sizing.getFont());
-
-        width = Math.ceil(sizing.getLayoutBounds().getWidth());
-        height = Math.ceil(sizing.getLayoutBounds().getHeight());
-
-        initMessage(text);
-
-        aiNote = new Tooltip("Why am I seeing this?");
-        removeNote = new Tooltip("This isn't important to me");
-
-        if (isAI)
-            setupAI();
-
-        if (sent) {
-            if (isAI)
-                getChildren().add(btnWrapper);
-            getChildren().add(msgWrapper);
-            finishSetup("user");
-            setAlignment(Pos.CENTER_RIGHT);
-        } else {
-            getChildren().addAll(msgWrapper);
-            if (isAI)
-                getChildren().add(btnWrapper);
-            finishSetup("system");
-            setAlignment(Pos.CENTER_LEFT);
-        }
-    }
-
     public Message(String text, LocalDateTime timestamp, GUIcore ui, Message parent) {
         super();
         double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
@@ -140,7 +90,6 @@ public class Message extends FlowPane {
         sent = false;
         this.ui = ui;
         isAI = false;
-        isSummary = false;
         this.parent = parent;
         setPrefWidth(chatPaneWidth - 36);
         setMaxWidth(chatPaneWidth - 36);
@@ -197,7 +146,7 @@ public class Message extends FlowPane {
         btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
 
         why.setOnMouseClicked(e -> {
-            ui.displayMessage(sugg.getReason(), false, this);
+            ui.displayMessage(sugg.getReason(), this);
             why.setVisible(false);
         });
 
@@ -312,9 +261,4 @@ public class Message extends FlowPane {
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
-
-    public boolean isSummary() {
-        return isSummary;
-    }
-
 }

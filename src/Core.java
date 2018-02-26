@@ -635,9 +635,9 @@ public class Core extends Application {
                 output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
             }
         }
-        output += "You may also view the latest news for these companies in the news pane";
+        output += "\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayMessage(output,null, true);
+        ui.displayMessage(output);
         ui.displayResults(news,null);
     }
 
