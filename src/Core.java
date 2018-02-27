@@ -12,6 +12,9 @@ import java.util.*;
 import java.time.LocalDateTime;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.animation.*;
+import javafx.util.Duration;
+import java.lang.Math;
 
 
 public class Core extends Application {
@@ -30,11 +33,14 @@ public class Core extends Application {
     private Boolean nameless = false;//Whether or not the user currently has a name assigned.
 
     public static final long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds.
+    
+    public Boolean FULLSCREEN = false;
 
     /*
     * The latest scrape result downloaded, and some boolean "locks" to assist
     * with synchronization. Booleans probably not technically required.
     */
+
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
     private Boolean readingScrape = false;
@@ -160,6 +166,10 @@ public class Core extends Application {
     * @param raw the String input by the user
     */
     public void onUserInput(String raw) {
+        if (raw.toLowerCase().equals("tell me a joke")) {
+            readJoke();
+            return;
+        }
         if(nameless){
             handleUserNameChange(raw);
             String message = "If this is not your name, or you decide you want";
@@ -658,9 +668,9 @@ public class Core extends Application {
                 output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
             }
         }
-        output += "You may also view the latest news for these companies in the news pane";
+        output += "\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
-        ui.displayMessage(output,null, true);
+        ui.displayMessage(output);
         ui.displayResults(news,null);
     }
 
@@ -701,11 +711,12 @@ public class Core extends Application {
     /*
     Handles updating the settings when the user makes a change to them in the gui.
     */
-    public void updateSettings(String time, Double change) {
-        if(time == null && change == null){
+    public void updateSettings(String time, Double change, boolean fullscreen) {
+        if (time == null && change == null) {
             return;
         }
-        if(change < 0){//Want absolute value
+
+        if (change < 0) {//Want absolute value
             change = 0 - change;
         }
 
@@ -718,19 +729,22 @@ public class Core extends Application {
             TRADING_TIME = newTradingTime;
         }
 
-        if(change != null){
+        if (change != null) {
             LARGE_CHANGE_THRESHOLD = change;
         }
+
+        FULLSCREEN = fullscreen;
+
         ui.stopTradingHourTimeline();
         ui.startTradingHourTimeline();
-        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
+        writeSettings(TRADING_TIME, LARGE_CHANGE_THRESHOLD, USER_NAME);
         System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
     }
 
     /*
     Stores settings when updated
     */
-    private void writeSettings(Long time, Double change,String userName){
+    private void writeSettings(Long time, Double change, String userName){
         File fl = null;
         BufferedWriter bw = null;
         try{
@@ -741,6 +755,8 @@ public class Core extends Application {
             bw.write(change.toString());
             bw.newLine();
             bw.write(userName);
+            bw.newLine();
+            bw.write(FULLSCREEN.toString());
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -759,6 +775,7 @@ public class Core extends Application {
             TRADING_TIME = Long.parseLong(br.readLine());
             LARGE_CHANGE_THRESHOLD = Double.parseDouble(br.readLine());
             USER_NAME = br.readLine();
+            FULLSCREEN = Boolean.parseBoolean(br.readLine());
 
         }catch(Exception e){
             e.printStackTrace();
@@ -787,6 +804,39 @@ public class Core extends Application {
             c.close();
         }catch(Exception ex){
         }
+    }
+
+    private void readJoke() {
+        File fl = null;
+        BufferedReader br = null;
+        String complete = null;
+        try{
+            fl = new File("src/jokes.txt");
+            br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
+            int rand = (int) Math.ceil(Math.random() * 6);
+            for (int i = 0; i < rand; i++) {
+                complete = br.readLine();
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(br);
+        }
+
+        final String[] joke = complete.split(",");
+        ui.displayMessage(joke[0]);
+        Timeline tellJoke = new Timeline();
+        tellJoke.getKeyFrames().add(new KeyFrame(Duration.millis(1500), e -> ui.displayMessage(joke[1])));
+        try {
+            tellJoke.play();
+        } catch (Exception e) {
+
+        }
+
+        // ui.displayMessage(joke[1]);
+
     }
 
 }
