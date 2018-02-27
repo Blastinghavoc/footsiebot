@@ -621,7 +621,7 @@ public class DatabaseCore implements IDatabaseManager {
             }
 
             if (!spotPrice.equals(0.0f) && !openingPrice.equals(0.0f)) {
-                percChange = ((openingPrice - spotPrice) / openingPrice) * 100;
+                percChange = ((spotPrice - openingPrice) / openingPrice) * 100;
             } else {
                 System.out.println("Null start or spot price");
                 return trendData;
