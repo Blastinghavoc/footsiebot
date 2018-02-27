@@ -211,6 +211,9 @@ public class IntelligenceCore implements IIntelligenceUnit {
    public Company[] onNewsTime() {
      // show report about 5 top companies
      // just returns the companies to core ?
+     if(companies == null){
+         return null;
+     }
      Company[] result = new Company[TOP];
      for(int i = 0; i < TOP; i++) {
        result[i] = companies.get(i);

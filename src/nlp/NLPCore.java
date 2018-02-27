@@ -57,7 +57,7 @@ public class NLPCore implements INaturalLanguageProcessor{
         }
 
         if(!valid){
-          return new ParseResult(null,raw,null,operandIsGroup,null);//Replace with error enums?
+          in = null;
         }
         else{
             s = s.replace(finalIntent,"");//Removing the detected intent from the string.
@@ -122,12 +122,12 @@ public class NLPCore implements INaturalLanguageProcessor{
 
 
         if(!valid){
-          return new ParseResult(in,raw,null,operandIsGroup,ts);//Replace with error enums?
+          operand = null;
         }
 
 
 
-        return new ParseResult(in,raw,operand,operandIsGroup,ts);
+        return new ParseResult(in,raw,operand,operandIsGroup,ts);//Note that fields could be null.
     }
 
     /**
@@ -186,6 +186,8 @@ public class NLPCore implements INaturalLanguageProcessor{
     intentMap.put("rising",Intent.TREND);
     intentMap.put("falling",Intent.TREND);
     intentMap.put("risen",Intent.TREND);
+    intentMap.put("rise",Intent.TREND);
+    intentMap.put("fall",Intent.TREND);
     intentMap.put("fallen",Intent.TREND);
     intentMap.put("doing",Intent.TREND);
     intentMap.put("trend",Intent.TREND);
