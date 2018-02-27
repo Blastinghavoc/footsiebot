@@ -165,6 +165,7 @@ public class Core extends Application {
             String message = "If this is not your name, or you decide you want";
             message += " me to call you something else, just say 'Call me YOURNAME'";
             message += " at any point.";
+            ui.displayMessage(message);
             return;
         }
         else{
@@ -692,6 +693,7 @@ public class Core extends Application {
 
     private void handleUserNameChange(String name){
         USER_NAME = name;
+        nameless = false;
         writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
         ui.displayMessage("Thanks "+name+"! How can I help you?");
     }
