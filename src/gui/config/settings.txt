@@ -1,7 +1,3 @@
-<<<<<<< HEAD
 -burnt
 garden
 original
-=======
-main
->>>>>>> 3b6c90e68f11e4b41fec27cd5c55c653ff9ef58d
