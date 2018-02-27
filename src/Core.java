@@ -23,22 +23,35 @@ public class Core extends Application {
     private IDatabaseManager dbm;
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
+
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
     public long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
-    public Double LARGE_CHANGE_THRESHOLD = 0.5;
+    public Double LARGE_CHANGE_THRESHOLD = 0.5;//Large change threshold for use in the IC
 
-    public String USER_NAME = "Dave";
-    private Boolean nameless = false;
+    public String USER_NAME = "Dave";//The name of the user (gets loaded from file)
+    private Boolean nameless = false;//Whether or not the user currently has a name assigned.
+
+    public static final long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds.
+
 
     public Boolean FULLSCREEN = false;
 
     public long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
+    /*
+    * The latest scrape result downloaded, and some boolean "locks" to assist
+    * with synchronization. Booleans probably not technically required.
+    */
+
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
     private Boolean readingScrape = false;
     private Boolean writingScrape = false;
 
+    /*
+    * Variables to keep track of what has recently been output, so that we never
+    * output a suggestion about something that has just been displayed.
+    */
     private ArrayList<Intent> extraDataAddedToLastOutput;
     private String lastOperandOutput;
 
@@ -131,6 +144,7 @@ public class Core extends Application {
         System.out.println("Safely closed the program.");
     }
 
+    //TODO: Remove! Will break the runNLPTest script.
     private static String readEntry(String prompt) { //Nicked from Databases worksheets, can't be included in final submission DEBUG
         try {
             StringBuffer buffer = new StringBuffer();
@@ -163,6 +177,7 @@ public class Core extends Application {
             String message = "If this is not your name, or you decide you want";
             message += " me to call you something else, just say 'Call me YOURNAME'";
             message += " at any point.";
+            ui.displayMessage(message);
             return;
         }
         else{
@@ -215,12 +230,23 @@ public class Core extends Application {
     }
 
    /**
-    *
+    * Obtains an array of all the company codes representing
+    * companies in the given group
+    * @param group The name of the group to fetch constituents for.
     */
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
     }
 
+    /**
+     * Returns a string that is the formatted output for a given query, potentially
+     * with extra data added.
+     * @param data An array of string data representing the answer to the query.
+     * @param pr The ParseResult that triggered this query.
+     * @param wasSuggestion A Boolean flag to indicate whether the triggering ParseResult
+     * originated from the IC.
+     * @return a formatted string, ready to be output to the user.
+     */
     private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
         String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
@@ -679,6 +705,7 @@ public class Core extends Application {
 
     private void handleUserNameChange(String name){
         USER_NAME = name;
+        nameless = false;
         writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
         ui.displayMessage("Thanks "+name+"! How can I help you?");
     }
