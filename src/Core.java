@@ -173,34 +173,86 @@ public class Core extends Application {
         }
     }
 
-   /**
-    * Executes the request input by the user
-    *
-    * @param raw the String input by the user
+    /**
+    * Deals with the small set of commands that the user can enter.
+    * Checks if the raw input is a command, and executes it if it is.
+    * Returns a boolean representing whether or not a command was executed.
     */
-    public void onUserInput(String raw) {
-        if (raw.toLowerCase().equals("tell me a joke")) {
-            readJoke();
-            return;
-        }
+    private Boolean handleCommand(String raw){
+        Boolean ranCommand = false;
+
         if(nameless){
             handleUserNameChange(raw);
             String message = "If this is not your name, or you decide you want";
             message += " me to call you something else, just say 'Call me YOURNAME'";
             message += " at any point.";
             ui.displayMessage(message);
-            return;
+            ranCommand = true;
         }
-        else{
-            if(raw.toLowerCase().startsWith("call me ")){
-                String newName = raw.substring(8, raw.length());
-                handleUserNameChange(newName);
-                return;
-            }
+        else if(raw.toLowerCase().startsWith("call me ")){
+            String newName = raw.substring(8, raw.length());
+            handleUserNameChange(newName);
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().contains("tell me a joke")) {
+            readJoke();
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().startsWith("help")) {
+            String message = "Ok "+USER_NAME;
+            message += " I can:\n";
+            message += "Fetch you the spot price of a company.\n    Ask me 'What is the spot price of X?'";
+            message += "\n\nFetch you the opening price of a company.\n    Ask me 'What was the opening price of X?'";
+            message += "\n\nFetch you the closing price of a company.\n    Ask me 'What was the closing price of X yesterday?'";
+            message += "\n\nFetch you the trading volume of a company.\n    Ask me 'What is the volume of X?'";
+            message += "\n\nFetch you the percentage change of a company since the market opened.\n    Ask me 'What is the percentage change of X?'";
+            message += "\n\nFetch you the absolute change of a company since the market opened.\n    Ask me 'What is the absolute change of X?'";
+            message += "\n\nFetch you the trend of a company since the market opened.\n    Ask me 'Is X rising or falling?'";
+            message += "\n\nFetch you the trend of a company on a given day.\n    Ask me 'What was the trend in X last Wednesday?'";
+            message += "\n\nFetch you the trend of a company since a given day.\n    Ask me 'Has X risen since Tuesday?'";
+            message += "\n\nFetch you the recent news on a company.\n    Ask me 'What is the news for X'";
+            message += "\n\nGive you most of the above information for a group of companies, and for any day over the past 5 trading days.";
+            message += "\n    For example, ask me 'Did Pharmaceuticals rise yesterday?'";
+            ui.displayMessage(message);
+            ranCommand = true;
+        }
+        return ranCommand;
+    }
+
+   /**
+    * Executes the request input by the user
+    *
+    * @param raw the String input by the user
+    */
+    public void onUserInput(String raw) {
+        if(handleCommand(raw)){
+            return;
         }
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
-        if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
+        //Checking the parse result.
+        if(pr == null){
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        else if(pr.getOperand()== null){
+            if(pr.getIntent() == Intent.NEWS){
+                outputJustNewsSummary();
+                return;
+            }
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        else if (pr.getIntent() == null){
+            //At this point, we have established that the operand is not null, but the intent is.
+            //If the user enters a company without an intent, we give them a summary.
+            if (!pr.isOperandGroup()){
+                String summary = getSingleCompanySummary(pr.getOperand());
+                if (summary != null){
+                    ui.displayMessage("I didn't recognise any commands or queries in your input, but I think you wanted to know about "+summary);
+                    return;
+                }
+            }
             ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
             return;
         }
@@ -384,7 +436,7 @@ public class Core extends Application {
                     output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 else{
-                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
                     output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split(",");
                     output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
@@ -666,24 +718,58 @@ public class Core extends Application {
         String[] companyCodes = new String[companies.length];
         String output = "Hi "+USER_NAME+", it's time for your daily summary!\nI've detected that the following companies are important to you:";
         if((companies == null) || (companies.length < 1)){
+            ui.displayMessage("Sorry "+USER_NAME+", I tried to give you your daily summary, but it appears that I don't have sufficient data for that right now.");
             return;
         }
 
         for(int i = 0;i < companies.length;i++){
-            Company c = companies[i];
-            companyCodes[i] = c.getCode();
-            String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
-            String[] temp;
-            output+= "\n"+c.getCode().toUpperCase()+" :\n";
-            output+= "    Spot price = "+data[0]+"\n";
-            for(int j = 1; j< data.length; j++){
-                temp = data[j].split(",");
-                output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
+            String summary = getSingleCompanySummary(companies[i].getCode());
+            companyCodes[i] = companies[i].getCode();
+            if(summary != null){
+                output += "\n"+summary;
             }
         }
         output += "\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
         ui.displayMessage(output);
+        ui.displayResults(news,null);
+    }
+
+    /**
+    * Returns a string containing a summary for a given company
+    */
+    private String getSingleCompanySummary(String code){
+        String output = "";
+        String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",code,false,TimeSpecifier.TODAY));
+        if(data == null){
+            return null;
+        }
+        String[] temp;
+        output+= code.toUpperCase()+" :\n";
+        output+= "    Spot price = "+data[0]+"\n";
+        for(int j = 1; j< data.length; j++){
+            temp = data[j].split(",");
+            output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
+        }
+        return output;
+    }
+
+    /**
+    * Outputs just the news part of what would have been the users Trading Hour summary.
+    */
+    private void outputJustNewsSummary(){
+        Company[] companies = ic.onNewsTime();
+        String[] companyCodes = new String[companies.length];
+        if((companies == null) || (companies.length < 1)){
+            ui.displayMessage("Sorry "+USER_NAME+", I think you wanted some news, but I have no idea what companies to give you news for. Please be more specific.");
+            return;
+        }
+
+        for (int i = 0;i< companies.length;i++ ) {
+            companyCodes[i] = companies[i].getCode();
+        }
+        Article[] news = dgc.getNews(companyCodes);
+        ui.displayMessage(USER_NAME+", I think you wanted some news, but I couldn't detect any company or group names in your query, so I've given you news on companies that I think are important to you.");
         ui.displayResults(news,null);
     }
 

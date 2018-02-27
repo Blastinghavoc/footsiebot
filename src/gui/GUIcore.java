@@ -423,6 +423,10 @@ public class GUIcore implements IGraphicalUserInterface {
             else
                 saveChanges.setDisable(true);
         });
+
+        fullscrnCkB.setOnAction(e -> {
+            saveChanges.setDisable(false);
+        });
     }
 
    /**

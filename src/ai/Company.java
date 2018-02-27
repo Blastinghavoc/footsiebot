@@ -56,9 +56,6 @@ public class Company implements Comparable<Company> {
         startMaxValue = value;
         result = new AbstractMap.SimpleEntry<AIIntent, Float>(currMax,startMaxValue);
       }
-      // DEBUG
-      System.out.println(result.getKey());
-      System.out.println(result.getValue());
     }
     return result;
   }
