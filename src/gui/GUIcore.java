@@ -303,7 +303,7 @@ public class GUIcore implements IGraphicalUserInterface {
         styling.setItems(stylesheets);
         styling.setValue(selected);
         styling.setOnAction(e -> {
-            setStyle(styling.getValue());
+            testStyle(styling.getValue());
         });
 
         Button saveChanges = new Button("Save Changes");
@@ -327,8 +327,10 @@ public class GUIcore implements IGraphicalUserInterface {
         cancelChanges.setMinWidth(100);
         cancelChanges.setMaxWidth(100);
         cancelChanges.setOnAction(e -> {
+            setStyle(style);
             timeSelector.setValue(tradingTimeToString());
             changeSelector.getValueFactory().setValue(core.LARGE_CHANGE_THRESHOLD);
+            styling.setValue(style);
             saveChanges.setDisable(true);
         });
 
@@ -422,10 +424,6 @@ public class GUIcore implements IGraphicalUserInterface {
                 saveChanges.setDisable(false);
             else
                 saveChanges.setDisable(true);
-        });
-
-        fullscrnCkB.setOnAction(e -> {
-            saveChanges.setDisable(false);
         });
     }
 
@@ -727,6 +725,10 @@ public class GUIcore implements IGraphicalUserInterface {
             messages.setValue(messageBoard.getChildren());
             input.clear();
         }
+    }
+
+    private void testStyle(String test) {
+        scene.getStylesheets().setAll("file:src/gui/css/" + test + ".css");
     }
 
    /**
