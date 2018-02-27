@@ -186,6 +186,8 @@ public class NLPCore implements INaturalLanguageProcessor{
     intentMap.put("rising",Intent.TREND);
     intentMap.put("falling",Intent.TREND);
     intentMap.put("risen",Intent.TREND);
+    intentMap.put("rise",Intent.TREND);
+    intentMap.put("fall",Intent.TREND);
     intentMap.put("fallen",Intent.TREND);
     intentMap.put("doing",Intent.TREND);
     intentMap.put("trend",Intent.TREND);

@@ -160,30 +160,60 @@ public class Core extends Application {
         }
     }
 
-   /**
-    * Executes the request input by the user
-    *
-    * @param raw the String input by the user
+    /**
+    * Deals with the small set of commands that the user can enter.
+    * Checks if the raw input is a command, and executes it if it is.
+    * Returns a boolean representing whether or not a command was executed.
     */
-    public void onUserInput(String raw) {
-        if (raw.toLowerCase().equals("tell me a joke")) {
-            readJoke();
-            return;
-        }
+    private Boolean handleCommand(String raw){
+        Boolean ranCommand = false;
+
         if(nameless){
             handleUserNameChange(raw);
             String message = "If this is not your name, or you decide you want";
             message += " me to call you something else, just say 'Call me YOURNAME'";
             message += " at any point.";
             ui.displayMessage(message);
-            return;
+            ranCommand = true;
         }
-        else{
-            if(raw.toLowerCase().startsWith("call me ")){
-                String newName = raw.substring(8, raw.length());
-                handleUserNameChange(newName);
-                return;
-            }
+        else if(raw.toLowerCase().startsWith("call me ")){
+            String newName = raw.substring(8, raw.length());
+            handleUserNameChange(newName);
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().contains("tell me a joke")) {
+            readJoke();
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().startsWith("help")) {
+            String message = "Ok "+USER_NAME;
+            message += " I can:\n";
+            message += "Fetch you the spot price of a company.\n    Ask me 'What is the spot price of X?'";
+            message += "\n\nFetch you the opening price of a company.\n    Ask me 'What was the opening price of X?'";
+            message += "\n\nFetch you the closing price of a company.\n    Ask me 'What was the closing price of X yesterday?'";
+            message += "\n\nFetch you the trading volume of a company.\n    Ask me 'What is the volume of X?'";
+            message += "\n\nFetch you the percentage change of a company since the market opened.\n    Ask me 'What is the percentage change of X?'";
+            message += "\n\nFetch you the absolute change of a company since the market opened.\n    Ask me 'What is the absolute change of X?'";
+            message += "\n\nFetch you the trend of a company since the market opened.\n    Ask me 'Is X rising or falling?'";
+            message += "\n\nFetch you the trend of a company on a given day.\n    Ask me 'What was the trend in X last Wednesday?'";
+            message += "\n\nFetch you the trend of a company since a given day.\n    Ask me 'Has X risen since Tuesday?'";
+            message += "\n\nFetch you the recent news on a company.\n    Ask me 'What is the news for X'";
+            message += "\n\nGive you most of the above information for a group of companies, and for any day over the past 5 trading days.";
+            message += "\n    For example, ask me 'Did Pharmaceuticals rise yesterday?'";
+            ui.displayMessage(message);
+            ranCommand = true;
+        }
+        return ranCommand;
+    }
+
+   /**
+    * Executes the request input by the user
+    *
+    * @param raw the String input by the user
+    */
+    public void onUserInput(String raw) {
+        if(handleCommand(raw)){
+            return;
         }
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
@@ -371,7 +401,7 @@ public class Core extends Application {
                     output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 else{
-                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
                     output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split(",");
                     output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
