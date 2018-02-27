@@ -1,11 +1,11 @@
 package footsiebot.gui;
 
 import footsiebot.Core;
+import footsiebot.ai.Suggestion;
 import footsiebot.datagathering.Article;
-import java.util.Calendar;
-import java.time.Instant;
 import java.io.*;
 import java.time.*;
+import java.util.*;
 import javafx.stage.*;
 import javafx.event.*;
 import javafx.scene.*;
@@ -17,58 +17,67 @@ import javafx.scene.control.*;
 import javafx.scene.text.TextAlignment;
 import javafx.geometry.*;
 import javafx.animation.*;
-import javafx.beans.*;
-import javafx.beans.property.*;
-import javafx.util.Duration;
-import javafx.application.Platform;
 import javafx.collections.*;
-import java.util.ArrayList;
+import javafx.util.Duration;
+import javafx.beans.property.*;
+import javafx.application.Platform;
 
-import footsiebot.ai.Suggestion;
 
 public class GUIcore implements IGraphicalUserInterface {
-    private String style;
-    private ListProperty<Node> messages;
+    private String style; //holds the filename of the stylesheet to use
+    private ListProperty<Node> messages; /*keeps a record of the Messages on the
+                                         messageBoard - used for resizing
+                                         purposes*/
+    private Core core; /*the instance of Core which this instance of GUIcore
+                       belongs to*/
 
-    private Timeline newDataTimeline;
-    private Timeline tradingHourTimeline;
+    private Timeline newDataTimeline; /*Timeline to regularly call the
+                                      onNewDataAvailable() method in the Core*/
+    private Timeline tradingHourTimeline; /*Timeline to regularly call the
+                                          onTradingHour() method in the Core*/
 
-    private Thread dataDownload;
-    private volatile Boolean closing = false;
+    private Thread dataDownload; //a Thread to perform the download of data
+    private volatile Boolean closing = false; /*a boolean value which indicates
+                                              whether the application is
+                                              closing*/
 
-    private Core core;
     private Stage stage;
     private Scene scene;
     private StackPane root;
-    private StackPane chatPane;
-    private StackPane sidePane;
+
     private StackPane topBar;
+    private ImageView settingsIcon;
+
+    private StackPane chatPane;
     private ScrollPane boardWrapper;
     private VBox messageBoard;
     private StackPane inputWrapper;
     private Rectangle inputVisual;
     private TextField input;
     private Button btnSend;
-    private GridPane settingsPane;
+
+    private StackPane sidePane;
     private StackPane newsPane;
     private ScrollPane newsWrapper;
     private FlowPane newsBoard;
-    private ImageView settingsIcon;
+    private Label noNews;
+
+    private GridPane settingsPane;
+    private ComboBox<String> timeSelector;
+    private Spinner<Double> changeSelector;
+    private Button saveChanges;
     private FadeTransition settingsPaneTrans;
     private FadeTransition newsPaneTrans;
     private RotateTransition settingsIconTrans;
-    private Label noNews;
-    private ComboBox<String> timeSelector;
-    private Spinner<Double> changeSelector;
 
    /**
     * Constructor for the user interface using default styling
     *
     * @param primaryStage the initial stage of the application
+    * @param core the core of the application
     */
     public GUIcore(Stage primaryStage, Core core) {
         stage = primaryStage;
-        // stage.setFullScreen(true);
         style = "main";
         this.core = core;
         setup();
@@ -79,10 +88,10 @@ public class GUIcore implements IGraphicalUserInterface {
     *
     * @param primaryStage the initial stage of the application
     * @param style the name of the css file used for styling
+    * @param core the core of the application
     */
     public GUIcore(Stage primaryStage, String style, Core core) {
         stage = primaryStage;
-        // stage.setFullScreen(true);
         this.style = style;
         this.core = core;
         setup();
@@ -92,8 +101,11 @@ public class GUIcore implements IGraphicalUserInterface {
     * Builds the user interface on the initial stage of the application
     */
     private void setup() {
+        if (core.FULLSCREEN)
+            stage.setFullScreen(true);
+
         stage.setMinWidth(500);
-        stage.setMinHeight(250);
+        stage.setMinHeight(299);
 
         root = new StackPane();
         root.setId("root");
@@ -124,7 +136,7 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Initialises the chat
+    * Initialises the chat pane and all nodes on it
     */
     private void initChat() {
         chatPane = new StackPane();
@@ -139,8 +151,6 @@ public class GUIcore implements IGraphicalUserInterface {
         boardWrapper.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         boardWrapper.minWidthProperty().bind(chatPane.widthProperty());
         boardWrapper.maxWidthProperty().bind(chatPane.widthProperty());
-        // Insets boardWrapperPadding = new Insets(7, 0, 0, 0);
-        // boardWrapper.setPadding(boardWrapperPadding);
 
         messageBoard = new VBox();
         Insets boardPadding = new Insets(0, 0, 0, 16);
@@ -148,7 +158,6 @@ public class GUIcore implements IGraphicalUserInterface {
         messageBoard.setId("message-board");
         messageBoard.minWidthProperty().bind(chatPane.widthProperty().subtract(18));
         messageBoard.maxWidthProperty().bind(chatPane.widthProperty().subtract(18));
-        // messageBoard.minHeightProperty().bind(messageBoard.heightProperty());
 
         inputWrapper = new StackPane();
         Insets inputPadding = new Insets(0, 5, 0, 5);
@@ -188,7 +197,7 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Initialises the sidepane
+    * Initialises the sidepane and all nodes on it
     */
     private void initSide() {
         sidePane = new StackPane();
@@ -238,12 +247,13 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Initialises the settings page
+    * Initialises the settings page and all nodes on it
     */
     private void initSettings() {
         timeSelector = new ComboBox<String>();
         timeSelector.setMaxWidth(85);
         timeSelector.setMinWidth(85);
+
         ObservableList<String> timeOptions = FXCollections.observableArrayList();
         int hour = 8;
         for (int i = 0; i  < 20; i++) {
@@ -260,14 +270,18 @@ public class GUIcore implements IGraphicalUserInterface {
         changeSelector.setMinWidth(85);
         changeSelector.setEditable(true);
 
+        CheckBox fullscrnCkB = new CheckBox();
+        fullscrnCkB.setAllowIndeterminate(false);
+        fullscrnCkB.setSelected(core.FULLSCREEN);
+
         Button saveChanges = new Button("Save Changes");
         saveChanges.setMinWidth(100);
         saveChanges.setMaxWidth(100);
         saveChanges.setOnAction(e -> {
             if ((String) timeSelector.getValue() != null)
-                core.updateSettings(timeSelector.getValue(), changeSelector.getValue());
+                core.updateSettings(timeSelector.getValue(), changeSelector.getValue(), fullscrnCkB.isSelected());
             else
-                core.updateSettings(null, changeSelector.getValue());
+                core.updateSettings(null, changeSelector.getValue(), fullscrnCkB.isSelected());
 
             saveChanges.setDisable(true);
         });
@@ -283,32 +297,20 @@ public class GUIcore implements IGraphicalUserInterface {
             saveChanges.setDisable(true);
         });
 
-        Button btnStyle = new Button("Update style");
-        btnStyle.setOnAction(e -> {
-            updateStyle();
-        });
-
-        Button summaryBtn = new Button("Show Daily Summary");
+        Button summaryBtn = new Button("Show Daily Summary Now");
         summaryBtn.setOnAction(e -> {
             core.onTradingHour();
         });
 
         ColumnConstraints labelCol = new ColumnConstraints(22.8, 22.8, 22.8);
-        // labelCol.setPercentWidth(10);
         labelCol.setHalignment(HPos.RIGHT);
         ColumnConstraints buttonLeftCol = new ColumnConstraints(91.2, 91.2, 91.2);
-        // buttonLeftCol.setPercentWidth(40);
         ColumnConstraints buttonRightCol = new ColumnConstraints(22.8, 22.8, 22.8);
-        // buttonRightCol.setPercentWidth(10);
         ColumnConstraints inputCol = new ColumnConstraints(91.2, 91.2, 91.2);
-        // inputCol.setPercentWidth(40);
-
-        // 228
-        // 10% = 22.8
-        // 40% = 91.2
 
         RowConstraints timeRow = new RowConstraints(50, 50, 50);
         RowConstraints changeRow = new RowConstraints(50, 50, 50);
+        RowConstraints fullscreenRow = new RowConstraints(30, 30, 30);
         RowConstraints buttonsRow = new RowConstraints(50, 50, 50);
         RowConstraints summaryRow = new RowConstraints(30, 30, 30);
 
@@ -322,28 +324,36 @@ public class GUIcore implements IGraphicalUserInterface {
         changeDesc.setWrapText(true);
         changeDesc.setTextAlignment(TextAlignment.RIGHT);
         changeDesc.setPadding(labelPadding);
+        Label fullscrnLbl = new Label("Open in fullscreen:");
+        fullscrnLbl.setPadding(labelPadding);
 
-        // settingsPane.setGridLinesVisible(true);
+        Label percentSign = new Label("%");
+        percentSign.setId("percent-sign");
+
         settingsPane.getColumnConstraints().addAll(labelCol, buttonLeftCol, buttonRightCol, inputCol);
-        settingsPane.getRowConstraints().addAll(timeRow, changeRow, buttonsRow, summaryRow);
+        settingsPane.getRowConstraints().addAll(timeRow, changeRow, fullscreenRow, buttonsRow, summaryRow);
         settingsPane.add(timeDesc, 0, 0);
         settingsPane.add(timeSelector, 3, 0);
         settingsPane.add(changeDesc, 0, 1);
         settingsPane.add(changeSelector, 3, 1);
-        settingsPane.add(cancelChanges, 2, 2);
-        settingsPane.add(saveChanges, 0, 2);
-        settingsPane.add(summaryBtn, 0, 3);
-
-        // settingsPane.add(btnStyle, 0, 3);
+        settingsPane.add(fullscrnLbl, 0, 2);
+        settingsPane.add(fullscrnCkB, 3, 2);
+        settingsPane.add(cancelChanges, 2, 3);
+        settingsPane.add(saveChanges, 0, 3);
+        settingsPane.add(summaryBtn, 0, 4);
+        settingsPane.add(percentSign, 3, 1);
 
         settingsPane.setColumnSpan(timeDesc, 3);
         settingsPane.setColumnSpan(changeDesc, 3);
         settingsPane.setColumnSpan(saveChanges, 2);
         settingsPane.setColumnSpan(cancelChanges, 2);
         settingsPane.setColumnSpan(summaryBtn, 4);
+        settingsPane.setColumnSpan(fullscrnLbl, 3);
+        settingsPane.setColumnSpan(fullscrnCkB, 4);
         settingsPane.setHalignment(saveChanges, HPos.CENTER);
         settingsPane.setHalignment(cancelChanges, HPos.CENTER);
         settingsPane.setHalignment(summaryBtn, HPos.CENTER);
+        settingsPane.setHalignment(percentSign, HPos.CENTER);
 
         timeSelector.valueProperty().addListener(e -> {
             if (timeSelector.getValue() != tradingTimeToString())
@@ -354,15 +364,18 @@ public class GUIcore implements IGraphicalUserInterface {
             if (changeSelector.getValue() != core.LARGE_CHANGE_THRESHOLD)
                 saveChanges.setDisable(false);
         });
+
+        fullscrnCkB.setOnAction(e -> {
+            saveChanges.setDisable(false);
+        });
     }
 
    /**
-    * Initialises the topbar
+    * Initialises the top bar and all nodes on it
     */
     private void initTop() {
         topBar = new StackPane();
         topBar.setId("top-bar");
-        // topBar.minWidthProperty().bind(scene.widthProperty());
         topBar.setMinHeight(45);
         topBar.setMaxHeight(45);
 
@@ -379,7 +392,6 @@ public class GUIcore implements IGraphicalUserInterface {
         settingsIcon.setId("settings-icon");
         topBar.getChildren().addAll(settingsIcon, logo);
         topBar.setAlignment(settingsIcon, Pos.CENTER_RIGHT);
-        // topBar.setAlignment(name, Pos.CENTER);
         Insets settingsIconMargin = new Insets(0, 10, 0, 0);
         topBar.setMargin(settingsIcon, settingsIconMargin);
         settingsIconTrans = new RotateTransition(Duration.millis(300), settingsIcon);
@@ -420,12 +432,14 @@ public class GUIcore implements IGraphicalUserInterface {
             stage.setScene(scene);
         });
 
+        //keeps the message board scrolled to the bottom when a new message is added
         messageBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
             messageBoard.applyCss();
             messageBoard.layout();
             boardWrapper.setVvalue(1);
         });
 
+        //resizes NewsBlocks on the news board to accomodate for the scroll bar
         newsBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
@@ -442,6 +456,7 @@ public class GUIcore implements IGraphicalUserInterface {
             newsBoard.layout();
         });
 
+        //resizes messages on the message board
         messages.addListener((obs, oldVal, newVal) -> {
             resizeMessages();
         });
@@ -461,12 +476,14 @@ public class GUIcore implements IGraphicalUserInterface {
             onUserInput();
         });
 
+        //play the clockwise rotation animation for the settings icon
         settingsIcon.setOnMouseEntered(e -> {
             settingsIconTrans.setFromAngle(0);
             settingsIconTrans.setToAngle(45);
             settingsIconTrans.play();
         });
 
+        //play the anticlockwise rotation animation for the settings icon
         settingsIcon.setOnMouseExited(e -> {
             settingsIconTrans.stop();
             settingsIconTrans.setFromAngle(45);
@@ -474,11 +491,15 @@ public class GUIcore implements IGraphicalUserInterface {
             settingsIconTrans.play();
         });
 
+        //change the side pane between the news board and the settings page
         settingsIcon.setOnMouseClicked(e -> {
             changeSidePane();
         });
     }
 
+   /**
+    * Swaps the side pane between the news board and the settings page
+    */
     private void changeSidePane() {
         if (settingsPane.visibleProperty().getValue()) {
             newsPane.setVisible(true);
@@ -519,6 +540,11 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+   /**
+    * Converts the TRADING_TIME variable in Core to a String
+    *
+    * @return a String representation of the TRADING_TIME
+    */
     private String tradingTimeToString() {
         Long hr = core.TRADING_TIME / 3600000;
         String hrStr = hr.toString();
@@ -533,7 +559,7 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Creation of a background thread to scrape the LSE website
+    * Creates a background thread to scrape the LSE website
     * regularly, so that data is available when needed.
     */
     private void startDataDownload(){
@@ -579,6 +605,11 @@ public class GUIcore implements IGraphicalUserInterface {
         System.out.println("Stopped download thread");
     }
 
+   /**
+    * Calls the suggestionIrrelevant() method in the Core if the remove message button is pressed
+    *
+    * @param s the suggestion which is irrelevant
+    */
     public void suggestionIrrelevant(Suggestion s){
         core.suggestionIrrelevant(s);
     }
@@ -608,21 +639,20 @@ public class GUIcore implements IGraphicalUserInterface {
         Long targetTimeOfDay = core.TRADING_TIME;
         Long startDuration;
 
-        if (timeOfDayInMillis > targetTimeOfDay) {
+        if (timeOfDayInMillis > targetTimeOfDay)
             startDuration = (timeOfDayInMillis - targetTimeOfDay);
-            //System.out.println("time of day is later than target.\nStart duration is "+startDuration); //DEBUG
-        } else {
+        else
             startDuration = 86400000-(targetTimeOfDay - timeOfDayInMillis);
-            //System.out.println("time of day is before target.\nStart duration is "+startDuration); //DEBUG
-        }
 
         tradingHourTimeline.playFrom(Duration.millis(startDuration));
-        // System.out.println("will call onTradingHour in " + (86400000 - startDuration) + " milliseconds"); //DEBUG
         //Skips forward by the current time of day + the trading hour time.
     }
 
+   /**
+    * Stops the tradingHourTimeline
+    */
     public void stopTradingHourTimeline(){
-        if(tradingHourTimeline != null){
+        if (tradingHourTimeline != null) {
             tradingHourTimeline.stop();
             tradingHourTimeline = null;
         }
@@ -633,18 +663,11 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     private void onUserInput() {
         if (checkInput()) {
-            messageBoard.getChildren().add(new Message(input.getText().trim(), LocalDateTime.now(), true, null, this));
+            messageBoard.getChildren().add(new Message(input.getText().trim(), true, null, this));
             core.onUserInput(input.getText().trim());
             messages.setValue(messageBoard.getChildren());
             input.clear();
         }
-    }
-
-   /**
-    * Updates the current styling
-    */
-    private void updateStyle() {
-        scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
     }
 
    /**
@@ -659,22 +682,14 @@ public class GUIcore implements IGraphicalUserInterface {
     }
 
    /**
-    * Displays a message from the system to the user
+    * Displays a suggestion message from the system to the user
     *
     * @param msg a string containing the message to be displayed
     * @param sugg a Suggestion from the AI
     */
     public void displayMessage(String msg, Suggestion sugg) {
         if (msg != null) {
-            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, sugg, this));
-        }
-        messages.setValue(messageBoard.getChildren());
-    }
-
-    public void displayMessage(String msg, Suggestion sugg, boolean isSummary) {
-        System.out.println("Printing summary");
-        if (msg != null) {
-            messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, sugg, this, isSummary));
+            messageBoard.getChildren().add(new Message(msg, false, sugg, this));
         }
         messages.setValue(messageBoard.getChildren());
     }
@@ -683,27 +698,27 @@ public class GUIcore implements IGraphicalUserInterface {
     * Displays a child message from the system to the user
     *
     * @param msg a string containing the message to be displayed
-    * @param isAI a boolean representing whether the message was sent by the AI
-    * NOTE: isAI is no longer used.
     * @param parent the parent message
     */
-    public void displayMessage(String msg, boolean isAI, Message parent) {
+    public void displayMessage(String msg, Message parent) {
         if (msg != null) {
             if (parent != null)
-                messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), this, parent));
+                messageBoard.getChildren().add(new Message(msg, this, parent));
             else
-                messageBoard.getChildren().add(new Message(msg, LocalDateTime.now(), false, null, this));
+                messageBoard.getChildren().add(new Message(msg, false, null, this));
         }
         messages.setValue(messageBoard.getChildren());
     }
 
    /**
-    * A message sent with no boolean defaults to not an AI message
+    * Displays a simple message to the user
     *
     * @param msg the message to be displayed
     */
     public void displayMessage(String msg){
-        displayMessage(msg,null);
+        if (msg != null) {
+            messageBoard.getChildren().add(new Message(msg, false, null, this));
+        }
         messages.setValue(messageBoard.getChildren());
     }
 
@@ -711,7 +726,7 @@ public class GUIcore implements IGraphicalUserInterface {
     * Displays news results
     *
     * @param news the array of Articles to displayed
-    * @param Suggestion A potentially null Suggestion from the AI
+    * @param Suggestion a Suggestion from the AI - can be null
     */
     public void displayResults(Article[] news, Suggestion s) {
         if (news != null) {
@@ -721,15 +736,14 @@ public class GUIcore implements IGraphicalUserInterface {
                     newsBoard.getChildren().add(new NewsBlock(a, (sidePane.getWidth() - 15), core, this));
             }
         }
-
     }
 
    /**
     * Resizes the messages displayed
     */
     private void resizeMessages() {
-        if (messageBoard.getChildren().size() > 100)
-            messageBoard.getChildren().remove(0, (messageBoard.getChildren().size() - 100));
+        if (messageBoard.getChildren().size() > 25)
+            messageBoard.getChildren().remove(0, (messageBoard.getChildren().size() - 25));
 
         for (int i = 0; i < messageBoard.getChildren().size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
@@ -741,6 +755,8 @@ public class GUIcore implements IGraphicalUserInterface {
 
    /**
     * Resizes news blocks in the news pane
+    *
+    * @param width the current width of the news pane
     */
     private void resizeNews(double width) {
         for (int i = 0; i < newsBoard.getChildren().size(); i++) {

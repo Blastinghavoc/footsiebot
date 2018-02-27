@@ -2,14 +2,14 @@ package footsiebot.gui;
 
 import footsiebot.Core;
 import footsiebot.datagathering.Article;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.*;
 import javafx.animation.*;
+import javafx.event.*;
+import javafx.geometry.*;
 import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.util.Duration;
+
 
 public class NewsBlock extends BorderPane {
     private Label headline;
@@ -37,7 +37,6 @@ public class NewsBlock extends BorderPane {
         digest = new Label(date + "\n" + article.getDigest().trim());
         digest.getStyleClass().add("digest");
         digest.setWrapText(true);
-        digest.setLineSpacing(1);
 
         url = new Label(article.getUrl().trim());
         url.getStyleClass().add("url");
