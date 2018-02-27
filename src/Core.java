@@ -101,7 +101,7 @@ public class Core extends Application {
             FileReader fRead = new FileReader("./src/gui/config/settings.txt");
             BufferedReader buffRead = new BufferedReader(fRead);
             String tmp = buffRead.readLine();
-            if (tmp != null)
+            if (tmp != null && !tmp.isEmpty())
                 ui = new GUIcore(primaryStage, tmp, this);
             else
                 ui = new GUIcore(primaryStage, this);
