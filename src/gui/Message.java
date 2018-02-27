@@ -2,44 +2,47 @@ package footsiebot.gui;
 
 import footsiebot.ai.Suggestion;
 import java.time.LocalDateTime;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.stage.Stage;
+import javafx.animation.*;
+import javafx.event.*;
+import javafx.geometry.*;
+import javafx.scene.text.*;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
-import javafx.scene.text.*;
 import javafx.scene.shape.Rectangle;
-import javafx.geometry.*;
-import javafx.animation.*;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 
 public class Message extends FlowPane {
-    private LocalDateTime timestamp;
     private boolean sent;
-    private double width;
-    private double height;
-    private GUIcore ui;
     private boolean isAI;
     private Message parent;
+    private Suggestion sugg;
 
     private StackPane msgWrapper;
     private Label msg;
     private Rectangle visual;
-
     private StackPane btnWrapper;
 
     private Tooltip aiNote;
     private Tooltip removeNote;
 
-    private Suggestion sugg;
+    private double width;
+    private double height;
+    private GUIcore ui;
 
-
-    public Message(String text, LocalDateTime timestamp, boolean sent, Suggestion s, GUIcore ui) {
+   /**
+    * Constructor for a Message with no parent - could be a suggestion from the AI
+    *
+    * @param text the content of the Message
+    * @param sent true if the Message was sent by the user, false if sent by the system
+    * @param s the Suggestion object if a suggestion from the AI - can be null
+    * @param ui the instance of GUIcore the Message was sent from
+    */
+    public Message(String text, boolean sent, Suggestion s, GUIcore ui) {
         super();
         double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
 
-        this.timestamp = timestamp;
         this.sent = sent;
         this.ui = ui;
         this.isAI = (s!= null);
@@ -53,8 +56,6 @@ public class Message extends FlowPane {
         sizing.setBoundsType(TextBoundsType.LOGICAL_VERTICAL_CENTER);
         if (Math.ceil(sizing.getLayoutBounds().getWidth()) > maxWidth)
             sizing.setWrappingWidth(maxWidth);
-
-        // System.out.println(sizing.getFont());
 
         width = Math.ceil(sizing.getLayoutBounds().getWidth());
         height = Math.ceil(sizing.getLayoutBounds().getHeight() + 200);
@@ -82,11 +83,17 @@ public class Message extends FlowPane {
         }
     }
 
-    public Message(String text, LocalDateTime timestamp, GUIcore ui, Message parent) {
+   /**
+    * Constructor for a Message with a parent
+    *
+    * @param text the content of the Message
+    * @param ui the instance of GUIcore the Message was sent from
+    * @param parent the parent Message
+    */
+    public Message(String text, GUIcore ui, Message parent) {
         super();
         double chatPaneWidth = ui.getStage().getScene().getWidth() * 0.6875;
 
-        this.timestamp = timestamp;
         sent = false;
         this.ui = ui;
         isAI = false;
@@ -115,6 +122,11 @@ public class Message extends FlowPane {
         }
     }
 
+   /**
+    * Starts the construction of the Message
+    *
+    * @param text the content of the Message
+    */
     private void initMessage(String text) {
         msg = new Label(text);
         msg.setMaxWidth(width);
@@ -128,6 +140,9 @@ public class Message extends FlowPane {
         msgWrapper.getChildren().addAll(visual, msg);
     }
 
+   /**
+    * If the Message was sent by the AI, this method creates the required features
+    */
     private void setupAI() {
         btnWrapper = new StackPane();
         Insets btnPadding = new Insets(0, 5, 2, 5);
@@ -165,20 +180,20 @@ public class Message extends FlowPane {
         });
     }
 
+   /**
+    * Finishes the construction of the Message
+    */
     private void finishSetup(String sender) {
         msg.getStyleClass().add(sender + "-label");
         visual.getStyleClass().add(sender + "-visual");
         getStyleClass().add(sender + "-message");
         msg.setAlignment(Pos.CENTER_LEFT);
-        // setMinHeight(height);
-        // setMaxHeight(height);
-        // System.out.println(msg.getFont());
     }
 
    /**
     * Resizes the visual parts of the Message
     *
-    * @param stage the stage used to calculate widths
+    * @param chatPaneWidth the width of the chatPane in the instance of GUIcore
     */
     public void resize(Double chatPaneWidth) {
         setMinWidth(chatPaneWidth - 34);
@@ -251,14 +266,5 @@ public class Message extends FlowPane {
     */
     public Rectangle getVisual() {
         return visual;
-    }
-
-   /**
-    * Accessor for timestamp
-    *
-    * @return returns timestamp
-    */
-    public LocalDateTime getTimestamp() {
-        return timestamp;
     }
 }
