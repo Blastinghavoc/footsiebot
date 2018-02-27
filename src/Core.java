@@ -766,6 +766,7 @@ public class Core extends Application {
     public void suggestionIrrelevant(Suggestion s){
         System.out.println("A suggestion was marked irrelevant");
         ic.onSuggestionIrrelevant(s);
+        ui.displayMessage("Ok " + USER_NAME + ", I will take that into consideration. Thank you for the feedback.");
     }
 
     private void debugNLP() {
