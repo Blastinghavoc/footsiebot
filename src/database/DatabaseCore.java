@@ -916,7 +916,7 @@ public class DatabaseCore implements IDatabaseManager {
                                 .getFloat(i)).toString() + "%");
                         break;
                     case "AbsoluteChange":
-                        rs.add("Absolute change|" + (convertToGBX((Float)results
+                        rs.add("Absolute change| " + (convertToGBX((Float)results
                                 .getFloat(i))));
                         break;
                     default:
