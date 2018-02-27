@@ -33,7 +33,7 @@ public class Core extends Application {
     private Boolean nameless = false;//Whether or not the user currently has a name assigned.
 
     public static final long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds.
-    
+
     public Boolean FULLSCREEN = false;
 
     /*
@@ -653,6 +653,7 @@ public class Core extends Application {
         String[] companyCodes = new String[companies.length];
         String output = "Hi "+USER_NAME+", it's time for your daily summary!\nI've detected that the following companies are important to you:";
         if((companies == null) || (companies.length < 1)){
+            ui.displayMessage("Sorry "+USER_NAME+", I tried to give you your daily summary, but it appears that I don't have sufficient data for that right now.");
             return;
         }
 
