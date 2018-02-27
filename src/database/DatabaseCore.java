@@ -612,7 +612,7 @@ public class DatabaseCore implements IDatabaseManager {
 
     	String date = timeSpecifierToDate(timeSpec);
     	String spotPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
-                				+ "WHERE CompanyCode = '" + companyCode;
+                				+ "WHERE CompanyCode = '" + companyCode + "'";
         String openingPriceQuery = getOpeningPriceQuery(companyCode, date);
         try {
         	s1 = conn.createStatement();
@@ -632,6 +632,7 @@ public class DatabaseCore implements IDatabaseManager {
    				percChange = ((openingPrice - spotPrice) / openingPrice) * 100;
    			} else {
    				System.out.println("Null start or spot price");
+                return trendData;
    			}
         } catch (SQLException e) {
         	e.printStackTrace();
