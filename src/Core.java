@@ -33,11 +33,9 @@ public class Core extends Application {
     private Boolean nameless = false;//Whether or not the user currently has a name assigned.
 
     public static final long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds.
-
-
+    
     public Boolean FULLSCREEN = false;
 
-    public long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
     /*
     * The latest scrape result downloaded, and some boolean "locks" to assist
     * with synchronization. Booleans probably not technically required.
