@@ -36,7 +36,7 @@ public class DatabaseCore implements IDatabaseManager {
         try {
             // create a database connection
             conn = DriverManager
-            		.getConnection("jdbc:sqlite:src/database/footsie_db.db");
+                    .getConnection("jdbc:sqlite:src/database/footsie_db.db");
 
         } catch (SQLException e) {
             e.printStackTrace();
@@ -46,8 +46,8 @@ public class DatabaseCore implements IDatabaseManager {
     /**
     * Stores FTSE data in the database
     *
-	* @param sr The scrape result given by the web scraper
-	* @return true if the FTSE data is successfully store, false otherwise
+    * @param sr The scrape result given by the web scraper
+    * @return true if the FTSE data is successfully store, false otherwise
     */
     public boolean storeScraperResults(ScrapeResult sr) {
 
@@ -97,20 +97,20 @@ public class DatabaseCore implements IDatabaseManager {
 
                 // If the company is a new FTSE company, add it to the
                 // FTSECompanies and FTSEGroupMappings table
-                checkNewCompanyQuery 	= "SELECT * FROM FTSECompanies "
-                						+ "WHERE CompanyCode = '" + code + "'";
+                checkNewCompanyQuery    = "SELECT * FROM FTSECompanies "
+                                        + "WHERE CompanyCode = '" + code + "'";
                 s1 = conn.createStatement();
                 companyCheck = s1.executeQuery(checkNewCompanyQuery);
                 if (!companyCheck.next()) {
-                    addNewCompanyQuery 	= "INSERT INTO FTSECompanies "
+                    addNewCompanyQuery  = "INSERT INTO FTSECompanies "
                                         + "VALUES(?,?)";
                     s2 = conn.prepareStatement(addNewCompanyQuery);
                     s2.setString(1,code);
                     s2.setString(2,name);
                     s2.executeUpdate();
 
-                    addCompanyGroupQuery 	= "INSERT INTO FTSEGroupMappings "
-                                        	+ "VALUES(?,?)";
+                    addCompanyGroupQuery    = "INSERT INTO FTSEGroupMappings "
+                                            + "VALUES(?,?)";
                     s3 = conn.prepareStatement(addCompanyGroupQuery);
                     s3.setString(1,group);
                     s3.setString(2,code);
@@ -118,10 +118,10 @@ public class DatabaseCore implements IDatabaseManager {
                 }
 
                 // Add the company data into the FTSECompanySnapshots table
-                addScrapeResultQuery 	= "INSERT INTO FTSECompanySnapshots "
-                						+ "(CompanyCode, SpotPrice, "
-                						+ "PercentageChange, AbsoluteChange, "
-                						+ "TradingVolume) "
+                addScrapeResultQuery    = "INSERT INTO FTSECompanySnapshots "
+                                        + "(CompanyCode, SpotPrice, "
+                                        + "PercentageChange, AbsoluteChange, "
+                                        + "TradingVolume) "
                                         + "VALUES('" + code + "', " + price
                                         + ", " + percChange + ", " + absChange
                                         + "," + tradingVolume + ")";
@@ -132,8 +132,6 @@ public class DatabaseCore implements IDatabaseManager {
                 e.printStackTrace();
                 tryRollback();
                 trySetAutoCommit(true);
-                System.out.println("Couldn't store FTSE data. Rolled back");
-                System.out.println("Queries were:\ncheckNewCompanyQuery: " +checkNewCompanyQuery+"\naddNewCompanyQuery: "+addNewCompanyQuery+"\naddCompanyGroupQuery: "+addCompanyGroupQuery+"\naddScrapeResultQuery: "+addScrapeResultQuery);//DEBUG
                 tryClose(s1);
                 tryClose(companyCheck);
                 tryClose(s2);
@@ -225,7 +223,7 @@ public class DatabaseCore implements IDatabaseManager {
                         + "',1,0)";
                 s1.executeUpdate(query);
             } else {
-                //Row does exist, so just increment the count.
+                // Row does exist, so just increment the count.
                 query   = "UPDATE " + table + " SET " + rowName + " = " 
                         + rowName + " + 1 WHERE CompanyCode = '" + companyCode 
                         + "'";
@@ -234,12 +232,12 @@ public class DatabaseCore implements IDatabaseManager {
             tryCommit();
         } catch (SQLException e) {
             e.printStackTrace();
-            tryClose(s1,r1);
+            tryClose(s1, r1);
             tryRollback();
             trySetAutoCommit(true);
             return false;
         }
-        tryClose(s1,r1);
+        tryClose(s1, r1);
         trySetAutoCommit(true);
         return true;
     }
@@ -255,86 +253,102 @@ public class DatabaseCore implements IDatabaseManager {
     @SuppressWarnings("fallthrough")
     public String[] getFTSE(ParseResult pr) {
 
-    	Intent intent = pr.getIntent();
-    	ArrayList<String> output = new ArrayList<>();
+        Intent intent = pr.getIntent();
+        ArrayList<String> output = new ArrayList<>();
 
-    	// Call relevant method to get a query for the intent data or a
-    	// percentage change if the intent is to get trend data
-    	switch (intent) {
-    		case SPOT_PRICE:
-    			// fall through
-    		case TRADING_VOLUME:
-    			// fall through
-    		case PERCENT_CHANGE:
-    			// fall through
-    		case ABSOLUTE_CHANGE:
-    			// fall through
-    		case OPENING_PRICE:
-    			// fall through
-    		case CLOSING_PRICE:
+        // Call relevant method to get a query for the intent data or a
+        // percentage change if the intent is to get trend data
+        switch (intent) {
+            case SPOT_PRICE:
+                // fall through
+            case TRADING_VOLUME:
+                // fall through
+            case PERCENT_CHANGE:
+                // fall through
+            case ABSOLUTE_CHANGE:
+                // fall through
+            case OPENING_PRICE:
+                // fall through
+            case CLOSING_PRICE:
 
-    			// Creates the query to get the data required, executes it and
-    			// adds the result to the first index of output array list
-    			String FTSEQuery = convertFTSEQuery(pr);
-		        Statement s1 = null;
-		        ResultSet results = null;
+                // Creates the query to get the data required, executes it and
+                // adds the result to the first index of output array list
+                String FTSEQuery = convertFTSEQuery(pr);
+                Statement s1 = null;
+                ResultSet results = null;
 
-		        if (FTSEQuery == null || FTSEQuery.isEmpty()) {
-		            System.out.println("Null query"); //DEBUG
-		            return null;
-		        }
+                if (FTSEQuery == null || FTSEQuery.isEmpty()) {
+                    return null;
+                }
 
-		        // add asked for data to first index of array
-		        try {
-		            s1 = conn.createStatement();
-		            results = s1.executeQuery(FTSEQuery);
-		            if (!results.next()) {
-		                String nullArr[] = null;
-		                return nullArr; // return null array if no results
-		            } else {
-		            	if (intent != Intent.TRADING_VOLUME) {
-		            		do {
-		                    	output.add(convertToGBX(((Float)results
-                                        .getFloat(1))));
-		                	} while (results.next());
-		            	} else {
-		            		do {
-		                    	output.add(Integer.toString(results.getInt(1)));
-		                	} while (results.next());
-		            	}
-
-		            }
-		        } catch (SQLException e) {
-		            e.printStackTrace();
-		            tryClose(s1,results);
-		        }
-		        tryClose(s1, results);
-    			break;
-    		default:
-    			break;
-    	}
+                // add asked for data to first index of array
+                try {
+                    s1 = conn.createStatement();
+                    results = s1.executeQuery(FTSEQuery);
+                    if (!results.next()) {
+                        String nullArr[] = null;
+                        return nullArr; // return null array if no results
+                    } else {
+                        switch (intent) {
+                            case TRADING_VOLUME:
+                                do {
+                                    output.add(Integer.toString(results
+                                            .getInt(1)));
+                                } while (results.next());
+                                break;
+                            case SPOT_PRICE:
+                                // fall through
+                            case ABSOLUTE_CHANGE:
+                                // fall through
+                            case OPENING_PRICE:
+                                // fall through
+                            case CLOSING_PRICE:
+                                // fall though
+                                do {
+                                    output.add(convertToGBX(((Float)results
+                                            .getFloat(1))));
+                                } while (results.next());
+                                break;
+                            case PERCENT_CHANGE:
+                                do {
+                                    output.add(roundPercentage(((Float)results
+                                            .getFloat(1))).toString());
+                                } while (results.next());
+                                break;
+                        }
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    tryClose(s1,results);
+                }
+                tryClose(s1, results);
+                break;
+            default:
+                break;
+        }
 
         // add other company data to array list
         switch (intent) {
-        	case TREND:
+            case TREND:
                 // fall through
             case TREND_SINCE:
-        		output.addAll(getTrendData(pr));
-        		break;
-        	case GROUP_FULL_SUMMARY:
-        		output.addAll(getGroupData(pr));
-        		break;
+                output.addAll(getTrendData(pr));
+                break;
+            case GROUP_FULL_SUMMARY:
+                output.addAll(getGroupData(pr));
+                break;
             case OPENING_PRICE:
-    			// fall through
+                // fall through
             case CLOSING_PRICE:
                 output.add("Date, " + timeSpecifierToDate
-                		(pr.getTimeSpecifier()));
+                        (pr.getTimeSpecifier()));
                 // fall through
             default:
-            	// add other data about company to other indexes of the array
-        		output.addAll(getAllCompanyInfo(pr));
+                // add other data about company to other indexes of the array
+                output.addAll(getAllCompanyInfo(pr));
                 break;
         }
+
         return output.toArray(new String[1]);
     }
 
@@ -350,160 +364,138 @@ public class DatabaseCore implements IDatabaseManager {
     */
     private ArrayList<String> getGroupData(ParseResult pr) {
 
-    	ArrayList<String> output = new ArrayList<>();
-    	HashMap<String, Float> spotPriceMap = new HashMap<>();
-    	HashMap<String, Float> percChangeMap = new HashMap<>();
-    	ArrayList<Float> spotPrices = new ArrayList<>();
-    	ArrayList<Float> percChanges = new ArrayList<>();
-    	Float percChangeTotal = 0.0f;
-    	String groupName = pr.getOperand();
-    	String[] companies = getCompaniesInGroup(groupName);
-    	TimeSpecifier timeSpec = pr.getTimeSpecifier();
-    	Statement s1 = null;
-    	ResultSet results = null;
-    	String date = timeSpecifierToDate(timeSpec);
+        ArrayList<String> output = new ArrayList<>();
+        HashMap<String, Float> spotPriceMap = new HashMap<>();
+        HashMap<String, Float> percChangeMap = new HashMap<>();
+        ArrayList<Float> spotPrices = new ArrayList<>();
+        ArrayList<Float> percChanges = new ArrayList<>();
+        Float percChangeTotal = 0.0f;
+        String groupName = pr.getOperand();
+        String[] companies = getCompaniesInGroup(groupName);
+        TimeSpecifier timeSpec = pr.getTimeSpecifier();
+        Statement s1 = null;
+        ResultSet results = null;
+        String date = timeSpecifierToDate(timeSpec);
 
-    	// Gets percentage change and spot price/ closing price for each company
-    	// in group
-    	for (int i = 0; i < companies.length; i ++) {
+        // Gets percentage change and spot price/ closing price for each company
+        // in group
+        for (int i = 0; i < companies.length; i ++) {
             ArrayList<Float> tmp = getTrendDataOnDate(companies[i], timeSpec);
             if (tmp == null || tmp.size() == 0){
                 return new ArrayList<String>(); // Returns an empty result
             }
-    		Float percChange = tmp.get(0);
-			percChangeTotal += percChange;
-			percChangeMap.put(companies[i], percChange);
+            Float percChange = tmp.get(0);
+            percChangeTotal += percChange;
+            percChangeMap.put(companies[i], percChange);
 
-			// Gets spot price if the time specifier is today, otherwise gets
-			// closing price
-			String spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec,
-					companies[i], date);
-			try {
-				s1 = conn.createStatement();
-				results = s1.executeQuery(spotOrClosingPriceQry);
-				while (results.next()) {
-					spotPriceMap.put(companies[i], results.getFloat(1));
-				}
-			} catch (SQLException e) {
-				e.printStackTrace();
-				tryClose(s1, results);
-			}
-    	}
-    	tryClose(s1, results);
+            // Gets spot price if the time specifier is today, otherwise gets
+            // closing price
+            String spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec,
+                    companies[i], date);
+            try {
+                s1 = conn.createStatement();
+                results = s1.executeQuery(spotOrClosingPriceQry);
+                while (results.next()) {
+                    spotPriceMap.put(companies[i], results.getFloat(1));
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                tryClose(s1, results);
+            }
+        }
+        tryClose(s1, results);
 
-    	// If no data stored for time specifier, return null array
-    	if (spotPriceMap.isEmpty()) {
-    		return output;
-    	}
+        // If no data stored for time specifier, return null array
+        if (spotPriceMap.isEmpty()) {
+            return output;
+        }
 
-    	// Calculates average percentage change for whole group and whether
-    	// the overall group is rising or falling
-    	Float averagePercChange = percChangeTotal / companies.length;
-    	output.add(roundFloat(averagePercChange).toString());
-    	if (averagePercChange > 0) {
-			output.add("rose");
-    	} else if (averagePercChange < 0) {
-			output.add("fell");
-		} else {
-			output.add("had no overall change");
-		}
+        // Calculates average percentage change for whole group and whether
+        // the overall group is rising or falling
+        Float averagePercChange = percChangeTotal / companies.length;
+        output.add(roundPercentage(averagePercChange).toString());
+        if (averagePercChange > 0) {
+            output.add("rose");
+        } else if (averagePercChange < 0) {
+            output.add("fell");
+        } else {
+            output.add("had no overall change");
+        }
 
-		Comparator<? super Map.Entry<String, Float>> valueComparator =
-				((entry1, entry2) ->
-				entry1.getValue().compareTo(entry2.getValue()));
+        Comparator<? super Map.Entry<String, Float>> valueComparator =
+                ((entry1, entry2) ->
+                entry1.getValue().compareTo(entry2.getValue()));
 
-		Map.Entry<String, Float> maxSpotPriceCompany =
-				Collections.max(spotPriceMap.entrySet(), valueComparator);
-		Map.Entry<String, Float> minSpotPriceCompany =
-				Collections.min(spotPriceMap.entrySet(), valueComparator);
-		Map.Entry<String, Float> maxPercChangeCompany =
-				Collections.max(percChangeMap.entrySet(), valueComparator);
-		Map.Entry<String, Float> minPercChangeCompany =
-				Collections.min(percChangeMap.entrySet(), valueComparator);
+        Map.Entry<String, Float> maxSpotPriceCompany =
+                Collections.max(spotPriceMap.entrySet(), valueComparator);
+        Map.Entry<String, Float> minSpotPriceCompany =
+                Collections.min(spotPriceMap.entrySet(), valueComparator);
+        Map.Entry<String, Float> maxPercChangeCompany =
+                Collections.max(percChangeMap.entrySet(), valueComparator);
+        Map.Entry<String, Float> minPercChangeCompany =
+                Collections.min(percChangeMap.entrySet(), valueComparator);
 
-		output.add(maxSpotPriceCompany.getKey() + ", "
-				+ convertToGBX(maxSpotPriceCompany.getValue()));
-		output.add(minSpotPriceCompany.getKey() + ", "
-				+ convertToGBX(minSpotPriceCompany.getValue()));
-		output.add(maxPercChangeCompany.getKey() + ", "
-				+ roundFloat(maxPercChangeCompany.getValue()).toString());
-		output.add(minPercChangeCompany.getKey() + ", "
-				+ roundFloat(minPercChangeCompany.getValue()).toString());
+        output.add(maxSpotPriceCompany.getKey() + ", "
+                + convertToGBX(maxSpotPriceCompany.getValue()));
+        output.add(minSpotPriceCompany.getKey() + ", "
+                + convertToGBX(minSpotPriceCompany.getValue()));
+        output.add(maxPercChangeCompany.getKey() + ", "
+                + roundPercentage(maxPercChangeCompany.getValue()).toString());
+        output.add(minPercChangeCompany.getKey() + ", "
+                + roundPercentage(minPercChangeCompany.getValue()).toString());
 
-    	return output;
-    }
-
-    /**
-    * Rounds float to 3 decimal places
-    *
-    * @param f The float to be rounded
-    * @return The rounded float as a string
-    */
-    private Float roundFloat(Float f) {
-    	return Math.round(f * 1000.0f) / 1000.0f;
-    }
-
-    /**
-    * Converts a float into GBX currency format
-    *
-    * @param num The number to be converted
-    * @return The converted number
-    */
-    private String convertToGBX(Float num) {
-        DecimalFormat formatter = new DecimalFormat(
-                "GBX #,##0.00;GBX -#,##0.00");
-        return formatter.format(num);
+        return output;
     }
 
     /**
     * Gets trend data
-	*
-	* @param pr The parse result from the user's input
-	* @return An array list of strings containing the percentage change, whether
-	* the company has risen or fallen, the start price and the end price
+    *
+    * @param pr The parse result from the user's input
+    * @return An array list of strings containing the percentage change, whether
+    * the company has risen or fallen, the start price and the end price
     */
     private ArrayList<String> getTrendData(ParseResult pr) {
 
-    	ArrayList<Float> trendData = new ArrayList<>();
-    	ArrayList<String> output = new ArrayList<>();
-    	Intent intent = pr.getIntent();
+        ArrayList<Float> trendData = new ArrayList<>();
+        ArrayList<String> output = new ArrayList<>();
+        Intent intent = pr.getIntent();
         TimeSpecifier timeSpec = pr.getTimeSpecifier();
         String companyCode = pr.getOperand();
 
-    	switch (intent) {
-    		case TREND:
-    			trendData = getTrendDataOnDate(companyCode, timeSpec);
-    			if (trendData.isEmpty()) {
-    				return output;
-    			}
-    			break;
+        switch (intent) {
+            case TREND:
+                trendData = getTrendDataOnDate(companyCode, timeSpec);
+                if (trendData.isEmpty()) {
+                    return output;
+                }
+                break;
             case TREND_SINCE:
-    		 	trendData = getTrendDataSinceDate(companyCode, timeSpec);
-    			if (trendData.isEmpty()) {
-    				return output;
-    			}
-    			break;
-    		default:
-    			break;
-    	}
+                trendData = getTrendDataSinceDate(companyCode, timeSpec);
+                if (trendData.isEmpty()) {
+                    return output;
+                }
+                break;
+            default:
+                break;
+        }
 
-    	Float percChange = trendData.get(0);
-    	Float startPrice = trendData.get(1);
-    	Float endPrice = trendData.get(2);
+        Float percChange = trendData.get(0);
+        Float startPrice = trendData.get(1);
+        Float endPrice = trendData.get(2);
 
-		output.add(roundFloat(percChange).toString());
+        output.add(roundPercentage(percChange).toString());
 
-		if (percChange > 0)
-			output.add("rose");
-		else if (percChange < 0) {
-			output.add("fell");
-		} else {
-			output.add("had no overall change");
-		}
-		output.add(convertToGBX(startPrice));
-		output.add(convertToGBX(endPrice));
+        if (percChange > 0)
+            output.add("rose");
+        else if (percChange < 0) {
+            output.add("fell");
+        } else {
+            output.add("had no overall change");
+        }
+        output.add(convertToGBX(startPrice));
+        output.add(convertToGBX(endPrice));
 
-    	return output;
+        return output;
     }
 
     /**
@@ -514,11 +506,11 @@ public class DatabaseCore implements IDatabaseManager {
     * @return query to get opening price of company on date given
     */
     private String getOpeningPriceQuery(String companyCode, String date) {
-    	String query 	= "SELECT (SpotPrice - AbsoluteChange) "
-   						+ "FROM FTSECompanySnapshots "
-             			+ "WHERE CompanyCode = '" + companyCode
-             			+ "' AND DATE(TimeOfData) <= '" + date
-             			+ "' ORDER BY TimeOfData ASC LIMIT 1";
+        String query    = "SELECT (SpotPrice - AbsoluteChange) "
+                        + "FROM FTSECompanySnapshots "
+                        + "WHERE CompanyCode = '" + companyCode
+                        + "' AND DATE(TimeOfData) <= '" + date
+                        + "' ORDER BY TimeOfData ASC LIMIT 1";
         return query;
     }
 
@@ -533,59 +525,59 @@ public class DatabaseCore implements IDatabaseManager {
     * price and end price
     */
     private ArrayList<Float> getTrendDataOnDate(String companyCode,
-    		TimeSpecifier timeSpec) {
+            TimeSpecifier timeSpec) {
 
-    	LocalDateTime currentTime = LocalDateTime.now();
+        LocalDateTime currentTime = LocalDateTime.now();
         ArrayList<Float> trendData = new ArrayList<>();
-    	Statement s1 = null;
+        Statement s1 = null;
         Statement s2 = null;
         ResultSet startPriceRS = null;
         ResultSet endPriceRS = null;
         Float startPrice = 0.0f;
         Float endPrice = 0.0f;
         Float percChange = 0.0f;
-   		String date = timeSpecifierToDate(timeSpec);
+        String date = timeSpecifierToDate(timeSpec);
 
-   		String startTimeQuery = getOpeningPriceQuery(companyCode, date);
-   		String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode,
-   				date);
+        String startTimeQuery = getOpeningPriceQuery(companyCode, date);
+        String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode,
+                date);
 
-   		// If able to get start and end prices, calculate the percentage
-   		// change between them
-   		try {
-   			s1 = conn.createStatement();
-   			s2 = conn.createStatement();
-   			startPriceRS = s1.executeQuery(startTimeQuery);
-   			endPriceRS = s2.executeQuery(endTimeQuery);
+        // If able to get start and end prices, calculate the percentage
+        // change between them
+        try {
+            s1 = conn.createStatement();
+            s2 = conn.createStatement();
+            startPriceRS = s1.executeQuery(startTimeQuery);
+            endPriceRS = s2.executeQuery(endTimeQuery);
 
-   			while (startPriceRS.next()) {
-   				startPrice = startPriceRS.getFloat(1);
-   			}
+            while (startPriceRS.next()) {
+                startPrice = startPriceRS.getFloat(1);
+            }
 
-   			while (endPriceRS.next()) {
-   				endPrice = endPriceRS.getFloat(1);
-   			}
+            while (endPriceRS.next()) {
+                endPrice = endPriceRS.getFloat(1);
+            }
 
-   			if (!startPrice.equals(0.0f) && !endPrice.equals(0.0f)) {
-   				percChange = ((endPrice - startPrice) / startPrice) * 100;
-   			} else {
-   				return trendData;
-   			}
+            if (!startPrice.equals(0.0f) && !endPrice.equals(0.0f)) {
+                percChange = ((endPrice - startPrice) / startPrice) * 100;
+            } else {
+                return trendData;
+            }
 
-   		} catch (SQLException e) {
-   			e.printStackTrace();
-   			tryClose(s1, startPriceRS);
-   			tryClose(s2, endPriceRS);
-   		}
+        } catch (SQLException e) {
+            e.printStackTrace();
+            tryClose(s1, startPriceRS);
+            tryClose(s2, endPriceRS);
+        }
 
-   		tryClose(s1, startPriceRS);
-   		tryClose(s2, endPriceRS);
+        tryClose(s1, startPriceRS);
+        tryClose(s2, endPriceRS);
 
-   		trendData.add(percChange);
-   		trendData.add(startPrice);
-   		trendData.add(endPrice);
+        trendData.add(percChange);
+        trendData.add(startPrice);
+        trendData.add(endPrice);
 
-   		return trendData;
+        return trendData;
     }
 
     /**
@@ -598,11 +590,11 @@ public class DatabaseCore implements IDatabaseManager {
     * price and spot price
     */
     private ArrayList<Float> getTrendDataSinceDate(String companyCode,
-    		TimeSpecifier timeSpec) {
+            TimeSpecifier timeSpec) {
 
-    	ArrayList<Float> trendData = new ArrayList<>();
-    	LocalDateTime currentTime = LocalDateTime.now();
-    	Statement s1 = null;
+        ArrayList<Float> trendData = new ArrayList<>();
+        LocalDateTime currentTime = LocalDateTime.now();
+        Statement s1 = null;
         Statement s2 = null;
         ResultSet spotPriceRS = null;
         ResultSet openingPriceRS = null;
@@ -610,44 +602,44 @@ public class DatabaseCore implements IDatabaseManager {
         Float openingPrice = 0.0f;
         Float percChange = 0.0f;
 
-    	String date = timeSpecifierToDate(timeSpec);
-    	String spotPriceQuery 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
-                				+ "WHERE CompanyCode = '" + companyCode + "'";
+        String date = timeSpecifierToDate(timeSpec);
+        String spotPriceQuery   = "SELECT SpotPrice FROM FTSECompanySnapshots "
+                                + "WHERE CompanyCode = '" + companyCode + "'";
         String openingPriceQuery = getOpeningPriceQuery(companyCode, date);
         try {
-        	s1 = conn.createStatement();
-        	s2 = conn.createStatement();
-        	spotPriceRS = s1.executeQuery(spotPriceQuery);
-        	openingPriceRS = s2.executeQuery(openingPriceQuery);
+            s1 = conn.createStatement();
+            s2 = conn.createStatement();
+            spotPriceRS = s1.executeQuery(spotPriceQuery);
+            openingPriceRS = s2.executeQuery(openingPriceQuery);
 
-        	while (spotPriceRS.next()) {
-        		spotPrice = spotPriceRS.getFloat(1);
-        	}
+            while (spotPriceRS.next()) {
+                spotPrice = spotPriceRS.getFloat(1);
+            }
 
-        	while (openingPriceRS.next()) {
-        		openingPrice = openingPriceRS.getFloat(1);
-        	}
+            while (openingPriceRS.next()) {
+                openingPrice = openingPriceRS.getFloat(1);
+            }
 
-        	if (!spotPrice.equals(0.0f) && !openingPrice.equals(0.0f)) {
-   				percChange = ((openingPrice - spotPrice) / openingPrice) * 100;
-   			} else {
-   				System.out.println("Null start or spot price");
+            if (!spotPrice.equals(0.0f) && !openingPrice.equals(0.0f)) {
+                percChange = ((openingPrice - spotPrice) / openingPrice) * 100;
+            } else {
+                System.out.println("Null start or spot price");
                 return trendData;
-   			}
+            }
         } catch (SQLException e) {
-        	e.printStackTrace();
-        	tryClose(s1, spotPriceRS);
-        	tryClose(s2, openingPriceRS);
+            e.printStackTrace();
+            tryClose(s1, spotPriceRS);
+            tryClose(s2, openingPriceRS);
         }
 
-    	tryClose(s1, spotPriceRS);
-     	tryClose(s2, openingPriceRS);
+        tryClose(s1, spotPriceRS);
+        tryClose(s2, openingPriceRS);
 
-     	trendData.add(percChange);
-   		trendData.add(openingPrice);
-   		trendData.add(spotPrice);
+        trendData.add(percChange);
+        trendData.add(openingPrice);
+        trendData.add(spotPrice);
 
-    	return trendData;
+        return trendData;
     }
 
     /**
@@ -661,27 +653,27 @@ public class DatabaseCore implements IDatabaseManager {
     * otherwise query to get closing price of compnay on the specified day
     */
     private String spotOrClosingPriceQuery(
-    		TimeSpecifier timeSpec, String companyCode,
-    		String date) {
+            TimeSpecifier timeSpec, String companyCode,
+            String date) {
 
-   		String query = "";
-   		if (timeSpec == TimeSpecifier.TODAY) {
-   			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
-                	+ "WHERE CompanyCode = '" + companyCode + "'";
-   		} else {
-   			query 	= "SELECT SpotPrice FROM FTSECompanySnapshots "
-	                + "WHERE CompanyCode = '" + companyCode
-	                + "' AND DATE(TimeOfData) <= '" + date
-	                + "' ORDER BY TimeOfData DESC LIMIT 1";
-   		}
-   		return query;
+        String query = "";
+        if (timeSpec == TimeSpecifier.TODAY) {
+            query   = "SELECT SpotPrice FROM FTSECompanySnapshots "
+                    + "WHERE CompanyCode = '" + companyCode + "'";
+        } else {
+            query   = "SELECT SpotPrice FROM FTSECompanySnapshots "
+                    + "WHERE CompanyCode = '" + companyCode
+                    + "' AND DATE(TimeOfData) <= '" + date
+                    + "' ORDER BY TimeOfData DESC LIMIT 1";
+        }
+        return query;
     }
 
     /** 
     * Returns an SQL query to get the FTSE data required in the parse result 
-	*
-	* @param pr The parse result from the user's input
-	* @return An SQL query to get the FTSE data required
+    *
+    * @param pr The parse result from the user's input
+    * @return An SQL query to get the FTSE data required
     */
     public String convertFTSEQuery(ParseResult pr) {
         Intent intent = pr.getIntent();
@@ -724,8 +716,7 @@ public class DatabaseCore implements IDatabaseManager {
                         + "ORDER BY TimeOfData DESC LIMIT 1";
                 break;
             default:
-                System.out.println("No cases ran");
-            	break;
+                break;
         }
 
         // get current data requested from database
@@ -748,12 +739,12 @@ public class DatabaseCore implements IDatabaseManager {
 
         LocalDateTime date = LocalDateTime.now();
         DateTimeFormatter dateFormatter = DateTimeFormatter
-        		.ofPattern("yyyy-MM-dd");
+                .ofPattern("yyyy-MM-dd");
         String formattedDate = "";
 
         switch (t) {
             // If the time specifier is today and yesterday, get date of most
-    		// recent trading day
+            // recent trading day
             case TODAY:
                 formattedDate = getMostRecentTradingDay(date);
                 return formattedDate;
@@ -818,6 +809,28 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
+    * Rounds percentage to 3 decimal places
+    *
+    * @param f The percentage to be rounded
+    * @return The rounded percentage
+    */
+    private Float roundPercentage(Float f) {
+        return Math.round(f * 1000.0f) / 1000.0f;
+    }
+
+    /**
+    * Converts a float into GBX currency format
+    *
+    * @param num The number to be converted
+    * @return The converted number
+    */
+    private String convertToGBX(Float num) {
+        DecimalFormat formatter = new DecimalFormat(
+                "GBX #,##0.00;GBX -#,##0.00");
+        return formatter.format(num);
+    }
+
+    /**
     *
     * Returns othe relevant information stored about a company except the
     * information asked for by the user
@@ -827,14 +840,14 @@ public class DatabaseCore implements IDatabaseManager {
     */
     private ArrayList<String> getAllCompanyInfo(ParseResult pr) {
 
-    	Statement s1 = null;
-    	ResultSet results = null;
-    	ArrayList<String> rs = new ArrayList<>();
-    	String companyCode = pr.getOperand();
-    	Intent intent = pr.getIntent();
-    	ArrayList<String> columns = new ArrayList<>();
+        Statement s1 = null;
+        ResultSet results = null;
+        ArrayList<String> rs = new ArrayList<>();
+        String companyCode = pr.getOperand();
+        Intent intent = pr.getIntent();
+        ArrayList<String> columns = new ArrayList<>();
 
-    	// Get columns needed in query
+        // Get columns needed in query
         switch(intent) {
             case SPOT_PRICE:
                 columns.add("PercentageChange");
@@ -867,28 +880,28 @@ public class DatabaseCore implements IDatabaseManager {
                 break;
         }
 
-    	// Create query
-    	String query = "SELECT ";
-    	for (int i = 0; i < columns.size(); i++) {
-    		query += columns.get(i);
-    		// Don't add comma after last column
-    		if (i != columns.size() -1) {
-    			query += ", ";
-    		}
-    	}
-    	query 	+= " FROM FTSECompanySnapshots WHERE CompanyCode = '"
-    			+ companyCode
-    			+ "' ORDER BY TimeOfData DESC LIMIT 1";
+        // Create query
+        String query = "SELECT ";
+        for (int i = 0; i < columns.size(); i++) {
+            query += columns.get(i);
+            // Don't add comma after last column
+            if (i != columns.size() -1) {
+                query += ", ";
+            }
+        }
+        query   += " FROM FTSECompanySnapshots WHERE CompanyCode = '"
+                + companyCode
+                + "' ORDER BY TimeOfData DESC LIMIT 1";
 
-    	// Execute and store query results
-    	try {
-    		s1 = conn.createStatement();
-    		results = s1.executeQuery(query);
-    		ResultSetMetaData rsmd = results.getMetaData();
-    		int columnCount = rsmd.getColumnCount();
+        // Execute and store query results
+        try {
+            s1 = conn.createStatement();
+            results = s1.executeQuery(query);
+            ResultSetMetaData rsmd = results.getMetaData();
+            int columnCount = rsmd.getColumnCount();
 
-    		for (int i = 1; i <= columnCount; i++) {
-    			String colName = rsmd.getColumnName(i);
+            for (int i = 1; i <= columnCount; i++) {
+                String colName = rsmd.getColumnName(i);
                 switch (colName) {
                     case "TradingVolume":
                         rs.add("Trading volume, " + (Integer.toString(
@@ -909,14 +922,14 @@ public class DatabaseCore implements IDatabaseManager {
                     default:
                         break;
                 }
-    		}
+            }
 
-    	} catch (SQLException e) {
-    		e.printStackTrace();
-    		tryClose(s1, results);
-    	}
+        } catch (SQLException e) {
+            e.printStackTrace();
+            tryClose(s1, results);
+        }
 
-    	return rs;
+        return rs;
     }
 
     /**
