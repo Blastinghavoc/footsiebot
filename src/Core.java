@@ -217,7 +217,29 @@ public class Core extends Application {
         }
         onNewDataAvailable();//Checks if new data. If not, does nothing
         ParseResult pr = nlp.parse(raw);
-        if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
+        //Checking the parse result.
+        if(pr == null){
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        else if(pr.getOperand()== null){
+            if(pr.getIntent() == Intent.NEWS){
+                outputJustNewsSummary();
+                return;
+            }
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        else if (pr.getIntent() == null){
+            //At this point, we have established that the operand is not null, but the intent is.
+            //If the user enters a company without an intent, we give them a summary.
+            if (!pr.isOperandGroup()){
+                String summary = getSingleCompanySummary(pr.getOperand());
+                if (summary != null){
+                    ui.displayMessage("I didn't recognise any commands or queries in your input, but I think you wanted to know about "+summary);
+                    return;
+                }
+            }
             ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
             return;
         }
@@ -688,20 +710,53 @@ public class Core extends Application {
         }
 
         for(int i = 0;i < companies.length;i++){
-            Company c = companies[i];
-            companyCodes[i] = c.getCode();
-            String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
-            String[] temp;
-            output+= "\n"+c.getCode().toUpperCase()+" :\n";
-            output+= "    Spot price = "+data[0]+"\n";
-            for(int j = 1; j< data.length; j++){
-                temp = data[j].split(",");
-                output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
+            String summary = getSingleCompanySummary(companies[i].getCode());
+            companyCodes[i] = companies[i].getCode();
+            if(summary != null){
+                output += "\n"+summary;
             }
         }
         output += "\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
         ui.displayMessage(output);
+        ui.displayResults(news,null);
+    }
+
+    /**
+    * Returns a string containing a summary for a given company
+    */
+    private String getSingleCompanySummary(String code){
+        String output = "";
+        String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",code,false,TimeSpecifier.TODAY));
+        if(data == null){
+            return null;
+        }
+        String[] temp;
+        output+= code.toUpperCase()+" :\n";
+        output+= "    Spot price = "+data[0]+"\n";
+        for(int j = 1; j< data.length; j++){
+            temp = data[j].split(",");
+            output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
+        }
+        return output;
+    }
+
+    /**
+    * Outputs just the news part of what would have been the users Trading Hour summary.
+    */
+    private void outputJustNewsSummary(){
+        Company[] companies = ic.onNewsTime();
+        String[] companyCodes = new String[companies.length];
+        if((companies == null) || (companies.length < 1)){
+            ui.displayMessage("Sorry "+USER_NAME+", I think you wanted some news, but I have no idea what companies to give you news for. Please be more specific.");
+            return;
+        }
+
+        for (int i = 0;i< companies.length;i++ ) {
+            companyCodes[i] = companies[i].getCode();
+        }
+        Article[] news = dgc.getNews(companyCodes);
+        ui.displayMessage(USER_NAME+", I think you wanted some news, but I couldn't detect any company or group names in your query, so I've given you news on companies that I think are important to you.");
         ui.displayResults(news,null);
     }
 
