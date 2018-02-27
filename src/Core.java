@@ -33,7 +33,7 @@ public class Core extends Application {
     private Boolean nameless = false;//Whether or not the user currently has a name assigned.
 
     public static final long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds.
-    
+
     public Boolean FULLSCREEN = false;
 
     /*
@@ -98,13 +98,26 @@ public class Core extends Application {
 
         //construct UI
         try { //attempt to use custom styling
-            FileReader fRead = new FileReader("./src/gui/config/settings.txt");
-            BufferedReader buffRead = new BufferedReader(fRead);
-            String tmp = buffRead.readLine();
-            if (tmp != null)
-                ui = new GUIcore(primaryStage, tmp, this);
-            else
+            File fl = null;
+            Scanner sc = null;
+            String style = null;
+            try {
+                fl = new File("src/gui/config/settings.txt");
+                sc = new Scanner(fl);
+                while (sc.hasNextLine()) {
+                    String tmp = sc.nextLine();
+                    if (tmp.startsWith("-"))
+                        style = tmp.substring(1);
+                }
+                if (style != null)
+                    ui = new GUIcore(primaryStage, style, this);
+                else
+                    ui = new GUIcore(primaryStage, this);
+            } catch (Exception e) {
+                Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
+                err.showAndWait();
                 ui = new GUIcore(primaryStage, this);
+            }
         } catch (Exception e) { //if any exceptions, create with default styling
             Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
             err.showAndWait();
