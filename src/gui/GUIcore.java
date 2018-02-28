@@ -78,7 +78,7 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public GUIcore(Stage primaryStage, Core core) {
         stage = primaryStage;
-        style = "main";
+        style = "original";
         this.core = core;
         setup();
     }
@@ -93,6 +93,7 @@ public class GUIcore implements IGraphicalUserInterface {
     public GUIcore(Stage primaryStage, String style, Core core) {
         stage = primaryStage;
         this.style = style;
+        // this.style = "original";
         this.core = core;
         setup();
     }
@@ -105,7 +106,7 @@ public class GUIcore implements IGraphicalUserInterface {
             stage.setFullScreen(true);
 
         stage.setMinWidth(500);
-        stage.setMinHeight(299);
+        stage.setMinHeight(348);
 
         root = new StackPane();
         root.setId("root");
@@ -274,14 +275,48 @@ public class GUIcore implements IGraphicalUserInterface {
         fullscrnCkB.setAllowIndeterminate(false);
         fullscrnCkB.setSelected(core.FULLSCREEN);
 
+        File fl = null;
+        Scanner sc = null;
+        ObservableList<String> stylesheets = FXCollections.observableArrayList();
+        String selected = null;
+        try {
+            fl = new File("src/gui/config/settings.txt");
+            sc = new Scanner(fl);
+            while (sc.hasNextLine()) {
+                String tmp = sc.nextLine();
+                if (tmp.startsWith("-")) {
+                    selected = tmp.substring(1);
+                    stylesheets.add(tmp.substring(1));
+                } else {
+                    stylesheets.add(tmp);
+                }
+            }
+            stylesheets.sort(null);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        ComboBox<String> styling = new ComboBox<String>();
+        styling.setMaxWidth(85);
+        styling.setMinWidth(85);
+        styling.setEditable(false);
+        styling.setItems(stylesheets);
+        styling.setValue(selected);
+        styling.setOnAction(e -> {
+            testStyle(styling.getValue());
+        });
+
         Button saveChanges = new Button("Save Changes");
         saveChanges.setMinWidth(100);
         saveChanges.setMaxWidth(100);
         saveChanges.setOnAction(e -> {
-            if ((String) timeSelector.getValue() != null)
+            if ((String) timeSelector.getValue() != null) {
+                updateSettingsFile(styling.getItems(), styling.getValue());
                 core.updateSettings(timeSelector.getValue(), changeSelector.getValue(), fullscrnCkB.isSelected());
-            else
+            } else {
+                updateSettingsFile(styling.getItems(), styling.getValue());
                 core.updateSettings(null, changeSelector.getValue(), fullscrnCkB.isSelected());
+            }
 
             saveChanges.setDisable(true);
         });
@@ -292,8 +327,10 @@ public class GUIcore implements IGraphicalUserInterface {
         cancelChanges.setMinWidth(100);
         cancelChanges.setMaxWidth(100);
         cancelChanges.setOnAction(e -> {
+            setStyle(style);
             timeSelector.setValue(tradingTimeToString());
             changeSelector.getValueFactory().setValue(core.LARGE_CHANGE_THRESHOLD);
+            styling.setValue(style);
             saveChanges.setDisable(true);
         });
 
@@ -310,6 +347,7 @@ public class GUIcore implements IGraphicalUserInterface {
 
         RowConstraints timeRow = new RowConstraints(50, 50, 50);
         RowConstraints changeRow = new RowConstraints(50, 50, 50);
+        RowConstraints styleRow = new RowConstraints(50, 50, 50);
         RowConstraints fullscreenRow = new RowConstraints(30, 30, 30);
         RowConstraints buttonsRow = new RowConstraints(50, 50, 50);
         RowConstraints summaryRow = new RowConstraints(30, 30, 30);
@@ -324,6 +362,8 @@ public class GUIcore implements IGraphicalUserInterface {
         changeDesc.setWrapText(true);
         changeDesc.setTextAlignment(TextAlignment.RIGHT);
         changeDesc.setPadding(labelPadding);
+        Label styleDesc = new Label("Choose theme:");
+        styleDesc.setPadding(labelPadding);
         Label fullscrnLbl = new Label("Open in fullscreen:");
         fullscrnLbl.setPadding(labelPadding);
 
@@ -331,17 +371,19 @@ public class GUIcore implements IGraphicalUserInterface {
         percentSign.setId("percent-sign");
 
         settingsPane.getColumnConstraints().addAll(labelCol, buttonLeftCol, buttonRightCol, inputCol);
-        settingsPane.getRowConstraints().addAll(timeRow, changeRow, fullscreenRow, buttonsRow, summaryRow);
+        settingsPane.getRowConstraints().addAll(timeRow, changeRow, styleRow, fullscreenRow, buttonsRow, summaryRow);
         settingsPane.add(timeDesc, 0, 0);
         settingsPane.add(timeSelector, 3, 0);
         settingsPane.add(changeDesc, 0, 1);
         settingsPane.add(changeSelector, 3, 1);
-        settingsPane.add(fullscrnLbl, 0, 2);
-        settingsPane.add(fullscrnCkB, 3, 2);
-        settingsPane.add(cancelChanges, 2, 3);
-        settingsPane.add(saveChanges, 0, 3);
-        settingsPane.add(summaryBtn, 0, 4);
         settingsPane.add(percentSign, 3, 1);
+        settingsPane.add(styleDesc, 0, 2);
+        settingsPane.add(styling, 3, 2);
+        settingsPane.add(fullscrnLbl, 0, 3);
+        settingsPane.add(fullscrnCkB, 3, 3);
+        settingsPane.add(cancelChanges, 2, 4);
+        settingsPane.add(saveChanges, 0, 4);
+        settingsPane.add(summaryBtn, 0, 5);
 
         settingsPane.setColumnSpan(timeDesc, 3);
         settingsPane.setColumnSpan(changeDesc, 3);
@@ -350,23 +392,38 @@ public class GUIcore implements IGraphicalUserInterface {
         settingsPane.setColumnSpan(summaryBtn, 4);
         settingsPane.setColumnSpan(fullscrnLbl, 3);
         settingsPane.setColumnSpan(fullscrnCkB, 4);
+        settingsPane.setColumnSpan(styleDesc, 3);
         settingsPane.setHalignment(saveChanges, HPos.CENTER);
         settingsPane.setHalignment(cancelChanges, HPos.CENTER);
         settingsPane.setHalignment(summaryBtn, HPos.CENTER);
         settingsPane.setHalignment(percentSign, HPos.CENTER);
 
         timeSelector.valueProperty().addListener(e -> {
-            if (timeSelector.getValue() != tradingTimeToString())
+            if (!timeSelector.getValue().equals(tradingTimeToString()))
                 saveChanges.setDisable(false);
+            else
+                saveChanges.setDisable(true);
         });
 
         changeSelector.valueProperty().addListener(e -> {
-            if (changeSelector.getValue() != core.LARGE_CHANGE_THRESHOLD)
+            if (!changeSelector.getValue().equals(core.LARGE_CHANGE_THRESHOLD))
                 saveChanges.setDisable(false);
+            else
+                saveChanges.setDisable(true);
+        });
+
+        styling.valueProperty().addListener(e -> {
+            if (!styling.getValue().equals(style))
+                saveChanges.setDisable(false);
+            else
+                saveChanges.setDisable(true);
         });
 
         fullscrnCkB.setOnAction(e -> {
-            saveChanges.setDisable(false);
+            if (fullscrnCkB.isSelected() != core.FULLSCREEN.booleanValue())
+                saveChanges.setDisable(false);
+            else
+                saveChanges.setDisable(true);
         });
     }
 
@@ -670,6 +727,10 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+    private void testStyle(String test) {
+        scene.getStylesheets().setAll("file:src/gui/css/" + test + ".css");
+    }
+
    /**
     * Sets the css used for the application
     *
@@ -679,6 +740,45 @@ public class GUIcore implements IGraphicalUserInterface {
         this.style = style;
         scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
         stage.setScene(scene);
+    }
+
+   /**
+    * Updates the settings with the saved style
+    *
+    * @param items the list of items from the styling ComboBox
+    * @param selected the item in the styling ComboBox which is currently selected
+    */
+    private void updateSettingsFile(ObservableList<String> items, String selected) {
+        File fl = null;
+        BufferedWriter bw = null;
+        try{
+            fl = new File("src/gui/config/settings.txt");
+            bw = new BufferedWriter(new FileWriter(fl.getAbsolutePath().replace("\\", "/")));
+            for (int i = 0; i < items.size(); i++) {
+                String tmp = items.get(i);
+                if (tmp.equals(selected))
+                    tmp = "-" + tmp;
+                bw.write(tmp);
+                if (i != items.size() - 1)
+                    bw.newLine();
+            }
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(bw);
+        }
+    }
+
+   /**
+    * Attempts to close a closeable Object
+    */
+    private void tryClose(Closeable c) {
+        try {
+            c.close();
+        } catch (Exception e) {
+
+        }
     }
 
    /**
