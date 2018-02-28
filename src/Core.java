@@ -153,10 +153,11 @@ public class Core extends Application {
 
         if (runIntentTest){
             try{
-                testIntents("ng");
+                testIntents(args.get(1));
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
 
         if(!novoice){
     		voiceThread = new Thread(() -> {
@@ -184,7 +185,6 @@ public class Core extends Application {
     			}
             },"voce");
             voiceThread.start();
->>>>>>> a921572b756fea6f06f10b0e17b894ee83044847
         }
     }
 
