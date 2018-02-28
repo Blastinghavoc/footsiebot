@@ -543,7 +543,7 @@ public class Core extends Application {
             output += "Related data about this company:";
             String[] temp;
             for(int i = 1; i < data.length;i++){
-                temp = data[i].split(",");//relying on data being in csv form
+                temp = data[i].split("\\|");//relying on data being sepparated by |. Escaped as regex
                 output += "\n" + temp[0] + " = " + temp[1];
                 extraDataAddedToLastOutput.add(convertColumnNameToIntent(temp[0]));//NOTE: NEEDS TESTING
             }

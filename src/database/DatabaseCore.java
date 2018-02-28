@@ -904,19 +904,19 @@ public class DatabaseCore implements IDatabaseManager {
                 String colName = rsmd.getColumnName(i);
                 switch (colName) {
                     case "TradingVolume":
-                        rs.add("Trading volume, " + (Integer.toString(
+                        rs.add("Trading volume| " + (Integer.toString(
                                 results.getInt(i))));
                         break;
                     case "SpotPrice":
-                        rs.add("Spot price, " + (convertToGBX((Float)results
+                        rs.add("Spot price| " + (convertToGBX((Float)results
                                 .getFloat(i))));
                         break;
                     case "PercentageChange":
-                        rs.add("Percentage change, " + ((Float)results
+                        rs.add("Percentage change| " + ((Float)results
                                 .getFloat(i)).toString() + "%");
                         break;
                     case "AbsoluteChange":
-                        rs.add("Absolute change," + (convertToGBX((Float)results
+                        rs.add("Absolute change| " + (convertToGBX((Float)results
                                 .getFloat(i))));
                         break;
                     default:
