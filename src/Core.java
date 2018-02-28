@@ -186,7 +186,7 @@ public class Core extends Application {
 			if(Thread.currentThread().isInterrupted()){
 				closing = true;
 				return;
-			}			
+			}
 
 			System.out.println("You said: " + s);
 			if(s.startsWith("assistant"))
@@ -424,7 +424,7 @@ public class Core extends Application {
                 break;
             case OPENING_PRICE:
                 {
-                    String date = data[1].split(",")[1].trim();
+                    String date = data[1].split("\\|")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The opening price of "+ pr.getOperand()+" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
@@ -436,7 +436,7 @@ public class Core extends Application {
                 break;
             case CLOSING_PRICE:
                 {
-                    String date = data[1].split(",")[1].trim();
+                    String date = data[1].split("\\|")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The closing price of "+ pr.getOperand()+" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
@@ -468,7 +468,6 @@ public class Core extends Application {
                     }
                     output += " with a net change of "+data[0].trim() + "%.\n";
                     output += "The opening price was "+ data[2] + " and the most recent price is "+ data[3] + ".";
-                    //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
@@ -511,25 +510,25 @@ public class Core extends Application {
                         break;
                     }
                     output += " with a net change of "+data[0].trim() + "%.\n";
-                    String[] high = data[2].split(",");
+                    String[] high = data[2].split("\\|");
                     output += high[0].trim().toUpperCase() + " has the highest spot price at " + high[1].trim() + ".\n";
-                    String[] low = data[3].split(",");
+                    String[] low = data[3].split("\\|");
                     output += low[0].trim().toUpperCase() + " has the lowest spot price at " + low[1].trim()+ ".\n";
-                    String[] mostRising = data[4].split(",");
+                    String[] mostRising = data[4].split("\\|");
                     output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
-                    String[] mostFalling = data[5].split(",");
+                    String[] mostFalling = data[5].split("\\|");
                     output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
                     output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
-                    String[] high = data[2].split(",");
+                    String[] high = data[2].split("\\|");
                     output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
-                    String[] low = data[3].split(",");
+                    String[] low = data[3].split("\\|");
                     output += low[0].trim().toUpperCase() + " had the lowest closing price at " + low[1].trim()+ ".\n";
-                    String[] mostRising = data[4].split(",");
+                    String[] mostRising = data[4].split("\\|");
                     output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
-                    String[] mostFalling = data[5].split(",");
+                    String[] mostFalling = data[5].split("\\|");
                     output += mostFalling[0].trim().toUpperCase() + " had the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 break;
@@ -833,7 +832,7 @@ public class Core extends Application {
         output+= code.toUpperCase()+" :\n";
         output+= "    Spot price = "+data[0]+"\n";
         for(int j = 1; j< data.length; j++){
-            temp = data[j].split(",");
+            temp = data[j].split("\\|");
             output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
         }
         return output;

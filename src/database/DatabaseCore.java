@@ -152,7 +152,7 @@ public class DatabaseCore implements IDatabaseManager {
         return true;
     }
 
-    /* 
+    /*
     * Deletes FTSE data from over 5 trading days ago
     *
     */
@@ -195,7 +195,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         String query    = "INSERT INTO Queries"
                         + "(CompanyCode, Intent, TimeSpecifier) "
-                        + "VALUES('" + companyCode + "','" + intent + "','" 
+                        + "VALUES('" + companyCode + "','" + intent + "','"
                         + timeSpecifier + "')";
         Statement s1 = null;
         ResultSet r1 = null;
@@ -203,7 +203,7 @@ public class DatabaseCore implements IDatabaseManager {
         if (table == null) {
             return false;
         }
-        // The count row in the tables has the same name as the table, 
+        // The count row in the tables has the same name as the table,
         // minus the prefix "Company"
         String rowName = table.replace("Company","");
         trySetAutoCommit(false);
@@ -211,21 +211,21 @@ public class DatabaseCore implements IDatabaseManager {
             s1 = conn.createStatement();
             s1.executeUpdate(query);
 
-            // Check if a row with the relevant CompanyCode exists in the 
-            // relevant count table. If not, create that row. If it does, 
+            // Check if a row with the relevant CompanyCode exists in the
+            // relevant count table. If not, create that row. If it does,
             // increment the value of the relevant count row (rowName)
-            query   = "SELECT * FROM " + table + " WHERE CompanyCode = '" 
+            query   = "SELECT * FROM " + table + " WHERE CompanyCode = '"
                     + companyCode + "'";
             r1 = s1.executeQuery(query);
             // If the row does not exist, create it.
             if (!r1.next()) {
-                query   = "INSERT INTO " + table + " VALUES ('" + companyCode 
+                query   = "INSERT INTO " + table + " VALUES ('" + companyCode
                         + "',1,0)";
                 s1.executeUpdate(query);
             } else {
                 // Row does exist, so just increment the count.
-                query   = "UPDATE " + table + " SET " + rowName + " = " 
-                        + rowName + " + 1 WHERE CompanyCode = '" + companyCode 
+                query   = "UPDATE " + table + " SET " + rowName + " = "
+                        + rowName + " + 1 WHERE CompanyCode = '" + companyCode
                         + "'";
                 s1.executeUpdate(query);
             }
@@ -340,7 +340,7 @@ public class DatabaseCore implements IDatabaseManager {
             case OPENING_PRICE:
                 // fall through
             case CLOSING_PRICE:
-                output.add("Date, " + timeSpecifierToDate
+                output.add("Date| " + timeSpecifierToDate
                         (pr.getTimeSpecifier()));
                 // fall through
             default:
@@ -435,13 +435,13 @@ public class DatabaseCore implements IDatabaseManager {
         Map.Entry<String, Float> minPercChangeCompany =
                 Collections.min(percChangeMap.entrySet(), valueComparator);
 
-        output.add(maxSpotPriceCompany.getKey() + ", "
+        output.add(maxSpotPriceCompany.getKey() + "| "
                 + convertToGBX(maxSpotPriceCompany.getValue()));
-        output.add(minSpotPriceCompany.getKey() + ", "
+        output.add(minSpotPriceCompany.getKey() + "| "
                 + convertToGBX(minSpotPriceCompany.getValue()));
-        output.add(maxPercChangeCompany.getKey() + ", "
+        output.add(maxPercChangeCompany.getKey() + "| "
                 + roundPercentage(maxPercChangeCompany.getValue()).toString());
-        output.add(minPercChangeCompany.getKey() + ", "
+        output.add(minPercChangeCompany.getKey() + "| "
                 + roundPercentage(minPercChangeCompany.getValue()).toString());
 
         return output;
@@ -669,8 +669,8 @@ public class DatabaseCore implements IDatabaseManager {
         return query;
     }
 
-    /** 
-    * Returns an SQL query to get the FTSE data required in the parse result 
+    /**
+    * Returns an SQL query to get the FTSE data required in the parse result
     *
     * @param pr The parse result from the user's input
     * @return An SQL query to get the FTSE data required
@@ -980,8 +980,8 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    * 
-    * 
+    *
+    *
     * @return
     */
     public ArrayList<Company> getAICompanies() {
@@ -1232,7 +1232,7 @@ public class DatabaseCore implements IDatabaseManager {
     * @param company
     * @param intent
     * @param isNews
-    * @return 
+    * @return
     */
     //TODO
     public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
@@ -1281,11 +1281,11 @@ public class DatabaseCore implements IDatabaseManager {
 
     // DO WE NEED THIS???
     public void storeAIGroups(ArrayList<Group> groups) {
-        
+
     }
 
     public void storeAICompanies(ArrayList<Company> companies) {
-        
+
     }
 
     /**
