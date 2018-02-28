@@ -1,0 +1,299 @@
+@font-face {
+    src: url("fonts/ABOVE.ttf");
+}
+
+@font-face {
+    src: url("fonts/CookieMonster.ttf");
+}
+
+.root {
+    -fx-background-color: white;
+    -fx-accent: derive(#40BC4E, 50%);
+    -fx-focus-color: derive(#40BC4E, 90%);
+}
+
+#logo {
+    -fx-font-family: "Above DEMO";
+    -fx-font-size: 25pt;
+}
+
+#logo-valentines {
+    -fx-font-family: "CookieMonster";
+    -fx-font-size: 25pt;
+}
+
+#top-bar {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
+    -fx-background-color: white;
+}
+
+.button {
+    -fx-font-size: 12px;
+    -fx-text-fill: white;
+    -fx-background-color: #40BC4E;
+    -fx-cursor: hand;
+    -fx-arc-height: 50;
+    -fx-arc-width: 50;
+}
+
+.button:hover {
+    -fx-background-color: derive(#40BC4E, -10%);
+}
+
+.scroll-bar {
+    -fx-opacity: 1;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .thumb {
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.3;
+    -fx-background-radius: 2em;
+}
+
+.scroll-bar > .thumb:pressed {
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.4;
+}
+
+.scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: black;
+    -fx-opacity: 0.4;
+}
+
+.scroll-bar > .increment-button > .increment-arrow:pressed,
+.scroll-bar > .decrement-button > .decrement-arrow:pressed {
+    -fx-background-color: black;
+    -fx-opacity: 0.55;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+#percent-sign {
+    -fx-text-fill: derive(gray, -20%);
+}
+
+/*==============================================================================
+================================ Message Board ================================
+==============================================================================*/
+#board-wrapper {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+}
+
+#message-board {
+    -fx-background-color: transparent;
+}
+
+/*==============================================================================
+=================================== Messages ===================================
+==============================================================================*/
+
+.user-message {
+    -fx-background-color: transparent;
+}
+
+.system-message {
+    -fx-background-color: transparent;
+}
+
+.user-visual {
+    -fx-fill: #40BC4E;
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
+.system-visual {
+    -fx-fill: #edecea;
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
+.user-label {
+    -fx-text-fill: white;
+}
+
+.system-label {
+    -fx-padding: 0;
+    -fx-text-fill: black;
+}
+
+.options-button {
+    -fx-font-size: 8pt;
+    -fx-border-color: derive(#edecea, -20%);
+    -fx-border-width: 1;
+    -fx-border-radius: 10px;
+    -fx-text-fill: derive(#edecea, -20%);
+    -fx-cursor: hand;
+}
+
+.options-button:hover {
+    -fx-border-color: derive(#edecea, -40%);
+    -fx-text-fill: derive(#edecea, -40%);
+}
+
+.remove-message {
+    -fx-font-size: 12pt;
+    -fx-text-fill: derive(#edecea, -20%);
+    -fx-cursor: hand;
+}
+
+.remove-message:hover {
+    -fx-text-fill: derive(#edecea, -40%);
+}
+
+.tooltip {
+    -fx-font-size: 8.5pt;
+    -fx-background-color: derive(white, -5%);
+    -fx-text-fill: derive(black, 60%);
+    -fx-background-radius: 3px;
+    -fx-padding: 5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.2), 5, 0.0, 0, 3)
+}
+
+/*==============================================================================
+==================================== Input ===================================
+==============================================================================*/
+
+#input-wrapper {
+    -fx-border-color: derive(white, -7%);
+    -fx-border-width: 1 0 0 0;
+    -fx-background-color: derive(white, -4%);
+}
+
+#input-visual {
+    -fx-fill: white;
+    -fx-effect: innershadow(gaussian, rgba(0, 0, 0, 0.2), 10, 0, 0, 0);
+    -fx-arc-height: 35;
+    -fx-arc-width: 35;
+}
+
+#input {
+    -fx-background-color: transparent;
+}
+
+#settings-icon {
+    -fx-cursor: hand;
+}
+
+/*==============================================================================
+=================================== Side Pane ==================================
+==============================================================================*/
+
+#side-pane {
+    -fx-border-color: derive(white, -10%);
+    -fx-border-width: 0 0 0 1;
+    -fx-background-color: white;
+}
+
+#settings-pane {
+    -fx-background-color: derive(white, -4%);
+}
+
+#news-pane {
+    -fx-background-color: transparent;
+}
+
+#news-wrapper {
+    -fx-background: transparent;
+    -fx-background-color: transparent;
+}
+
+#news-wrapper > .scroll-bar {
+    -fx-opacity: 1;
+    -fx-background-color: derive(#40BC4E, 95%);
+}
+
+#news-wrapper > .scroll-bar > .thumb {
+    -fx-background-color: transparent, derive(#40BC4E, -15%), transparent;
+    -fx-opacity: 0.3;
+    -fx-background-radius: 2em;
+}
+
+#news-wrapper > .scroll-bar > .thumb:pressed {
+    -fx-background-color: transparent, derive(#40BC4E, -15%), transparent;
+    -fx-opacity: 0.5;
+}
+
+#news-wrapper > .scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+#news-wrapper > .scroll-bar > .increment-button,
+#news-wrapper > .scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+}
+
+#news-wrapper > .scroll-bar > .increment-button > .increment-arrow,
+#news-wrapper > .scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: derive(#40BC4E, -15%);
+    -fx-opacity: 0.4;
+}
+
+#news-wrapper > .scroll-bar > .increment-button > .increment-arrow:pressed,
+#news-wrapper > .scroll-bar > .decrement-button > .decrement-arrow:pressed {
+    -fx-background-color: derive(#40BC4E, -15%);
+    -fx-opacity: 0.7;
+}
+
+#news-board {
+    -fx-background-color: transparent;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
+}
+
+#no-news {
+    -fx-text-fill: derive(gray, 30%);
+    -fx-padding: 0 10 0 10;
+}
+
+.news-block {
+    -fx-background-color: derive(#40BC4E, 95%);
+    -fx-border-color: derive(white, -10%);
+    -fx-border-width: 0 0 1 0;
+    -fx-border-style: solid outside;
+    -fx-text-fill: black;
+}
+
+.news-block:hover {
+    -fx-background-color: derive(#40BC4E, 85%);
+}
+
+.headline {
+    -fx-font-size: 11pt;
+    -fx-max-height: 2.3em;
+    -fx-text-fill: black;
+    -fx-font-weight: bold;
+}
+
+.digest {
+    -fx-text-fill: black;
+    -fx-font-size: 9pt;
+}
+
+.url {
+    -fx-cursor: hand;
+    -fx-font-size: 9.5pt;
+    -fx-text-fill: derive(navy, 30%);
+}
+
+.url-visited {
+    -fx-cursor: hand;
+    -fx-font-size: 9.5pt;
+    -fx-text-fill: #551A8B;
+}
+
+.remove-news {
+    -fx-cursor: hand;
+}
