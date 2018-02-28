@@ -86,6 +86,7 @@ public class Core extends Application {
         List<String> args = getParameters().getRaw();
         //Allows running of tests.
         Boolean runTradingHourTest = false;
+        Boolean runIntentTest = false;
         if (args.size() > 0) {
             if (args.get(0).equals("nlp")) {
                 debugNLP();
@@ -93,6 +94,8 @@ public class Core extends Application {
             }
             else if (args.get(0).equals("tradinghour")){
                 runTradingHourTest = true;
+            } else if (args.get(0).equals("intenttest")){
+                runIntentTest = true;
             }
         }
 
@@ -124,6 +127,14 @@ public class Core extends Application {
             try{
                 onTradingHour();//DEBUG
             }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        if (runIntentTest){
+            try{
+                testIntents("ng");
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -923,6 +934,24 @@ public class Core extends Application {
 
         // ui.displayMessage(joke[1]);
 
+    }
+
+    // Tests all intents and all time specifiers for 1 company
+    private void testIntents(String operand) {
+        for (Intent i : Intent.values()) {
+            for (TimeSpecifier t : TimeSpecifier.values()) {
+                ParseResult pr = new ParseResult(i, "", operand, false, t);
+                if (checkParseResultValid(pr)) {
+                    switch(i) {
+                        case NEWS:
+                            outputNews(pr,null);
+                            break;
+                        default:
+                            outputFTSE(pr,null);
+                    }
+                }
+            }
+        }
     }
 
 }
