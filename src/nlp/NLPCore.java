@@ -34,11 +34,11 @@ public class NLPCore implements INaturalLanguageProcessor{
     * @return A ParseResult. Never null, but may contain null fields
     */
     public ParseResult parse(String s){
-        Intent in = Intent.SPOT_PRICE;//DEBUG
+        Intent in = null;
         String raw = s;
         String operand = null;
         Boolean operandIsGroup = false;
-        TimeSpecifier ts = TimeSpecifier.TODAY;//DEBUG
+        TimeSpecifier ts = TimeSpecifier.TODAY;
 
         s = s.toLowerCase();
     	  //STRIP INTENT OUT OF STRING USING STRING.REPLACE AND STRING.CONTAINS

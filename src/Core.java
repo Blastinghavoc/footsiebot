@@ -687,9 +687,15 @@ public class Core extends Application {
                 if(pr.isOperandGroup()){
                     return false;
                 }
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
+                    return false;
+                }
             break;
             case ABSOLUTE_CHANGE:
                 if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
                     return false;
                 }
             break;
@@ -1036,16 +1042,23 @@ public class Core extends Application {
 
     // Tests all intents and all time specifiers for 1 company
     private void testIntents(String operand) {
+        operand = operand.toLowerCase();
         for (Intent i : Intent.values()) {
             for (TimeSpecifier t : TimeSpecifier.values()) {
                 ParseResult pr = new ParseResult(i, "", operand, false, t);
                 if (checkParseResultValid(pr)) {
+                    System.out.println("Testing ParseResult: "+pr);
                     switch(i) {
                         case NEWS:
                             outputNews(pr,null);
                             break;
                         default:
                             outputFTSE(pr,null);
+                    }
+                    try{
+                        Thread.sleep(100);
+                    }catch(Exception e){
+                        e.printStackTrace();
                     }
                 }
             }
