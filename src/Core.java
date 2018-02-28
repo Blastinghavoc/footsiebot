@@ -53,6 +53,11 @@ public class Core extends Application {
     private ArrayList<Intent> extraDataAddedToLastOutput;
     private String lastOperandOutput;
 
+	private Thread voiceThread;
+	public volatile Boolean closing = false;
+	private String mostRecentVoiceInput = "";
+    public Boolean novoice = false;//Whether or not the program is to be run without voice input.
+
    /**
     * Constructor for the core
     */
@@ -94,6 +99,9 @@ public class Core extends Application {
             else if (args.get(0).equals("tradinghour")){
                 runTradingHourTest = true;
             }
+            else if (args.get(0).equals("novoice")){
+                novoice = true;
+            }
         }
 
         //construct UI
@@ -132,7 +140,6 @@ public class Core extends Application {
             ui.displayMessage("Hi there! I am Footsiebot! Before we continue, what is your name?");
         }
 
-
         if(runTradingHourTest){
             try{
                 onTradingHour();//DEBUG
@@ -140,7 +147,75 @@ public class Core extends Application {
                 e.printStackTrace();
             }
         }
+
+        if(!novoice){
+    		voiceThread = new Thread(() -> {
+
+                try {
+    				voce.SpeechInterface.init("./src/voce-0.9.1/lib", false, true, "./src", "grammar");
+    				while (!closing)
+    				{
+    					Thread.sleep(200);
+    					testVoce();
+    				}
+                }
+                catch (InterruptedException e){
+                    closing = true;
+                    System.out.println("Voce received interrupt");
+                    return;//Maybe?
+                }
+                catch (Exception e) {
+                    // should not be able to get here...
+                    System.out.println("Error in voce");
+                    e.printStackTrace();
+                }
+    			finally{
+    				voce.SpeechInterface.destroy();
+    			}
+            },"voce");
+            voiceThread.start();
+        }
     }
+
+	private void testVoce(){
+
+		while (voce.SpeechInterface.getRecognizerQueueSize() > 0)
+		{
+			String s = voce.SpeechInterface.popRecognizedString();
+
+			if(Thread.currentThread().isInterrupted()){
+				closing = true;
+				return;
+			}			
+
+			System.out.println("You said: " + s);
+			if(s.startsWith("assistant"))
+			{
+				String query = s.replaceFirst("assistant","");
+				System.out.println("Will execute: " + query);
+				synchronized(mostRecentVoiceInput){
+					mostRecentVoiceInput = query;
+				}
+			}
+			//voce.SpeechInterface.synthesize(s);
+		}
+
+	}
+
+	public void runVoiceInput(){
+		//System.out.println("Checked for voice input");
+		String temp = null;
+		synchronized(mostRecentVoiceInput){
+			if(!mostRecentVoiceInput.isEmpty()){
+				temp = mostRecentVoiceInput;
+				mostRecentVoiceInput = "";
+			}
+		}
+		if(temp != null){
+			ui.displayMessage("VoiceBot thinks you said: "+temp);
+			onUserInput(temp);
+		}
+	}
 
    /**
     * Performs shut down operations
@@ -151,6 +226,16 @@ public class Core extends Application {
         //TODO store the trading hour somewhere
         //TODO write volatile data to the Database
         ui.stopDataDownload();
+        if(!novoice){
+    		voiceThread.interrupt();
+    		try{
+    			voiceThread.join();
+    		}
+    		catch(Exception e){
+    			e.printStackTrace();
+    		}
+        }
+
         ic.onShutdown();
         System.out.println("Safely closed the program.");
     }
