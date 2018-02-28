@@ -48,9 +48,11 @@ public class WebScraper {
 
             // attempts connection
             try {
-                page = Jsoup.connect(url + i).get();
+                page = Jsoup.connect(url + i).timeout(60000).get();
             } catch (IOException e) {
-                System.out.println("Internet appears to be down.");
+
+                System.out.println("It appears something's gone wrong with the internet connection.");
+
                 e.printStackTrace();
                 return null;
             }
@@ -93,9 +95,11 @@ public class WebScraper {
                             Element current;
                             String surl = column.select("a").first().attr("abs:href");
                             try {
-                                summary = Jsoup.connect(surl).get();
+                                summary = Jsoup.connect(surl).timeout(60000).get();
                             } catch (IOException e) {
-                                System.out.println("Internet appears to be down.");
+
+                                System.out.println("It appears something's gone wrong with the internet connection.");
+
                                 e.printStackTrace();
                                 return null;
                             }
