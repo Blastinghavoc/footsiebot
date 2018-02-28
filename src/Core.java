@@ -53,6 +53,11 @@ public class Core extends Application {
     private ArrayList<Intent> extraDataAddedToLastOutput;
     private String lastOperandOutput;
 
+	private Thread voiceThread;
+	public volatile Boolean closing = false;
+	private String mostRecentVoiceInput = "";
+    public Boolean novoice = false;//Whether or not the program is to be run without voice input.
+
    /**
     * Constructor for the core
     */
@@ -97,17 +102,33 @@ public class Core extends Application {
             } else if (args.get(0).equals("intenttest")){
                 runIntentTest = true;
             }
+            else if (args.get(0).equals("novoice")){
+                novoice = true;
+            }
         }
 
         //construct UI
         try { //attempt to use custom styling
-            FileReader fRead = new FileReader("./src/gui/config/settings.txt");
-            BufferedReader buffRead = new BufferedReader(fRead);
-            String tmp = buffRead.readLine();
-            if (tmp != null && !tmp.isEmpty())
-                ui = new GUIcore(primaryStage, tmp, this);
-            else
+            File fl = null;
+            Scanner sc = null;
+            String style = null;
+            try {
+                fl = new File("src/gui/config/settings.txt");
+                sc = new Scanner(fl);
+                while (sc.hasNextLine()) {
+                    String tmp = sc.nextLine();
+                    if (tmp.startsWith("-"))
+                        style = tmp.substring(1);
+                }
+                if (style != null)
+                    ui = new GUIcore(primaryStage, style, this);
+                else
+                    ui = new GUIcore(primaryStage, this);
+            } catch (Exception e) {
+                Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
+                err.showAndWait();
                 ui = new GUIcore(primaryStage, this);
+            }
         } catch (Exception e) { //if any exceptions, create with default styling
             Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
             err.showAndWait();
@@ -121,7 +142,6 @@ public class Core extends Application {
         }else{
             ui.displayMessage("Hi there! I am Footsiebot! Before we continue, what is your name?");
         }
-
 
         if(runTradingHourTest){
             try{
@@ -137,8 +157,76 @@ public class Core extends Application {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+
+        if(!novoice){
+    		voiceThread = new Thread(() -> {
+
+                try {
+    				voce.SpeechInterface.init("./src/voce-0.9.1/lib", false, true, "./src", "grammar");
+    				while (!closing)
+    				{
+    					Thread.sleep(200);
+    					testVoce();
+    				}
+                }
+                catch (InterruptedException e){
+                    closing = true;
+                    System.out.println("Voce received interrupt");
+                    return;//Maybe?
+                }
+                catch (Exception e) {
+                    // should not be able to get here...
+                    System.out.println("Error in voce");
+                    e.printStackTrace();
+                }
+    			finally{
+    				voce.SpeechInterface.destroy();
+    			}
+            },"voce");
+            voiceThread.start();
+>>>>>>> a921572b756fea6f06f10b0e17b894ee83044847
         }
     }
+
+	private void testVoce(){
+
+		while (voce.SpeechInterface.getRecognizerQueueSize() > 0)
+		{
+			String s = voce.SpeechInterface.popRecognizedString();
+
+			if(Thread.currentThread().isInterrupted()){
+				closing = true;
+				return;
+			}
+
+			System.out.println("You said: " + s);
+			if(s.startsWith("assistant"))
+			{
+				String query = s.replaceFirst("assistant","");
+				System.out.println("Will execute: " + query);
+				synchronized(mostRecentVoiceInput){
+					mostRecentVoiceInput = query;
+				}
+			}
+			//voce.SpeechInterface.synthesize(s);
+		}
+
+	}
+
+	public void runVoiceInput(){
+		//System.out.println("Checked for voice input");
+		String temp = null;
+		synchronized(mostRecentVoiceInput){
+			if(!mostRecentVoiceInput.isEmpty()){
+				temp = mostRecentVoiceInput;
+				mostRecentVoiceInput = "";
+			}
+		}
+		if(temp != null){
+			ui.displayMessage("VoiceBot thinks you said: "+temp);
+			onUserInput(temp);
+		}
+	}
 
    /**
     * Performs shut down operations
@@ -149,6 +237,16 @@ public class Core extends Application {
         //TODO store the trading hour somewhere
         //TODO write volatile data to the Database
         ui.stopDataDownload();
+        if(!novoice){
+    		voiceThread.interrupt();
+    		try{
+    			voiceThread.join();
+    		}
+    		catch(Exception e){
+    			e.printStackTrace();
+    		}
+        }
+
         ic.onShutdown();
         System.out.println("Safely closed the program.");
     }
@@ -337,7 +435,7 @@ public class Core extends Application {
                 break;
             case OPENING_PRICE:
                 {
-                    String date = data[1].split(",")[1].trim();
+                    String date = data[1].split("\\|")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The opening price of "+ pr.getOperand()+" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
@@ -349,7 +447,7 @@ public class Core extends Application {
                 break;
             case CLOSING_PRICE:
                 {
-                    String date = data[1].split(",")[1].trim();
+                    String date = data[1].split("\\|")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
                     output = "The closing price of "+ pr.getOperand()+" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
@@ -381,7 +479,6 @@ public class Core extends Application {
                     }
                     output += " with a net change of "+data[0].trim() + "%.\n";
                     output += "The opening price was "+ data[2] + " and the most recent price is "+ data[3] + ".";
-                    //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
@@ -424,25 +521,25 @@ public class Core extends Application {
                         break;
                     }
                     output += " with a net change of "+data[0].trim() + "%.\n";
-                    String[] high = data[2].split(",");
+                    String[] high = data[2].split("\\|");
                     output += high[0].trim().toUpperCase() + " has the highest spot price at " + high[1].trim() + ".\n";
-                    String[] low = data[3].split(",");
+                    String[] low = data[3].split("\\|");
                     output += low[0].trim().toUpperCase() + " has the lowest spot price at " + low[1].trim()+ ".\n";
-                    String[] mostRising = data[4].split(",");
+                    String[] mostRising = data[4].split("\\|");
                     output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
-                    String[] mostFalling = data[5].split(",");
+                    String[] mostFalling = data[5].split("\\|");
                     output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
                     output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
-                    String[] high = data[2].split(",");
+                    String[] high = data[2].split("\\|");
                     output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
-                    String[] low = data[3].split(",");
+                    String[] low = data[3].split("\\|");
                     output += low[0].trim().toUpperCase() + " had the lowest closing price at " + low[1].trim()+ ".\n";
-                    String[] mostRising = data[4].split(",");
+                    String[] mostRising = data[4].split("\\|");
                     output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
-                    String[] mostFalling = data[5].split(",");
+                    String[] mostFalling = data[5].split("\\|");
                     output += mostFalling[0].trim().toUpperCase() + " had the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 break;
@@ -541,7 +638,7 @@ public class Core extends Application {
             output += "Related data about this company:";
             String[] temp;
             for(int i = 1; i < data.length;i++){
-                temp = data[i].split(",");//relying on data being in csv form
+                temp = data[i].split("\\|");//relying on data being sepparated by |. Escaped as regex
                 output += "\n" + temp[0] + " = " + temp[1];
                 extraDataAddedToLastOutput.add(convertColumnNameToIntent(temp[0]));//NOTE: NEEDS TESTING
             }
@@ -746,7 +843,7 @@ public class Core extends Application {
         output+= code.toUpperCase()+" :\n";
         output+= "    Spot price = "+data[0]+"\n";
         for(int j = 1; j< data.length; j++){
-            temp = data[j].split(",");
+            temp = data[j].split("\\|");
             output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
         }
         return output;
@@ -777,6 +874,7 @@ public class Core extends Application {
     public void suggestionIrrelevant(Suggestion s){
         System.out.println("A suggestion was marked irrelevant");
         ic.onSuggestionIrrelevant(s);
+        ui.displayMessage("Ok " + USER_NAME + ", I will take that into consideration. Thank you for the feedback.");
     }
 
     private void debugNLP() {

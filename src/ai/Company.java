@@ -44,9 +44,7 @@ public class Company implements Comparable<Company> {
 
     AIIntent currMax = AIIntent.SPOT_PRICE;
     float startMaxValue = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1];
-    //DEBUG
-    System.out.println(startMaxValue);
-
+  
     AbstractMap.SimpleEntry<AIIntent,Float> result = new AbstractMap.SimpleEntry<AIIntent, Float>(currMax, startMaxValue);
 
     for(Map.Entry<AIIntent,Float[]> e: entrySet) {
