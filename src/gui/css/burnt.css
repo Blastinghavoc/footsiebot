@@ -1,5 +1,5 @@
 @font-face {
-    src: url("fonts/Above.ttf");
+    src: url("fonts/ABOVE.ttf");
 }
 
 @font-face {
@@ -7,11 +7,9 @@
 }
 
 .root {
-    /*-fx-font-family: "sans-serif";*/
     -fx-background-color: white;
-    -fx-accent: derive(#6699CC, 50%);
-    /*-fx-font-size: 12pt;*/
-    -fx-focus-color: derive(#6699CC, 50%);
+    -fx-accent: derive(#E87E22, 50%);
+    -fx-focus-color: derive(#E87E22, 90%);
 }
 
 #logo {
@@ -24,10 +22,6 @@
     -fx-font-size: 25pt;
 }
 
-#chat-pane {
-    /**/
-}
-
 #top-bar {
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
     -fx-background-color: white;
@@ -36,16 +30,60 @@
 .button {
     -fx-font-size: 12px;
     -fx-text-fill: white;
-    -fx-background-color: #6699CC;
+    -fx-background-color: #E87E22;
     -fx-cursor: hand;
     -fx-arc-height: 50;
     -fx-arc-width: 50;
 }
 
 .button:hover {
-    -fx-background-color: #5783af;
+    -fx-background-color: derive(#E87E22, -10%);
 }
 
+.scroll-bar {
+    -fx-opacity: 1;
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .thumb {
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.3;
+    -fx-background-radius: 2em;
+}
+
+.scroll-bar > .thumb:pressed {
+    -fx-background-color: transparent, black, transparent;
+    -fx-opacity: 0.4;
+}
+
+.scroll-bar > .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .increment-button,
+.scroll-bar > .decrement-button {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar > .increment-button > .increment-arrow,
+.scroll-bar > .decrement-button > .decrement-arrow {
+    -fx-background-color: black;
+    -fx-opacity: 0.4;
+}
+
+.scroll-bar > .increment-button > .increment-arrow:pressed,
+.scroll-bar > .decrement-button > .decrement-arrow:pressed {
+    -fx-background-color: black;
+    -fx-opacity: 0.55;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+#percent-sign {
+    -fx-text-fill: derive(gray, -20%);
+}
 
 /*==============================================================================
 ================================ Message Board ================================
@@ -59,87 +97,37 @@
     -fx-background-color: transparent;
 }
 
-#board-wrapper > .scroll-bar {
-    -fx-opacity: 1;
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar > .thumb {
-    -fx-background-color: transparent, black, transparent;
-    -fx-opacity: 0.3;
-    -fx-background-radius: 2em;
-}
-
-#board-wrapper > .scroll-bar > .thumb:pressed {
-    /*derive(#6699CC, -15%)*/
-    -fx-background-color: transparent, black, transparent;
-    -fx-opacity: 0.4;
-}
-
-#board-wrapper > .scroll-bar > .track {
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar > .increment-button,
-#board-wrapper > .scroll-bar > .decrement-button {
-    -fx-background-color: transparent;
-}
-
-#board-wrapper > .scroll-bar > .increment-button > .increment-arrow,
-#board-wrapper > .scroll-bar > .decrement-button > .decrement-arrow {
-    -fx-background-color: black;
-    -fx-opacity: 0.4;
-}
-
-#board-wrapper > .scroll-bar > .increment-button > .increment-arrow:pressed,
-#board-wrapper > .scroll-bar > .decrement-button > .decrement-arrow:pressed {
-    -fx-background-color: black;
-    -fx-opacity: 0.55;
-}
-
-.scroll-pane > .corner {
-    -fx-background-color: transparent;
-}
-
 /*==============================================================================
 =================================== Messages ===================================
 ==============================================================================*/
 
 .user-message {
     -fx-background-color: transparent;
-    /*-fx-fill: derive(#414366, 60%);*/
 }
 
 .system-message {
     -fx-background-color: transparent;
-    /*-fx-fill: derive(#414366, 30%);*/
 }
 
 .user-visual {
-    -fx-fill: #6699CC;
+    -fx-fill: #E87E22;
     -fx-arc-height: 15;
     -fx-arc-width: 15;
-    /*-fx-text-fill: white;*/
 }
 
 .system-visual {
     -fx-fill: #edecea;
     -fx-arc-height: 15;
     -fx-arc-width: 15;
-    /*-fx-text-fill: black;*/
 }
 
 .user-label {
-    /*-fx-background-color: transparent;*/
     -fx-text-fill: white;
-    /*-fx-cursor: text;*/
 }
 
 .system-label {
-    /*-fx-background-color: lightblue;*/
     -fx-padding: 0;
     -fx-text-fill: black;
-    /*-fx-cursor: text;*/
 }
 
 .options-button {
@@ -196,19 +184,6 @@
     -fx-background-color: transparent;
 }
 
-#send-button {
-    -fx-font-size: 12px;
-    -fx-text-fill: white;
-    -fx-background-color: #6699CC;
-    -fx-cursor: hand;
-    -fx-arc-height: 50;
-    -fx-arc-width: 50;
-}
-
-#send-button:hover {
-    -fx-background-color: #5783af;
-}
-
 #settings-icon {
     -fx-cursor: hand;
 }
@@ -238,18 +213,17 @@
 
 #news-wrapper > .scroll-bar {
     -fx-opacity: 1;
-    -fx-background-color: derive(#6699CC, 95%);
+    -fx-background-color: derive(#E87E22, 95%);
 }
 
 #news-wrapper > .scroll-bar > .thumb {
-    -fx-background-color: transparent, derive(#6699CC, -15%), transparent;
+    -fx-background-color: transparent, derive(#E87E22, -15%), transparent;
     -fx-opacity: 0.3;
     -fx-background-radius: 2em;
 }
 
 #news-wrapper > .scroll-bar > .thumb:pressed {
-    /*derive(#6699CC, -15%)*/
-    -fx-background-color: transparent, derive(#6699CC, -15%), transparent;
+    -fx-background-color: transparent, derive(#E87E22, -15%), transparent;
     -fx-opacity: 0.5;
 }
 
@@ -264,37 +238,28 @@
 
 #news-wrapper > .scroll-bar > .increment-button > .increment-arrow,
 #news-wrapper > .scroll-bar > .decrement-button > .decrement-arrow {
-    /*-fx-shape: " ";*/
-    -fx-background-color: derive(#6699CC, -15%);
+    -fx-background-color: derive(#E87E22, -15%);
     -fx-opacity: 0.4;
 }
 
 #news-wrapper > .scroll-bar > .increment-button > .increment-arrow:pressed,
 #news-wrapper > .scroll-bar > .decrement-button > .decrement-arrow:pressed {
-    /*-fx-shape: " ";*/
-    -fx-background-color: derive(#6699CC, -15%);
+    -fx-background-color: derive(#E87E22, -15%);
     -fx-opacity: 0.7;
 }
 
 #news-board {
-    /*-fx-background-image: url("../../img/bg.png");*/
-    /*-fx-background-size: contain;*/
     -fx-background-color: transparent;
     -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 7, 0, 0, 0);
 }
 
+#no-news {
+    -fx-text-fill: derive(gray, 30%);
+    -fx-padding: 0 10 0 10;
+}
+
 .news-block {
-    /*-fx-background-color: derive(white, -5%);*/
-    -fx-background-color: derive(#6699CC, 95%);
-    /*-fx-background-color: rgba(255, 255, 255, 0.4);*/
-    /*-fx-background-color: linear-gradient(from 0px 0px to 0px 50px, gray, darkgray 50%, dimgray 99%, white);*/
-    /*-fx-background-color: linear-gradient(to bottom, derive(#6699CC, 95%), derive(#6699CC, 85%));*/
-    /*-fx-background-image: url("../../img/bg.png");*/
-    /*-fx-background-size: contain;*/
-    /*-fx-background-repeat: repeat;*/
-    /*-fx-effect: innershadow(gaussian, rgba(255, 255, 255, 0.3), 200, 0, 0, 0);*/
-    /*-fx-filter: blur(10px);*/
-    /*-fx-border-color: derive(#6699CC, 85%);*/
+    -fx-background-color: derive(#E87E22, 95%);
     -fx-border-color: derive(white, -10%);
     -fx-border-width: 0 0 1 0;
     -fx-border-style: solid outside;
@@ -302,13 +267,10 @@
 }
 
 .news-block:hover {
-    /*-fx-background-color: derive(white, -10%);*/
-    -fx-background-color: derive(#6699CC, 85%);
+    -fx-background-color: derive(#E87E22, 85%);
 }
 
 .headline {
-    /*-fx-background-color: blue;*/
-    /*-fx-font-style: italic;*/
     -fx-font-size: 11pt;
     -fx-max-height: 2.3em;
     -fx-text-fill: black;
@@ -316,20 +278,17 @@
 }
 
 .digest {
-    /*-fx-background-color: green;*/
     -fx-text-fill: black;
     -fx-font-size: 9pt;
 }
 
 .url {
-    /*-fx-background-color: pink;*/
     -fx-cursor: hand;
     -fx-font-size: 9.5pt;
-    -fx-text-fill: #0000EE;
+    -fx-text-fill: derive(navy, 30%);
 }
 
 .url-visited {
-    /*-fx-background-color: pink;*/
     -fx-cursor: hand;
     -fx-font-size: 9.5pt;
     -fx-text-fill: #551A8B;
@@ -337,9 +296,4 @@
 
 .remove-news {
     -fx-cursor: hand;
-}
-
-#no-news {
-    -fx-text-fill: derive(gray, 30%);
-    -fx-padding: 0 10 0 10;
 }

@@ -12,6 +12,9 @@ import java.util.*;
 import java.time.LocalDateTime;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.animation.*;
+import javafx.util.Duration;
+import java.lang.Math;
 
 
 public class Core extends Application {
@@ -20,17 +23,33 @@ public class Core extends Application {
     private IDatabaseManager dbm;
     private IDataGathering dgc;
     private IIntelligenceUnit ic;
+
     public static final long DATA_REFRESH_RATE = 900000; //Rate to call onNewDataAvailable in milliseconds
-    public static long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
+    public long TRADING_TIME = 54000000; //The time of day in milliseconds to call onTradingHour.
 
-    public static Double LARGE_CHANGE_THRESHOLD = 0.5;
+    public Double LARGE_CHANGE_THRESHOLD = 0.5;//Large change threshold for use in the IC
 
-    public static long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds
+    public String USER_NAME = "Dave";//The name of the user (gets loaded from file)
+    private Boolean nameless = false;//Whether or not the user currently has a name assigned.
+
+    public static final long DOWNLOAD_RATE = 120000;//Download new data every 120 seconds.
+
+    public Boolean FULLSCREEN = false;
+
+    /*
+    * The latest scrape result downloaded, and some boolean "locks" to assist
+    * with synchronization. Booleans probably not technically required.
+    */
+
     private volatile ScrapeResult lastestScrape;
     private Boolean freshData = false;
     private Boolean readingScrape = false;
     private Boolean writingScrape = false;
 
+    /*
+    * Variables to keep track of what has recently been output, so that we never
+    * output a suggestion about something that has just been displayed.
+    */
     private ArrayList<Intent> extraDataAddedToLastOutput;
     private String lastOperandOutput;
 
@@ -79,13 +98,26 @@ public class Core extends Application {
 
         //construct UI
         try { //attempt to use custom styling
-            FileReader fRead = new FileReader("./src/gui/config/settings.txt");
-            BufferedReader buffRead = new BufferedReader(fRead);
-            String tmp = buffRead.readLine();
-            if (tmp != null)
-                ui = new GUIcore(primaryStage, tmp, this);
-            else
+            File fl = null;
+            Scanner sc = null;
+            String style = null;
+            try {
+                fl = new File("src/gui/config/settings.txt");
+                sc = new Scanner(fl);
+                while (sc.hasNextLine()) {
+                    String tmp = sc.nextLine();
+                    if (tmp.startsWith("-"))
+                        style = tmp.substring(1);
+                }
+                if (style != null)
+                    ui = new GUIcore(primaryStage, style, this);
+                else
+                    ui = new GUIcore(primaryStage, this);
+            } catch (Exception e) {
+                Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
+                err.showAndWait();
                 ui = new GUIcore(primaryStage, this);
+            }
         } catch (Exception e) { //if any exceptions, create with default styling
             Alert err = new Alert(Alert.AlertType.ERROR, "Styling could not be found", ButtonType.OK);
             err.showAndWait();
@@ -93,7 +125,13 @@ public class Core extends Application {
             ui = new GUIcore(primaryStage, this);
         }
 
-        // onTradingHour();
+
+        if(!nameless){
+            ui.displayMessage("Hello "+USER_NAME+"! Welcome to Footsiebot! How can I help you?");
+        }else{
+            ui.displayMessage("Hi there! I am Footsiebot! Before we continue, what is your name?");
+        }
+
 
         if(runTradingHourTest){
             try{
@@ -117,6 +155,7 @@ public class Core extends Application {
         System.out.println("Safely closed the program.");
     }
 
+    //TODO: Remove! Will break the runNLPTest script.
     private static String readEntry(String prompt) { //Nicked from Databases worksheets, can't be included in final submission DEBUG
         try {
             StringBuffer buffer = new StringBuffer();
@@ -134,25 +173,96 @@ public class Core extends Application {
         }
     }
 
+    /**
+    * Deals with the small set of commands that the user can enter.
+    * Checks if the raw input is a command, and executes it if it is.
+    * Returns a boolean representing whether or not a command was executed.
+    */
+    private Boolean handleCommand(String raw){
+        Boolean ranCommand = false;
+
+        if(nameless){
+            handleUserNameChange(raw);
+            String message = "If this is not your name, or you decide you want";
+            message += " me to call you something else, just say 'Call me YOURNAME'";
+            message += " at any point.";
+            ui.displayMessage(message);
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().startsWith("call me ")){
+            String newName = raw.substring(8, raw.length());
+            handleUserNameChange(newName);
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().contains("tell me a joke")) {
+            readJoke();
+            ranCommand = true;
+        }
+        else if(raw.toLowerCase().startsWith("help")) {
+            String message = "Ok "+USER_NAME;
+            message += " I can:\n";
+            message += "Fetch you the spot price of a company.\n    Ask me 'What is the spot price of X?'";
+            message += "\n\nFetch you the opening price of a company.\n    Ask me 'What was the opening price of X?'";
+            message += "\n\nFetch you the closing price of a company.\n    Ask me 'What was the closing price of X yesterday?'";
+            message += "\n\nFetch you the trading volume of a company.\n    Ask me 'What is the volume of X?'";
+            message += "\n\nFetch you the percentage change of a company since the market opened.\n    Ask me 'What is the percentage change of X?'";
+            message += "\n\nFetch you the absolute change of a company since the market opened.\n    Ask me 'What is the absolute change of X?'";
+            message += "\n\nFetch you the trend of a company since the market opened.\n    Ask me 'Is X rising or falling?'";
+            message += "\n\nFetch you the trend of a company on a given day.\n    Ask me 'What was the trend in X last Wednesday?'";
+            message += "\n\nFetch you the trend of a company since a given day.\n    Ask me 'Has X risen since Tuesday?'";
+            message += "\n\nFetch you the recent news on a company.\n    Ask me 'What is the news for X'";
+            message += "\n\nGive you most of the above information for a group of companies, and for any day over the past 5 trading days.";
+            message += "\n    For example, ask me 'Did Pharmaceuticals rise yesterday?'";
+            ui.displayMessage(message);
+            ranCommand = true;
+        }
+        return ranCommand;
+    }
+
    /**
     * Executes the request input by the user
     *
     * @param raw the String input by the user
     */
     public void onUserInput(String raw) {
-        onNewDataAvailable();//Checks if new data. If not, does nothing
-        ParseResult pr = nlp.parse(raw);
-        if((pr == null)||(pr.getIntent()== null)||(pr.getOperand()== null)){
-            ui.displayMessage("I'm sorry Dave, but I'm afraid I can't do that");
+        if(handleCommand(raw)){
             return;
         }
-
+        onNewDataAvailable();//Checks if new data. If not, does nothing
+        ParseResult pr = nlp.parse(raw);
+        //Checking the parse result.
+        if(pr == null){
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        else if(pr.getOperand()== null){
+            if(pr.getIntent() == Intent.NEWS){
+                outputJustNewsSummary();
+                return;
+            }
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        else if (pr.getIntent() == null){
+            //At this point, we have established that the operand is not null, but the intent is.
+            //If the user enters a company without an intent, we give them a summary.
+            if (!pr.isOperandGroup()){
+                String summary = getSingleCompanySummary(pr.getOperand());
+                if (summary != null){
+                    ui.displayMessage("I didn't recognise any commands or queries in your input, but I think you wanted to know about "+summary);
+                    return;
+                }
+            }
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            return;
+        }
+        System.out.println(pr); //DEBUG
         if(!checkParseResultValid(pr)){
             ui.displayMessage("Sorry, that was not a valid query.");
             return;
         }
 
-        System.out.println(pr); //DEBUG
+
 
         extraDataAddedToLastOutput = null;//Reseting this.
 
@@ -183,22 +293,37 @@ public class Core extends Application {
     }
 
    /**
-    *
+    * Obtains an array of all the company codes representing
+    * companies in the given group
+    * @param group The name of the group to fetch constituents for.
     */
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
     }
 
+    /**
+     * Returns a string that is the formatted output for a given query, potentially
+     * with extra data added.
+     * @param data An array of string data representing the answer to the query.
+     * @param pr The ParseResult that triggered this query.
+     * @param wasSuggestion A Boolean flag to indicate whether the triggering ParseResult
+     * originated from the IC.
+     * @return a formatted string, ready to be output to the user.
+     */
     private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
         String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
-                output = "The spot price of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0];
+                output = "The spot price of " + pr.getOperand().toUpperCase() + " is "+ data[0];
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
                 break;
             case TRADING_VOLUME:
+                output = "The trading volume of " + pr.getOperand().toUpperCase() + " is "+ data[0];
+                if(!wasSuggestion){
+                    output = addExtraDataToOutput(output,data);
+                }
                 break;
             case PERCENT_CHANGE:
                 output = "The percentage change of " + pr.getOperand().toUpperCase() + " is "+ data[0]+"% since the market opened.";
@@ -207,7 +332,7 @@ public class Core extends Application {
                 }
                 break;
             case ABSOLUTE_CHANGE:
-                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is GBX "+ data[0] + " since the market opened.";
+                output = "The absolute change of " + pr.getOperand().toUpperCase() + " is "+ data[0] + " since the market opened.";
                 if(!wasSuggestion){
                     output = addExtraDataToOutput(output,data);
                 }
@@ -217,7 +342,7 @@ public class Core extends Application {
                     String date = data[1].split(",")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The opening price of "+ pr.getOperand()+" was GBX " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
+                    output = "The opening price of "+ pr.getOperand()+" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -229,7 +354,7 @@ public class Core extends Application {
                     String date = data[1].split(",")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The closing price of "+ pr.getOperand()+" was GBX " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
+                    output = "The closing price of "+ pr.getOperand()+" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -256,17 +381,27 @@ public class Core extends Application {
                         output += "indeterminate";
                         break;
                     }
-                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
-                    output += "The opening price was GBX "+ data[2] + " and the most recent price is GBX "+ data[3] + ".";
+                    output += " with a net change of "+data[0].trim() + "%.\n";
+                    output += "The opening price was "+ data[2] + " and the most recent price is "+ data[3] + ".";
                     //NOTE: net change is truncated to 3 decimal places. Possibly round in database?
                 }
                 else{
                     output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
                     output += " "+data[1];
-                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
-                    output += "The opening price was GBX "+ data[2] + " and the closing price was GBX "+ data[3] + ".";
+                    output += " with a net change of "+data[0].trim() + "%.\n";
+                    output += "The opening price was "+ data[2] + " and the closing price was "+ data[3] + ".";
                 }
                 break;
+                case TREND_SINCE:
+                    if(data.length <4){
+                        break;
+                    }
+                    output = "Since "+pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
+                    output += " "+data[1];
+                    output += " with a net change of "+data[0].trim() + "%.\n";
+                    output += "The opening price was "+ data[2] + " and the current spot price is "+ data[3] + ".";
+
+                    break;
             case NEWS:
                 //Nothing to do here, should never run, TODO remove
                 break;
@@ -290,27 +425,27 @@ public class Core extends Application {
                         output += "indeterminate";
                         break;
                     }
-                    output += " with a net change of "+data[0].trim().substring(0,data[0].indexOf(".")+3) + "%.\n";
+                    output += " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split(",");
-                    output += high[0].trim().toUpperCase() + " has the highest spot price at GBX " + high[1].trim() + ".\n";
+                    output += high[0].trim().toUpperCase() + " has the highest spot price at " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
-                    output += low[0].trim().toUpperCase() + " has the lowest spot price at GBX " + low[1].trim()+ ".\n";
+                    output += low[0].trim().toUpperCase() + " has the lowest spot price at " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
-                    output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    output += mostRising[0].trim().toUpperCase() + " has the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
                     String[] mostFalling = data[5].split(",");
-                    output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                    output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 else{
-                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand();
-                    output += data[1] + " with a net change of "+data[0].substring(0,data[0].indexOf(".")+4) + "%.\n";
+                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
+                    output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split(",");
-                    output += high[0].trim().toUpperCase() + " had the highest closing price at GBX " + high[1].trim() + ".\n";
+                    output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
                     String[] low = data[3].split(",");
-                    output += low[0].trim().toUpperCase() + " had the lowest closing price at GBX " + low[1].trim()+ ".\n";
+                    output += low[0].trim().toUpperCase() + " had the lowest closing price at " + low[1].trim()+ ".\n";
                     String[] mostRising = data[4].split(",");
-                    output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim().substring(0,mostRising[1].indexOf(".")+3)+ "%.\n";
+                    output += mostRising[0].trim().toUpperCase() + " had the greatest percentage change at " + mostRising[1].trim()+ "%.\n";
                     String[] mostFalling = data[5].split(",");
-                    output += mostFalling[0].trim().toUpperCase() + " had the lowest percentage change at " + mostFalling[1].trim().substring(0,mostFalling[1].indexOf(".")+3)+ "%.";
+                    output += mostFalling[0].trim().toUpperCase() + " had the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 break;
             default:
@@ -436,6 +571,9 @@ public class Core extends Application {
                 if(pr.isOperandGroup()){
                     return false;
                 }
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
+                    return false;
+                }
             break;
             case OPENING_PRICE:
                 if(pr.isOperandGroup()){
@@ -462,6 +600,14 @@ public class Core extends Application {
             break;
             case TREND:
                 if(pr.isOperandGroup()){
+                    return false;
+                }
+            break;
+            case TREND_SINCE:
+                if(pr.isOperandGroup()){
+                    return false;
+                }
+                if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
                     return false;
                 }
             break;
@@ -558,7 +704,7 @@ public class Core extends Application {
         for (int i = 0;i < suggarr.length ;i++ ) {
             ParseResult pr = suggarr[i].getParseResult();
             String[] data = dbm.getFTSE(pr);
-            output = "Warning : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +- "+ LARGE_CHANGE_THRESHOLD+"%";
+            output = "WARNING : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +-"+ LARGE_CHANGE_THRESHOLD+"%";
             ui.displayMessage(output);//NOT passing the suggestion, as this cannot be marked irrelevant.
         }
     }
@@ -567,44 +713,64 @@ public class Core extends Application {
     *
     */
     public void onTradingHour() {
-        System.out.println("It's time for your daily news summary!");//DEBUG
+        System.out.println("It's time for your daily summary!");//DEBUG
         Company[] companies = ic.onNewsTime();
         String[] companyCodes = new String[companies.length];
-        String output = "Hi Dave, it's time for your daily summary!\nI've detected the following companies as important to you:";
+        String output = "Hi "+USER_NAME+", it's time for your daily summary!\nI've detected that the following companies are important to you:";
         if((companies == null) || (companies.length < 1)){
+            ui.displayMessage("Sorry "+USER_NAME+", I tried to give you your daily summary, but it appears that I don't have sufficient data for that right now.");
             return;
         }
-        output += "\ncode  : spot     abs      perc     ";//"open  ";
-        for(int i = 0;i < companies.length;i++){
-            Company c = companies[i];
-            String resizedCode = c.getCode();
-            companyCodes[i] = resizedCode;
-            while(resizedCode.length() <= 5){
-                resizedCode += " ";
-            }
-            output += "\n"+resizedCode + " : ";
-            String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",c.getCode(),false,TimeSpecifier.TODAY));
-            String[] temp;
-            for(String s:data){
-                temp = s.split(",");
-                String val;
-                if(temp.length < 2){
-                    val = temp[0];
-                }
-                else{
-                    val = temp[1];
-                }
 
-                while(val.length() < 8){
-                    val += " ";
-                }
-                output += val+" ";
+        for(int i = 0;i < companies.length;i++){
+            String summary = getSingleCompanySummary(companies[i].getCode());
+            companyCodes[i] = companies[i].getCode();
+            if(summary != null){
+                output += "\n"+summary;
             }
         }
-        output += "\n\nYou may also view the latest news for these companies in the news pane";
+        output += "\nYou may also view the latest news for these companies in the news pane";
         Article[] news = dgc.getNews(companyCodes);
+        ui.displayMessage(output);
         ui.displayResults(news,null);
-        ui.displayMessage(output,null);
+    }
+
+    /**
+    * Returns a string containing a summary for a given company
+    */
+    private String getSingleCompanySummary(String code){
+        String output = "";
+        String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",code,false,TimeSpecifier.TODAY));
+        if(data == null){
+            return null;
+        }
+        String[] temp;
+        output+= code.toUpperCase()+" :\n";
+        output+= "    Spot price = "+data[0]+"\n";
+        for(int j = 1; j< data.length; j++){
+            temp = data[j].split(",");
+            output+= "    "+temp[0]+" = "+temp[1].trim()+"\n";
+        }
+        return output;
+    }
+
+    /**
+    * Outputs just the news part of what would have been the users Trading Hour summary.
+    */
+    private void outputJustNewsSummary(){
+        Company[] companies = ic.onNewsTime();
+        String[] companyCodes = new String[companies.length];
+        if((companies == null) || (companies.length < 1)){
+            ui.displayMessage("Sorry "+USER_NAME+", I think you wanted some news, but I have no idea what companies to give you news for. Please be more specific.");
+            return;
+        }
+
+        for (int i = 0;i< companies.length;i++ ) {
+            companyCodes[i] = companies[i].getCode();
+        }
+        Article[] news = dgc.getNews(companyCodes);
+        ui.displayMessage(USER_NAME+", I think you wanted some news, but I couldn't detect any company or group names in your query, so I've given you news on companies that I think are important to you.");
+        ui.displayResults(news,null);
     }
 
    /**
@@ -613,6 +779,7 @@ public class Core extends Application {
     public void suggestionIrrelevant(Suggestion s){
         System.out.println("A suggestion was marked irrelevant");
         ic.onSuggestionIrrelevant(s);
+        ui.displayMessage("Ok " + USER_NAME + ", I will take that into consideration. Thank you for the feedback.");
     }
 
     private void debugNLP() {
@@ -633,15 +800,27 @@ public class Core extends Application {
         }
     }
 
-    public void updateSettings(String time, Double change) {
-        if(time == null && change == null){
+
+    private void handleUserNameChange(String name){
+        USER_NAME = name;
+        nameless = false;
+        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
+        ui.displayMessage("Thanks "+name+"! How can I help you?");
+    }
+
+    /*
+    Handles updating the settings when the user makes a change to them in the gui.
+    */
+    public void updateSettings(String time, Double change, boolean fullscreen) {
+        if (time == null && change == null) {
             return;
         }
-        if(change < 0){//Want absolute value
+
+        if (change < 0) {//Want absolute value
             change = 0 - change;
         }
 
-        if(time != null && !time.equals("Time")){
+        if (time != null) {
             String[] hm = time.split(":");
             Integer hours = Integer.parseInt(hm[0]);
             Integer minutes = Integer.parseInt(hm[1]);
@@ -650,16 +829,22 @@ public class Core extends Application {
             TRADING_TIME = newTradingTime;
         }
 
-        if(change != null){
+        if (change != null) {
             LARGE_CHANGE_THRESHOLD = change;
         }
+
+        FULLSCREEN = fullscreen;
+
         ui.stopTradingHourTimeline();
         ui.startTradingHourTimeline();
-        writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD);
+        writeSettings(TRADING_TIME, LARGE_CHANGE_THRESHOLD, USER_NAME);
         System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
     }
 
-    private void writeSettings(Long time, Double change){
+    /*
+    Stores settings when updated
+    */
+    private void writeSettings(Long time, Double change, String userName){
         File fl = null;
         BufferedWriter bw = null;
         try{
@@ -668,6 +853,10 @@ public class Core extends Application {
             bw.write(time.toString());
             bw.newLine();
             bw.write(change.toString());
+            bw.newLine();
+            bw.write(userName);
+            bw.newLine();
+            bw.write(FULLSCREEN.toString());
         }catch(Exception e){
             e.printStackTrace();
         }
@@ -685,12 +874,17 @@ public class Core extends Application {
             br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
             TRADING_TIME = Long.parseLong(br.readLine());
             LARGE_CHANGE_THRESHOLD = Double.parseDouble(br.readLine());
+            USER_NAME = br.readLine();
+            FULLSCREEN = Boolean.parseBoolean(br.readLine());
 
         }catch(Exception e){
             e.printStackTrace();
         }
         finally{
             tryClose(br);
+        }
+        if(USER_NAME == null || USER_NAME.isEmpty()){
+            nameless = true;
         }
         System.out.println("Loaded TRADING_TIME as "+TRADING_TIME);
         System.out.println("Loaded LARGE_CHANGE_THRESHOLD as "+LARGE_CHANGE_THRESHOLD);
@@ -710,6 +904,39 @@ public class Core extends Application {
             c.close();
         }catch(Exception ex){
         }
+    }
+
+    private void readJoke() {
+        File fl = null;
+        BufferedReader br = null;
+        String complete = null;
+        try{
+            fl = new File("src/jokes.txt");
+            br = new BufferedReader(new FileReader(fl.getAbsolutePath().replace("\\", "/")));
+            int rand = (int) Math.ceil(Math.random() * 6);
+            for (int i = 0; i < rand; i++) {
+                complete = br.readLine();
+            }
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        finally{
+            tryClose(br);
+        }
+
+        final String[] joke = complete.split(",");
+        ui.displayMessage(joke[0]);
+        Timeline tellJoke = new Timeline();
+        tellJoke.getKeyFrames().add(new KeyFrame(Duration.millis(1500), e -> ui.displayMessage(joke[1])));
+        try {
+            tellJoke.play();
+        } catch (Exception e) {
+
+        }
+
+        // ui.displayMessage(joke[1]);
+
     }
 
 }

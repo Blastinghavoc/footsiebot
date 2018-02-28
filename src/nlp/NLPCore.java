@@ -8,31 +8,31 @@ import java.io.BufferedReader;
 import java.io.File;
 
 public class NLPCore implements INaturalLanguageProcessor{
-  private HashMap<String,String> operandMap;//Maps raw string to internally used string. Could map to an enum instead.
-  private ArrayList<String> operandList;
+    private HashMap<String,String> operandMap;//Maps raw string to internally used string. Could map to an enum instead.
+    private ArrayList<String> operandList;
 
-  private HashMap<String,String> groupOperandMap;
-  private ArrayList<String> groupOperandList;
+    private HashMap<String,String> groupOperandMap;
+    private ArrayList<String> groupOperandList;
 
-  private HashMap<String,Intent> intentMap;//Maps raw string to intent
-  private ArrayList<String> intentList;
+    private HashMap<String,Intent> intentMap;//Maps raw string to intent
+    private ArrayList<String> intentList;
 
-  private HashMap<String,TimeSpecifier> timeMap;
-  private ArrayList<String> timeList;
+    private HashMap<String,TimeSpecifier> timeMap;
+    private ArrayList<String> timeList;
 
-  public NLPCore(){
-    initialiseOperands();
-    initialiseIntents();
-    initialiseTimes();
-  }
+    public NLPCore(){
+        initialiseOperands();
+        initialiseIntents();
+        initialiseTimes();
+    }
 
-
-
-  private String stripOperand(String raw){
-
-    return "";//DEBUG
-  }
-
+    /**
+    * The primary function of this class. Takes an input String
+    * and returns a ParseResult. If the input cannot be parsed completely,
+    * the ParseResult has null values for the fields that could not be determined.
+    * @param s The input string.
+    * @return A ParseResult. Never null, but may contain null fields
+    */
     public ParseResult parse(String s){
         Intent in = Intent.SPOT_PRICE;//DEBUG
         String raw = s;
@@ -43,18 +43,24 @@ public class NLPCore implements INaturalLanguageProcessor{
         s = s.toLowerCase();
     	  //STRIP INTENT OUT OF STRING USING STRING.REPLACE AND STRING.CONTAINS
         Boolean valid = false;
+        int longestMatchingTokenLength = 0;
+        String finalIntent = null;
         for ( String i: intentList) {
           if(s.contains(i)){
-            in = intentMap.get(i);
-            s = s.replace(i,"");
-            //System.out.println("Found intent '"+ in + "' as string '" + i + "' in raw '" + raw + "'");//DEBUG
-            valid = true;
-            break;
+            if(i.length() > longestMatchingTokenLength){
+                in = intentMap.get(i);
+                finalIntent = i;
+                valid = true;
+                longestMatchingTokenLength = i.length();
+            }
           }
         }
 
         if(!valid){
-          return new ParseResult(null,raw,null,operandIsGroup,null);//Replace with error enums?
+          in = null;
+        }
+        else{
+            s = s.replace(finalIntent,"");//Removing the detected intent from the string.
         }
 
         //System.out.println("s is now '"+s+"'");
@@ -70,7 +76,7 @@ public class NLPCore implements INaturalLanguageProcessor{
             break;
           }
         }
-        //Acceptable for there to be no time specifier.
+        //Acceptable for there to be no time specifier. Defaults to TODAY
 
     	//TOKENIZE REMAINING STRING
         s = s.replace("   "," ");//removing any triple spaces that may arrise from previous deletions
@@ -116,14 +122,18 @@ public class NLPCore implements INaturalLanguageProcessor{
 
 
         if(!valid){
-          return new ParseResult(in,raw,null,operandIsGroup,ts);//Replace with error enums?
+          operand = null;
         }
 
 
 
-        return new ParseResult(in,raw,operand,operandIsGroup,ts);
+        return new ParseResult(in,raw,operand,operandIsGroup,ts);//Note that fields could be null.
     }
 
+    /**
+    * Sets up the mapping of Strings to TimeSpecifiers, and initialises
+    * a sorted list of those strings.
+    */
     private void initialiseTimes(){
     timeMap = new HashMap<String,TimeSpecifier>();
     timeList = new ArrayList<String>();
@@ -143,13 +153,17 @@ public class NLPCore implements INaturalLanguageProcessor{
 
   }
 
+  /*
+  * Sets up the mapping of Strings to Intents, and initialises
+  * a sorted list of those strings.
+  */
   private void initialiseIntents(){
     intentMap = new HashMap<String,Intent>();
     intentList = new ArrayList<String>();
     //Adding intents and their synonyms manually, as they should remain fixed
     intentMap.put("spot",Intent.SPOT_PRICE);
     intentMap.put("current",Intent.SPOT_PRICE);
-    //intentMap.put("price",Intent.SPOT_PRICE);//Maybe not needed?
+    intentMap.put("price",Intent.SPOT_PRICE);
 
     intentMap.put("trading volume",Intent.TRADING_VOLUME);
     intentMap.put("volume",Intent.TRADING_VOLUME);
@@ -165,9 +179,15 @@ public class NLPCore implements INaturalLanguageProcessor{
     intentMap.put("absolute change",Intent.ABSOLUTE_CHANGE);
     intentMap.put("abs change",Intent.ABSOLUTE_CHANGE);
 
+    intentMap.put("trend since",Intent.TREND_SINCE);
+    intentMap.put("risen since",Intent.TREND_SINCE);
+    intentMap.put("fallen since",Intent.TREND_SINCE);
+
     intentMap.put("rising",Intent.TREND);
     intentMap.put("falling",Intent.TREND);
     intentMap.put("risen",Intent.TREND);
+    intentMap.put("rise",Intent.TREND);
+    intentMap.put("fall",Intent.TREND);
     intentMap.put("fallen",Intent.TREND);
     intentMap.put("doing",Intent.TREND);
     intentMap.put("trend",Intent.TREND);
@@ -184,6 +204,10 @@ public class NLPCore implements INaturalLanguageProcessor{
 
   }
 
+  /*
+  * Sets up the mapping of Strings to recognized operands, and initialises
+  * a sorted list of those strings. Also deals with synonyms.
+  */
   private void initialiseOperands(){
     //An operand is a company
     operandMap = new HashMap<String,String>();
@@ -303,6 +327,11 @@ public class NLPCore implements INaturalLanguageProcessor{
 
   }
 
+  /**
+  * Searches the input string to see if it contains the full name of any group.
+  * @param s The input string.
+  * @return The "Official" string representation of the group name.
+  */
   private String searchForFullGroup(String s){
     //System.out.println(s);
     for(String candidate: groupOperandList){
@@ -315,10 +344,16 @@ public class NLPCore implements INaturalLanguageProcessor{
     return null;
   }
 
-    /*
-      The following is an autocomplete based "Heuristic"
-      Based off following reference
-      REF: https://docs.oracle.com/javase/tutorial/uiswing/components/textarea.html
+    /**
+    * The following is an autocomplete based "Heuristic"
+    * Based on following reference
+    * REF: https://docs.oracle.com/javase/tutorial/uiswing/components/textarea.html
+    * @param tokens An array of strings representing tokens from the input.
+    * @param list A list of Strings to autocomplete to.
+    * @param map A mapping from each of the strings in list to an "Official" string
+    * representation of that word/operand.
+    * @return One of the Strings from the range of map, matching one or more consecutive
+    * tokens. Null if no substring of tokens matches.
     */
     private String autocompleteHeuristic(String[] tokens,ArrayList<String> list, HashMap<String,String> map){
         String operand = null;
@@ -382,6 +417,12 @@ public class NLPCore implements INaturalLanguageProcessor{
         return operand;
     }
 
+    /**
+    * Removes punctuation from the end of a string.
+    * @param inp A string input
+    * @return The prefix of the input string that does not end in a punctuation
+    * mark.
+    */
     private String stripPunctuation(String inp){
         if(inp.endsWith(".")||inp.endsWith("?")||inp.endsWith("!")||inp.endsWith(",")){//Remove punctuation if present
             inp = inp.substring(0, inp.length() - 1);

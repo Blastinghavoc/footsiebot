@@ -48,6 +48,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
        break;
        case ABSOLUTE_CHANGE : notToSuggestIntent = AIIntent.ABSOLUTE_CHANGE;
        break;
+       case TREND: notToSuggestIntent = AIIntent.TREND;
+       break;
+       case TRADING_VOLUME: notToSuggestIntent = AIIntent.TRADING_VOLUME;
+       break;
        case NEWS : doNotSuggestNews = true;
        break;
      }
@@ -184,16 +188,19 @@ public class IntelligenceCore implements IIntelligenceUnit {
           break;
           case ABSOLUTE_CHANGE : intent = AIIntent.ABSOLUTE_CHANGE;
           break;
-          default : return;
+          case TREND : intent = AIIntent.TREND;
+          break;
+          case TRADING_VOLUME : intent = AIIntent.TRADING_VOLUME;
+          break;
+          default : intent = null;
         }
         System.out.println("Priority is "+ c.getPriority());
         c.decrementPriorityOfIntent(intent);
         db.onSuggestionIrrelevant(c, intent, isNews);
         System.out.println("Priority is now "+ c.getPriority());
-      } else {
-        //groups
-
       }
+
+      return;
 
    }
 
@@ -204,6 +211,9 @@ public class IntelligenceCore implements IIntelligenceUnit {
    public Company[] onNewsTime() {
      // show report about 5 top companies
      // just returns the companies to core ?
+     if(companies == null){
+         return null;
+     }
      Company[] result = new Company[TOP];
      for(int i = 0; i < TOP; i++) {
        result[i] = companies.get(i);
@@ -265,19 +275,24 @@ public class IntelligenceCore implements IIntelligenceUnit {
        break;
        case ABSOLUTE_CHANGE : i = footsiebot.nlp.Intent.ABSOLUTE_CHANGE;
        break;
+       case TREND : i = footsiebot.nlp.Intent.TREND;
+       break;
+       case TRADING_VOLUME : i = footsiebot.nlp.Intent.TRADING_VOLUME;
+       break;
      }
 
      if(i == null) return null;
 
      ParseResult pr = new ParseResult(i, "", company.getCode(), false, tm);
-
+     reason = "You have asked for the "+i.toString().toLowerCase().replace("_"," ");
+     reason += " of this company quite a lot recently.";
      // false == suggestion is not news
      Suggestion result = new Suggestion(reason, company, false, pr);
      return result;
    }
 
    private Suggestion suggestNews(Company company) {
-     String reason = "Company is in top 5";
+     String reason = "You have asked for news on this company quite a lot recently.";
      ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", company.getCode(), false, footsiebot.nlp.TimeSpecifier.TODAY);
      Suggestion result = new Suggestion(reason, company, true, pr);
      return result;

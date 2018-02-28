@@ -50,7 +50,9 @@ public class WebScraper {
             try {
                 page = Jsoup.connect(url + i).timeout(60000).get();
             } catch (IOException e) {
+
                 System.out.println("It appears something's gone wrong with the internet connection.");
+
                 e.printStackTrace();
                 return null;
             }
@@ -95,7 +97,9 @@ public class WebScraper {
                             try {
                                 summary = Jsoup.connect(surl).timeout(60000).get();
                             } catch (IOException e) {
+
                                 System.out.println("It appears something's gone wrong with the internet connection.");
+
                                 e.printStackTrace();
                                 return null;
                             }
