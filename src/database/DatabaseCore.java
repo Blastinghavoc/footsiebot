@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.text.NumberFormat;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDate;
 
 public class DatabaseCore implements IDatabaseManager {
     private Connection conn;
@@ -376,6 +377,7 @@ public class DatabaseCore implements IDatabaseManager {
         Statement s1 = null;
         ResultSet results = null;
         String date = timeSpecifierToDate(timeSpec);
+        String dateYesterday = getDateYesterday(date);
 
         // Gets percentage change and spot price/ closing price for each company
         // in group
@@ -391,7 +393,7 @@ public class DatabaseCore implements IDatabaseManager {
             // Gets spot price if the time specifier is today, otherwise gets
             // closing price
             String spotOrClosingPriceQry = spotOrClosingPriceQuery(timeSpec,
-                    companies[i], date);
+                    companies[i], date, dateYesterday);
             try {
                 s1 = conn.createStatement();
                 results = s1.executeQuery(spotOrClosingPriceQry);
@@ -503,13 +505,17 @@ public class DatabaseCore implements IDatabaseManager {
     *
     * @param companyCode The company's code
     * @param date The date to get the opening price on
+    * @param dateYesterday  The date the day before the date to get the
+    *                       opening price 
     * @return query to get opening price of company on date given
     */
-    private String getOpeningPriceQuery(String companyCode, String date) {
+    private String getOpeningPriceQuery(String companyCode, String date, 
+                String dateYesterday) {
         String query    = "SELECT (SpotPrice - AbsoluteChange) "
                         + "FROM FTSECompanySnapshots "
                         + "WHERE CompanyCode = '" + companyCode
                         + "' AND DATE(TimeOfData) <= '" + date
+                        + "' AND DATE(TimeOfData) > '" + dateYesterday
                         + "' ORDER BY TimeOfData ASC LIMIT 1";
         return query;
     }
@@ -537,10 +543,12 @@ public class DatabaseCore implements IDatabaseManager {
         Float endPrice = 0.0f;
         Float percChange = 0.0f;
         String date = timeSpecifierToDate(timeSpec);
+        String dateYesterday = getDateYesterday(date);
 
-        String startTimeQuery = getOpeningPriceQuery(companyCode, date);
+        String startTimeQuery = getOpeningPriceQuery(companyCode, date, 
+                    dateYesterday);
         String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode,
-                date);
+                date, dateYesterday);
 
         // If able to get start and end prices, calculate the percentage
         // change between them
@@ -603,9 +611,11 @@ public class DatabaseCore implements IDatabaseManager {
         Float percChange = 0.0f;
 
         String date = timeSpecifierToDate(timeSpec);
+        String dateYesterday = getDateYesterday(date);
         String spotPriceQuery   = "SELECT SpotPrice FROM FTSECompanySnapshots "
                                 + "WHERE CompanyCode = '" + companyCode + "'";
-        String openingPriceQuery = getOpeningPriceQuery(companyCode, date);
+        String openingPriceQuery = getOpeningPriceQuery(companyCode, date, 
+                dateYesterday);
         try {
             s1 = conn.createStatement();
             s2 = conn.createStatement();
@@ -649,12 +659,14 @@ public class DatabaseCore implements IDatabaseManager {
     * @param timeSpec The time specifier
     * @param companyCode The company's code
     * @param date The time specifier converted to a date
+    * @param dateYesterday  The date the day before the date to get the
+    *                       closing price on
     * @return query to get spot price of company if the time specifier is today,
-    * otherwise query to get closing price of compnay on the specified day
+    * otherwise query to get closing price of company on the specified day
     */
     private String spotOrClosingPriceQuery(
             TimeSpecifier timeSpec, String companyCode,
-            String date) {
+            String date, String dateYesterday) {
 
         String query = "";
         if (timeSpec == TimeSpecifier.TODAY) {
@@ -664,6 +676,7 @@ public class DatabaseCore implements IDatabaseManager {
             query   = "SELECT SpotPrice FROM FTSECompanySnapshots "
                     + "WHERE CompanyCode = '" + companyCode
                     + "' AND DATE(TimeOfData) <= '" + date
+                    + "' AND DATE(TimeOfData) > '" + dateYesterday
                     + "' ORDER BY TimeOfData DESC LIMIT 1";
         }
         return query;
@@ -688,6 +701,7 @@ public class DatabaseCore implements IDatabaseManager {
 
         LocalDateTime currentTime = LocalDateTime.now();
         String date = timeSpecifierToDate(timeSpec);
+        String dateYesterday = getDateYesterday(date);
 
         switch (intent) {
             case SPOT_PRICE:
@@ -707,13 +721,14 @@ public class DatabaseCore implements IDatabaseManager {
                 colName = "AbsoluteChange";
                 break;
             case OPENING_PRICE:
-                query = getOpeningPriceQuery(companyCode, date);
+                query = getOpeningPriceQuery(companyCode, date, dateYesterday);
                 break;
             case CLOSING_PRICE:
                 query   = "SELECT SpotPrice FROM FTSECompanySnapshots "
                         + "WHERE CompanyCode = '" + companyCode
-                        + "' AND DATE(TimeOfData) <= '" + date + "' "
-                        + "ORDER BY TimeOfData DESC LIMIT 1";
+                        + "' AND DATE(TimeOfData) <= '" + date
+                        + "' AND DATE(TimeOfData) > '" + dateYesterday
+                        + "' ORDER BY TimeOfData DESC LIMIT 1";
                 break;
             default:
                 break;
@@ -806,6 +821,19 @@ public class DatabaseCore implements IDatabaseManager {
 
         return date;
 
+    }
+
+    /**
+    * Finds date of the day previous to the date given
+    *
+    * @param d The date
+    * @return The date of the day previous to the date
+    */
+    private String getDateYesterday(String d) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate date = LocalDate.parse(d);
+
+        return date.minusDays(1).format(formatter);
     }
 
     /**
