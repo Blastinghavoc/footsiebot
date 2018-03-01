@@ -1110,31 +1110,6 @@ public class DatabaseCore implements IDatabaseManager {
         // entry set iterator
         Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
 
-        // retrieve all companies for each group
-        // for(Map.Entry<String,Group> g: entrySet) {
-        //   String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
-        //   ResultSet rs0 = null;
-        //
-        //   try {
-        //     rs0 = stmt.executeQuery(query2);
-        //     ArrayList<Company> companiesForThisGroup = new ArrayList<>();
-        //     // put all the companies for this group in its list
-        //     while(rs0.next()) {
-        //       Company c = companiesMap.get(rs0.getString("CompanyCode"));
-        //       companiesForThisGroup.add(c);
-        //     }
-        //     g.getValue().addCompanies(companiesForThisGroup);
-        //
-        //     // add to final list
-        //     result.add(g.getValue());
-        //   } catch(SQLException e) {
-        //     printSQLException(e);
-        //   } finally {
-        //     if(rs0 != null) {tryClose(rs0); }
-        //   }
-        // }
-
-
         for (Map.Entry<String,Group> g: entrySet) {
             ArrayList<Company> list = new ArrayList<>();
             String[] companylist = getCompaniesInGroup(g.getValue().getGroupCode());
