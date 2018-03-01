@@ -41,7 +41,9 @@ public class GUIcore implements IGraphicalUserInterface {
                                               whether the application is
                                               closing*/
 
-    private Stage stage;
+
+	private Timeline voiceTimeline;
+	private Stage stage;
     private Scene scene;
     private StackPane root;
 
@@ -124,6 +126,7 @@ public class GUIcore implements IGraphicalUserInterface {
         startDataDownload();
         startNewDataTimeline();
         startTradingHourTimeline();
+		startVoiceTimeline();
 
         root.getChildren().addAll(chatPane, sidePane, topBar);
         root.setAlignment(topBar, Pos.TOP_LEFT);
@@ -685,6 +688,18 @@ public class GUIcore implements IGraphicalUserInterface {
             ae -> core.onNewDataAvailable()));
         newDataTimeline.setCycleCount(Animation.INDEFINITE);
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
+    }
+
+	private void startVoiceTimeline() {
+        if(core.novoice){
+            return;
+        }
+		System.out.println("Started voice timeline");
+        voiceTimeline = new Timeline(new KeyFrame(
+            Duration.millis(1000),
+            ae -> core.runVoiceInput()));
+        voiceTimeline.setCycleCount(Animation.INDEFINITE);
+        voiceTimeline.playFrom(Duration.millis(0));
     }
 
    /**

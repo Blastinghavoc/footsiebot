@@ -1,0 +1,14 @@
+#JSGF V1.0;
+
+/**
+ * JSGF Digits Grammar file
+ */
+
+grammar digits;
+
+public <words> = <commonWord> * <operand> <commonWord> * ;
+
+<commonWord> = (<intent>| <time> | current | today | give | me | what | is | the | of | assistant | is | please | fetch | tell | can | you | please | in | did | last | since | for);
+<time> = (today | yesterday | monday | tuesday | wednesday | thursday | friday);
+<operand> = (barclays | national grid | royal bank of scotland |Admiral Group |Next |Associated British Foods | British American Tobacco | British Land | Compass Group | United Utilities | Direct Line Group | Carnival Corporation | easy jet |Imperial Brands | Just Eat| Kingfisher);
+<intent> = (spot price | opening price | trend | trend since | closing price | rising | falling | risen | fallen | rose | rise  | fall | fell | volume | price | news | absolute change | percentage change);
