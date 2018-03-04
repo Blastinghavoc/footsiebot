@@ -37,11 +37,12 @@ CREATE TABLE FTSEGroupMappings (
 );
 
 CREATE TABLE Queries (
+	QueryID integer,
 	CompanyCode varchar(10),
 	TimeOfQuery TimeStamp DEFAULT CURRENT_TIMESTAMP NOT NULL,
 	Intent varchar(30),
 	TimeSpecifier varchar(30),
-	primary key(CompanyCode, TimeOfQuery),
+	primary key(QueryID),
 	foreign key (CompanyCode) references FTSECompanies(CompanyCode)
 );
 
