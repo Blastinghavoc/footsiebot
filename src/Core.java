@@ -713,8 +713,14 @@ public class Core extends Application {
                 }
             break;
             case NEWS:
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
+                    return false;
+                }
             break;
             case GROUP_FULL_SUMMARY:
+                if(!pr.isOperandGroup()){
+                    return false;
+                }
             break;
             default:
             return false;

@@ -860,8 +860,8 @@ public class GUIcore implements IGraphicalUserInterface {
     * Resizes the messages displayed
     */
     private void resizeMessages() {
-        if (messageBoard.getChildren().size() > 25)
-            messageBoard.getChildren().remove(0, (messageBoard.getChildren().size() - 25));
+        if (messageBoard.getChildren().size() > 100)
+            messageBoard.getChildren().remove(0, (messageBoard.getChildren().size() - 100));
 
         for (int i = 0; i < messageBoard.getChildren().size(); i++) {
             if (messageBoard.getChildren().get(i) instanceof Message) {
