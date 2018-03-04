@@ -336,6 +336,7 @@ public class GUIcore implements IGraphicalUserInterface {
             changeSelector.getValueFactory().setValue(core.LARGE_CHANGE_THRESHOLD);
             styling.setValue(style);
             saveChanges.setDisable(true);
+            changeSidePane();
         });
 
         Button summaryBtn = new Button("Show Daily Summary Now");
@@ -348,8 +349,6 @@ public class GUIcore implements IGraphicalUserInterface {
         ColumnConstraints buttonLeftCol = new ColumnConstraints(112, 112, 112); //40%
         ColumnConstraints buttonRightCol = new ColumnConstraints(28, 28, 28); //10%
         ColumnConstraints inputCol = new ColumnConstraints(112, 112, 112); //40%
-
-
 
         RowConstraints timeRow = new RowConstraints(50, 50, 50);
         RowConstraints changeRow = new RowConstraints(50, 50, 50);
