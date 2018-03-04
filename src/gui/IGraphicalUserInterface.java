@@ -5,8 +5,8 @@ import footsiebot.ai.Suggestion;
 
 public interface IGraphicalUserInterface {
 
-  public void displayMessage(String msg,Suggestion s);
+    public void displayMessage(String msg, Suggestion s);
 
-  public void displayResults(Article[] news, Suggestion s);
+    public void displayResults(Article[] news, Suggestion s);
 
 }

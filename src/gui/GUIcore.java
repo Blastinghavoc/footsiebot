@@ -107,7 +107,7 @@ public class GUIcore implements IGraphicalUserInterface {
         if (core.FULLSCREEN)
             stage.setFullScreen(true);
 
-        stage.setMinWidth(500);
+        stage.setMinWidth(600);
         stage.setMinHeight(348);
 
         root = new StackPane();
@@ -147,8 +147,8 @@ public class GUIcore implements IGraphicalUserInterface {
         chatPane.setId("chat-pane");
         chatPane.minHeightProperty().bind(scene.heightProperty().subtract(45));
         chatPane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
-        chatPane.minWidthProperty().bind(scene.widthProperty().subtract(250));
-        chatPane.maxWidthProperty().bind(scene.widthProperty().subtract(250));
+        chatPane.minWidthProperty().bind(scene.widthProperty().subtract(300));
+        chatPane.maxWidthProperty().bind(scene.widthProperty().subtract(300));
 
         boardWrapper = new ScrollPane();
         boardWrapper.setId("board-wrapper");
@@ -206,8 +206,8 @@ public class GUIcore implements IGraphicalUserInterface {
     private void initSide() {
         sidePane = new StackPane();
         sidePane.setId("side-pane");
-        sidePane.setMinWidth(250);
-        sidePane.setMaxWidth(250);
+        sidePane.setMinWidth(300);
+        sidePane.setMaxWidth(300);
         sidePane.minHeightProperty().bind(scene.heightProperty().subtract(45));
         sidePane.maxHeightProperty().bind(scene.heightProperty().subtract(45));
 
@@ -310,11 +310,12 @@ public class GUIcore implements IGraphicalUserInterface {
         });
 
         Button saveChanges = new Button("Save Changes");
-        saveChanges.setMinWidth(100);
-        saveChanges.setMaxWidth(100);
+        saveChanges.setMinWidth(120);
+        saveChanges.setMaxWidth(120);
         saveChanges.setOnAction(e -> {
             if ((String) timeSelector.getValue() != null) {
                 updateSettingsFile(styling.getItems(), styling.getValue());
+                setStyle(styling.getValue());
                 core.updateSettings(timeSelector.getValue(), changeSelector.getValue(), fullscrnCkB.isSelected());
             } else {
                 updateSettingsFile(styling.getItems(), styling.getValue());
@@ -327,14 +328,15 @@ public class GUIcore implements IGraphicalUserInterface {
         saveChanges.setDisable(true);
 
         Button cancelChanges = new Button("Cancel");
-        cancelChanges.setMinWidth(100);
-        cancelChanges.setMaxWidth(100);
+        cancelChanges.setMinWidth(120);
+        cancelChanges.setMaxWidth(120);
         cancelChanges.setOnAction(e -> {
             setStyle(style);
             timeSelector.setValue(tradingTimeToString());
             changeSelector.getValueFactory().setValue(core.LARGE_CHANGE_THRESHOLD);
             styling.setValue(style);
             saveChanges.setDisable(true);
+            changeSidePane();
         });
 
         Button summaryBtn = new Button("Show Daily Summary Now");
@@ -342,11 +344,11 @@ public class GUIcore implements IGraphicalUserInterface {
             core.onTradingHour();
         });
 
-        ColumnConstraints labelCol = new ColumnConstraints(22.8, 22.8, 22.8);
+        ColumnConstraints labelCol = new ColumnConstraints(28, 28, 28); //10%
         labelCol.setHalignment(HPos.RIGHT);
-        ColumnConstraints buttonLeftCol = new ColumnConstraints(91.2, 91.2, 91.2);
-        ColumnConstraints buttonRightCol = new ColumnConstraints(22.8, 22.8, 22.8);
-        ColumnConstraints inputCol = new ColumnConstraints(91.2, 91.2, 91.2);
+        ColumnConstraints buttonLeftCol = new ColumnConstraints(112, 112, 112); //40%
+        ColumnConstraints buttonRightCol = new ColumnConstraints(28, 28, 28); //10%
+        ColumnConstraints inputCol = new ColumnConstraints(112, 112, 112); //40%
 
         RowConstraints timeRow = new RowConstraints(50, 50, 50);
         RowConstraints changeRow = new RowConstraints(50, 50, 50);
@@ -372,6 +374,7 @@ public class GUIcore implements IGraphicalUserInterface {
 
         Label percentSign = new Label("%");
         percentSign.setId("percent-sign");
+        percentSign.setPadding(new Insets(0, 15, 0 ,0));
 
         settingsPane.getColumnConstraints().addAll(labelCol, buttonLeftCol, buttonRightCol, inputCol);
         settingsPane.getRowConstraints().addAll(timeRow, changeRow, styleRow, fullscreenRow, buttonsRow, summaryRow);
