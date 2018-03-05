@@ -438,7 +438,7 @@ public class Core extends Application {
                     String date = data[1].split("\\|")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The opening price of "+ pr.getOperand()+" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
+                    output = "The opening price of "+ pr.getOperand().toUpperCase() +" was " + data[0] + " "+ pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ") + date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -450,7 +450,7 @@ public class Core extends Application {
                     String date = data[1].split("\\|")[1].trim();
                     String[] dateComponents = date.split("-");
                     date = " (" + dateComponents[2] + "-" + dateComponents[1] + "-" + dateComponents[0] + ")";
-                    output = "The closing price of "+ pr.getOperand()+" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
+                    output = "The closing price of "+ pr.getOperand().toUpperCase() +" was " + data[0] + " " + pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+ date;
                     if(!wasSuggestion){
                         String[] remainingData = Arrays.copyOfRange(data, 1, data.length);
                         output = addExtraDataToOutput(output,remainingData);
@@ -562,7 +562,7 @@ public class Core extends Application {
 
         if(suggestion.isNews()){
             outputNews(suggestion.getParseResult(),suggestion);//Outputting the news for the suggestion
-            ui.displayMessage("You may wish to view the news for "+suggestion.getParseResult().getOperand() + " in the news pane",suggestion);
+            ui.displayMessage("You may wish to view the news for "+suggestion.getParseResult().getOperand().toUpperCase() + " in the news pane",suggestion);
         }
         else{
             //System.out.println(suggestion.getParseResult());//DEBUG
@@ -713,8 +713,14 @@ public class Core extends Application {
                 }
             break;
             case NEWS:
+                if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
+                    return false;
+                }
             break;
             case GROUP_FULL_SUMMARY:
+                if(!pr.isOperandGroup()){
+                    return false;
+                }
             break;
             default:
             return false;
