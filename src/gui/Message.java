@@ -148,7 +148,7 @@ public class Message extends FlowPane {
         btnWrapper = new StackPane();
         Insets btnPadding = new Insets(3, 5, 2, 2);
         btnWrapper.setPadding(btnPadding);
-        ImageView close = new ImageView("file:src/img/msg-close2.png");
+        ImageView close = new ImageView("file:src/img/msg-close.png");
         close.setPreserveRatio(true);
         close.setFitWidth(12);
         close.getStyleClass().add("remove-message");
@@ -192,11 +192,11 @@ public class Message extends FlowPane {
         });
 
         close.setOnMouseEntered(e -> {
-            close.setImage(new Image("file:src/img/msg-close-hover2.png"));
+            close.setImage(new Image("file:src/img/msg-close-hover.png"));
         });
 
         close.setOnMouseExited(e -> {
-            close.setImage(new Image("file:src/img/msg-close2.png"));
+            close.setImage(new Image("file:src/img/msg-close.png"));
         });
 
         why.setOnMouseClicked(e -> {
