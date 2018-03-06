@@ -17,9 +17,9 @@ public interface IDatabaseManager {
   public ArrayList<Company> getAICompanies();
 
   public ArrayList<Group> getAIGroups();
-
+  //unused
   public void storeAICompanies(ArrayList<Company> companies);
-
+  // unused
   public void storeAIGroups(ArrayList<Group> groups);
 
   public String[] getCompaniesInGroup(String groupName);
