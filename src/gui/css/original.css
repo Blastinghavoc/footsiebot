@@ -121,6 +121,18 @@
     -fx-arc-width: 15;
 }
 
+.warning-visual {
+    -fx-fill: #ffc2c2;
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
+.suggestion-visual {
+    -fx-fill: #c6f2c4;
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
 .user-label {
     -fx-text-fill: white;
 }
@@ -130,28 +142,36 @@
     -fx-text-fill: black;
 }
 
+.warning-label {
+    -fx-text-fill: #7f1f1f;
+}
+
+.suggestion-label {
+    -fx-text-fill: green;
+}
+
 .options-button {
     -fx-font-size: 8pt;
-    -fx-border-color: derive(#edecea, -20%);
+    -fx-border-color: #82e076;
     -fx-border-width: 1;
     -fx-border-radius: 10px;
-    -fx-text-fill: derive(#edecea, -20%);
+    -fx-text-fill: #82e076;
     -fx-cursor: hand;
 }
 
 .options-button:hover {
-    -fx-border-color: derive(#edecea, -40%);
-    -fx-text-fill: derive(#edecea, -40%);
+    -fx-border-color: derive(#82e076, -20%);
+    -fx-text-fill: derive(#82e076, -20%);
 }
 
 .remove-message {
     -fx-font-size: 12pt;
-    -fx-text-fill: derive(#edecea, -20%);
+    -fx-text-fill: #82e076;
     -fx-cursor: hand;
 }
 
 .remove-message:hover {
-    -fx-text-fill: derive(#edecea, -40%);
+    -fx-text-fill: derive(#82e076, -20%);
 }
 
 .tooltip {

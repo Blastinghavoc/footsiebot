@@ -184,8 +184,17 @@ public class Message extends FlowPane {
     * Finishes the construction of the Message
     */
     private void finishSetup(String sender) {
-        msg.getStyleClass().add(sender + "-label");
-        visual.getStyleClass().add(sender + "-visual");
+
+        if (msg.getText().contains("WARNING")) {
+            msg.getStyleClass().add("warning-label");
+            visual.getStyleClass().add("warning-visual");
+        } else if (sugg != null) {
+            msg.getStyleClass().add("suggestion-label");
+            visual.getStyleClass().add("suggestion-visual");
+        } else {
+            msg.getStyleClass().add(sender + "-label");
+            visual.getStyleClass().add(sender + "-visual");
+        }
         getStyleClass().add(sender + "-message");
         msg.setAlignment(Pos.CENTER_LEFT);
     }
