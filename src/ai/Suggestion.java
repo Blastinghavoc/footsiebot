@@ -9,7 +9,17 @@ public class Suggestion {
   private String reason;
   private ParseResult pr;
 
-
+  /**
+   * The sugegstion takes a string as the reason
+   * a company for which the suggestion has to be made
+   * a boolean to detect whether it is for news
+   * and a parse result with information about the intent
+   * @param  String      r
+   * @param  Company     c
+   * @param  boolean     isNews
+   * @param  ParseResult pr
+   * @return             [description]
+   */
   public Suggestion(String r, Company c, boolean isNews, ParseResult pr) {
     reason = r;
     company = c;
@@ -22,10 +32,6 @@ public class Suggestion {
     group = g;
     isNews = true;
     this.pr = pr;
-  }
-
-  public void update() {
-
   }
 
   public Company getCompany() {
