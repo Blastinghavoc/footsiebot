@@ -133,6 +133,12 @@
     -fx-arc-width: 15;
 }
 
+.summary-visual {
+    -fx-fill: derive(#6699CC, 60%);
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
 .user-label {
     -fx-text-fill: white;
 }
@@ -151,29 +157,12 @@
 }
 
 .options-button {
-    -fx-font-size: 8pt;
-    -fx-border-color: #82e076;
-    -fx-border-width: 1;
-    -fx-border-radius: 10px;
-    -fx-text-fill: #82e076;
     -fx-cursor: hand;
-}
-
-.options-button:hover {
-    -fx-border-color: derive(#82e076, -20%);
-    -fx-text-fill: derive(#82e076, -20%);
 }
 
 .remove-message {
-    -fx-font-size: 12pt;
-    -fx-text-fill: #82e076;
     -fx-cursor: hand;
 }
-
-.remove-message:hover {
-    -fx-text-fill: derive(#82e076, -20%);
-}
-
 .tooltip {
     -fx-font-size: 8.5pt;
     -fx-background-color: derive(white, -5%);

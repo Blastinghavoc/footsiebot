@@ -852,7 +852,7 @@ public class Core extends Application {
             return null;
         }
         String[] temp;
-        output+= code.toUpperCase()+" :\n";
+        output+= code.toUpperCase()+":\n";
         output+= "    Spot price = "+data[0]+"\n";
         for(int j = 1; j< data.length; j++){
             temp = data[j].split("\\|");
