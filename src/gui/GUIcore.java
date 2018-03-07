@@ -690,6 +690,9 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
+   /**
+    * Starts the sppech input timeline
+    */
 	private void startVoiceTimeline() {
         if(core.novoice){
             return;
@@ -746,6 +749,11 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+   /**
+    * Allows the user to preview a theme
+    *
+    * @param test the name of the theme to be applied
+    */
     private void testStyle(String test) {
         scene.getStylesheets().setAll("file:src/gui/css/" + test + ".css");
     }
@@ -890,6 +898,9 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+   /**
+    * Updates the close buttons on news blocks
+    */
     private void updateNewsClose() {
         for (int i = 0; i < newsBoard.getChildren().size(); i++) {
             if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
