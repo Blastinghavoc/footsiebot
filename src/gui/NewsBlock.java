@@ -16,7 +16,7 @@ public class NewsBlock extends BorderPane {
     private Label digest;
     private Label url;
     private ImageView close;
-    String style;
+    private String style;
 
    /**
     * Constructor for a new news item
@@ -121,6 +121,11 @@ public class NewsBlock extends BorderPane {
 
     }
 
+   /**
+    * Updates the style attribute
+    *
+    * @param style the String representation of the style to be stored
+    */
     public void updateStyle(String style) {
         this.style = style;
         close.setImage(new Image("file:src/img/" + style + "/close.png"));
