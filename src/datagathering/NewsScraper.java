@@ -1,24 +1,3 @@
-/* SOME NOTES
-‣ This assumes the "company" argument for the scrapeNews method is the comapany nametag, not the company name
-‣ This currently uses the "description" element of each article as the digest - this has worked so far
-  in testing but the Yahoo! website states that "Many news items include an empty description element."
-  so this might not be robust enough for the finished product.
-‣ Each news article has a "pubDate" element so it is possible to filter out news articles that are deemed
-  'too old' by some arbitrary age. This could be useful if the user asks for articles from a specific time
-  period, e.g. "Get me news articles on AMD from the last week".
-  pubDate is ignored at the moment but is something to keep in mind if we want to implement additional features
-‣ When finding news for multiple companies, it just uses an RSS feed for all companies, which works for the
-  most part but cannot guarantee that all companies specified will be included (for example, one of the
-  companies asked for might not have been in the news for a very long time and thus won't be included).
-  This can be changed quite easily if needs be.
-  From the Yahoo! website: "Note that the feed simply returns the most recent 25 news items for all the
-  ticker symbols in the request; it does not distinguish which item goes with which company."
-‣ The array returned is not of a set length, it is simply as long as however many articles it finds (at most 20)
-‣ This assumes that every <item> element contains all elements listed on the Yahoo! website, and consistently in
-  the same order. This should always be the case, so I haven't performed any kind of validation and it will
-  most likely break if there are any inconsistencies. I can easily add validation if needs be.
-*/
-
 
 
 
@@ -35,13 +14,21 @@ public class NewsScraper {
 	public NewsScraper() {
 
 	}
-
+	/**
+	 * Takes a single company as a string and returns an array of Article objects
+	 * @param  String company
+	 * @return
+	 */
 	public Article[] scrapeNews(String company) {
 		//Get URL for the RSS feed specific for that company
 		String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + company+".L";//NOTE: appending .L to signify that the ticker used is the LSE meaning of the ticker
 		return scrape(url);
 	}
-
+	/**
+	 * Takes a group of companies as an array of strings and returns an array of Article objects
+	 * @param  String[] company
+	 * @return
+	 */
 	public Article[] scrapeNews(String[] company) {
 		//Get URL for the RSS feed specific for those companies
 		String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=";
@@ -52,6 +39,11 @@ public class NewsScraper {
 		return scrape(url);
 	}
 
+/**
+ * Takes a url as input (to a Yahoo! Finance RSS feed), scrapes the RSS feed for information, before creating and returning an array of Article objects
+ * @param  String url           [url to Yahoo! Finance RSS feed]
+ * @return
+ */
 
 	private Article[] scrape(String url) {
 
@@ -62,7 +54,7 @@ public class NewsScraper {
 		int startPos;
 		int endPos;
 		String temp;
-		
+
 		//ArrayList is used for ease
 		ArrayList<Article> articles = new ArrayList<Article>(1);
 
@@ -133,7 +125,7 @@ public class NewsScraper {
 					temp = articleDetails.substring(startPos, endPos);
 					temp = StringUtils.unescapeHTML(temp);
 					articleHeadline = temp.trim();
-					
+
 					//Add new article to the ArrayList
 					articles.add(new Article(articleHeadline, articleURL, articleDigest, articleDateTime));
 
@@ -152,6 +144,12 @@ public class NewsScraper {
 
 		return articles.toArray(new Article[0]);
 	}
+
+	/**
+	 * Takes a string of a date and time (RFC822 standard) and converts it to a LocalDateTime
+	 * @param  String input
+	 * @return
+	 */
 
 	private LocalDateTime stringToDateTime(String input) {
 		int year;

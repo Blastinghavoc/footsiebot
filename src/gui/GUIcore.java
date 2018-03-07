@@ -504,7 +504,6 @@ public class GUIcore implements IGraphicalUserInterface {
 
         //resizes NewsBlocks on the news board to accomodate for the scroll bar
         newsBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
-            System.out.println(newsBoard.getHeight() + " // " + newsWrapper.getHeight());
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -690,6 +689,9 @@ public class GUIcore implements IGraphicalUserInterface {
         newDataTimeline.playFrom(Duration.millis(core.DATA_REFRESH_RATE - core.DOWNLOAD_RATE)); //Running the core function at regular times, but starting soon after program startup
     }
 
+   /**
+    * Starts the sppech input timeline
+    */
 	private void startVoiceTimeline() {
         if(core.novoice){
             return;
@@ -746,6 +748,11 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+   /**
+    * Allows the user to preview a theme
+    *
+    * @param test the name of the theme to be applied
+    */
     private void testStyle(String test) {
         scene.getStylesheets().setAll("file:src/gui/css/" + test + ".css");
     }
@@ -880,8 +887,6 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param width the current width of the news pane
     */
     private void resizeNews(double width) {
-        // System.out.println(newsBoard.widthProperty());
-        // System.out.println(newsBoard.getWidth());
         for (int i = 0; i < newsBoard.getChildren().size(); i++) {
             if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
                 NewsBlock tmp = (NewsBlock) newsBoard.getChildren().get(i);
@@ -890,6 +895,9 @@ public class GUIcore implements IGraphicalUserInterface {
         }
     }
 
+   /**
+    * Updates the close buttons on news blocks
+    */
     private void updateNewsClose() {
         for (int i = 0; i < newsBoard.getChildren().size(); i++) {
             if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
