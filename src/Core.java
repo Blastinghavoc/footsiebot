@@ -816,7 +816,7 @@ public class Core extends Application {
     }
 
    /**
-    *
+    * 
     */
     public void onTradingHour() {
         System.out.println("It's time for your daily summary!");//DEBUG
@@ -841,8 +841,11 @@ public class Core extends Application {
         ui.displayResults(news,null);
     }
 
-    /**
+   /**
     * Returns a string containing a summary for a given company
+    *
+    * @param code the code of the company
+    * @return the summary for the company requested
     */
     private String getSingleCompanySummary(String code){
         String output = "";
@@ -860,7 +863,7 @@ public class Core extends Application {
         return output;
     }
 
-    /**
+   /**
     * Outputs just the news part of what would have been the users Trading Hour summary.
     */
     private void outputJustNewsSummary(){
@@ -880,7 +883,10 @@ public class Core extends Application {
     }
 
    /**
+    * Handles state changes when the user indicates that a suggestion was
+    * irrelevant
     *
+    * @param s the irrelevant suggestion
     */
     public void suggestionIrrelevant(Suggestion s){
         System.out.println("A suggestion was marked irrelevant");
@@ -906,7 +912,11 @@ public class Core extends Application {
         }
     }
 
-
+   /**
+    * Handles changes to the username
+    *
+    * @param name the new username to be stored
+    */
     private void handleUserNameChange(String name){
         USER_NAME = name;
         nameless = false;
@@ -914,8 +924,12 @@ public class Core extends Application {
         ui.displayMessage("Thanks "+name+"! How can I help you?");
     }
 
-    /*
-    Handles updating the settings when the user makes a change to them in the gui.
+   /**
+    * Handles updating the settings when the user makes a change to them in the GUI
+    *
+    * @param time the trading time to be stored
+    * @param change the change threshold to be stored
+    * @param userName the username to be stored
     */
     public void updateSettings(String time, Double change, boolean fullscreen) {
         if (time == null && change == null) {
@@ -947,8 +961,13 @@ public class Core extends Application {
         System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
     }
 
-    /*
-    Stores settings when updated
+
+   /**
+    * Writes the settings to the config file
+    *
+    * @param time the trading time to be stored
+    * @param change the change threshold to be stored
+    * @param userName the username to be stored
     */
     private void writeSettings(Long time, Double change, String userName){
         File fl = null;
@@ -972,6 +991,9 @@ public class Core extends Application {
 
     }
 
+   /**
+    * Reads the settings from the config file
+    */
     private void readSettings(){
         File fl = null;
         BufferedReader br = null;
@@ -1005,6 +1027,11 @@ public class Core extends Application {
         getHostServices().showDocument(url);
     }
 
+   /**
+    * Tries to close a Closable object
+    *
+    * @param c the object to close
+    */
     private static void tryClose(Closeable c){
         try{
             c.close();
@@ -1012,6 +1039,9 @@ public class Core extends Application {
         }
     }
 
+   /**
+    * Reads a random joke from the joke file
+    */
     private void readJoke() {
         File fl = null;
         BufferedReader br = null;
@@ -1045,7 +1075,11 @@ public class Core extends Application {
 
     }
 
-    // Tests all intents and all time specifiers for 1 company
+   /**
+    * Tests all intents and all time specifiers for a company
+    *
+    * @param operand the company code
+    */
     private void testIntents(String operand) {
         operand = operand.toLowerCase();
         for (Intent i : Intent.values()) {
