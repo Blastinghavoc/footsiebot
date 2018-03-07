@@ -10,9 +10,10 @@ Sqlite JDBC : https://bitbucket.org/xerial/sqlite-jdbc For accessing an SQLITE d
 ==== System Requirements ====
 JDK 8 or above
 
-==== How to run ====
-Windows: execute run.bat
-Mac/Linux: execute run.sh
+==== Installation and Running the Footsiebot ====
+Extract the zip into a folder, navigate to that folder and:
+ - if you're running Windows, execute run.bat
+ - if you're running MacOS/Linux, execute run.sh
 
 ==== Basics ====
 Commands are entered via the textbox at the bottom, and sent either by pressing the enter key,
@@ -24,22 +25,22 @@ the question mark inside the circle is pressed when you want to know why the sug
 
 ==== Commands ====
 For individual companies:
-    Spot Price - e.g. "Spot price for X"
-    Opening Price - e.g. "Opening price for X"
-    Closing Price - e.g. "Closing price for X"
-    Trading Volume - e.g. "Volume for X"
-    Percentage Change (since market opened) - e.g. "Percentage change for X"
-    Absolute Change (since market opened) - e.g. "Absolute change for X"
-    Company Trend (for that day) - e.g. "Is X rising or falling?"
-    Company Trend (since a given day) - e.g. "has X risen since Thursday"
-    Recent News - e.g. "News for X"
+ - Spot Price - e.g. "Spot price for X"
+ - Opening Price - e.g. "Opening price for X"
+ - Closing Price - e.g. "Closing price for X"
+ - Trading Volume - e.g. "Volume for X"
+ - Percentage Change (since market opened) - e.g. "Percentage change for X"
+ - Absolute Change (since market opened) - e.g. "Absolute change for X"
+ - Company Trend (for that day) - e.g. "Is X rising or falling?"
+ - Company Trend (since a given day) - e.g. "has X risen since Thursday"
+ - Recent News - e.g. "News for X"
 All of these commands (except news) can be modified to include a specific day in the last 5 
 trading days. For example, "Closing price for Barclays on Wednesday" is a valid command.
     
 For Groups:
-    Company Trend (for that day) - e.g. "Is X rising or falling?"
-    Company Trend (since a given day) - e.g. "has X risen since Thursday"
-    Recent News - e.g. "News for X"
+ - Company Trend (for that day) - e.g. "Is X rising or falling?"
+ - Company Trend (since a given day) - e.g. "has X risen since Thursday"
+ - Recent News - e.g. "News for X"
 
 If you ever need reminding of these commands, just send the chatbot the message "help" and
 it'll print a summary.
