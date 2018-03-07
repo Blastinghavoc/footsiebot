@@ -1,20 +1,19 @@
 package footsiebot;
 
-import footsiebot.nlp.*;
 import footsiebot.ai.*;
+import footsiebot.database.*;
 import footsiebot.datagathering.*;
 import footsiebot.gui.*;
-import footsiebot.database.*;
-import javafx.application.*;
-import javafx.stage.Stage;
+import footsiebot.nlp.*;
 import java.io.*;
 import java.util.*;
-import java.time.LocalDateTime;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import javafx.animation.*;
-import javafx.util.Duration;
 import java.lang.Math;
+import java.time.LocalDateTime;
+import javafx.animation.*;
+import javafx.application.*;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+import javafx.scene.control.*;
 
 
 public class Core extends Application {
@@ -70,9 +69,6 @@ public class Core extends Application {
 
    /**
     * Launches the application
-    *
-    * Nothing else should go here. If you think it needs to go in main,
-    * it probably needs to go in start.
     *
     * @param args command-line arguments
     */
@@ -184,10 +180,11 @@ public class Core extends Application {
         }
     }
 
-	private void testVoce(){
-
-		while (voce.SpeechInterface.getRecognizerQueueSize() > 0)
-		{
+   /**
+    * Tests the speech input
+    */
+	private void testVoce() {
+		while (voce.SpeechInterface.getRecognizerQueueSize() > 0) {
 			String s = voce.SpeechInterface.popRecognizedString();
 
 			if(Thread.currentThread().isInterrupted()){
@@ -209,7 +206,10 @@ public class Core extends Application {
 
 	}
 
-	public void runVoiceInput(){
+   /**
+    * Runs the voice input on startup
+    */
+	public void runVoiceInput() {
 		//System.out.println("Checked for voice input");
 		String temp = null;
 		synchronized(mostRecentVoiceInput){
@@ -226,7 +226,6 @@ public class Core extends Application {
 
    /**
     * Performs shut down operations
-    * TODO may need a handler for ctrl-C as well
     */
     @Override
     public void stop() {
@@ -246,12 +245,15 @@ public class Core extends Application {
         System.out.println("Safely closed the program.");
     }
 
-    /**
+   /**
     * Deals with the small set of commands that the user can enter.
     * Checks if the raw input is a command, and executes it if it is.
     * Returns a boolean representing whether or not a command was executed.
+    *
+    * @param raw the raw input from the user
+    * @return true if a command was run, otherwise false
     */
-    private Boolean handleCommand(String raw){
+    private Boolean handleCommand(String raw) {
         Boolean ranCommand = false;
 
         if(nameless){
@@ -368,22 +370,24 @@ public class Core extends Application {
    /**
     * Obtains an array of all the company codes representing
     * companies in the given group
+    *
     * @param group The name of the group to fetch constituents for.
     */
     private String[] groupNameToCompanyList(String group) {
         return dbm.getCompaniesInGroup(group);
     }
 
-    /**
-     * Returns a string that is the formatted output for a given query, potentially
-     * with extra data added.
-     * @param data An array of string data representing the answer to the query.
-     * @param pr The ParseResult that triggered this query.
-     * @param wasSuggestion A Boolean flag to indicate whether the triggering ParseResult
-     * originated from the IC.
-     * @return a formatted string, ready to be output to the user.
-     */
-    private String formatOutput(String[] data,ParseResult pr,Boolean wasSuggestion){
+   /**
+    * Returns a string that is the formatted output for a given query, potentially
+    * with extra data added.
+    *
+    * @param data an array of string data representing the answer to the query.
+    * @param pr the ParseResult that triggered this query.
+    * @param wasSuggestion a Boolean flag to indicate whether the triggering
+    *                      ParseResult originated from the IC.
+    * @return a formatted string, ready to be output to the user.
+    */
+    private String formatOutput(String[] data, ParseResult pr, Boolean wasSuggestion) {
         String output = "Whoops, we don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
@@ -534,14 +538,16 @@ public class Core extends Application {
 
    /**
     * Decodes a Suggestion and performs relevant output
+    *
+    * @param suggestion the Suggestion to be handled
+    * @param pr the ParseResult from the initial user message
     */
-    private void handleSuggestion(Suggestion suggestion,ParseResult pr){
+    private void handleSuggestion(Suggestion suggestion, ParseResult pr) {
 
-        if(suggestion.isNews()){
+        if (suggestion.isNews()) {
             outputNews(suggestion.getParseResult(),suggestion);//Outputting the news for the suggestion
             ui.displayMessage("You may wish to view the news for "+suggestion.getParseResult().getOperand().toUpperCase() + " in the news pane",suggestion);
-        }
-        else{
+        } else {
             //System.out.println(suggestion.getParseResult());//DEBUG
             ParseResult suggPr = suggestion.getParseResult();
             if((extraDataAddedToLastOutput != null)&& lastOperandOutput.equals(suggPr.getOperand())){
@@ -564,9 +570,12 @@ public class Core extends Application {
     }
 
    /**
+    * Outputs news items to the GUI
     *
+    * @param pr the ParseResult to be outputted
+    * @param s the Suggestion to be outputted
     */
-    private void outputNews(ParseResult pr,Suggestion s){
+    private void outputNews(ParseResult pr, Suggestion s) {
         Article[] result;
         if (pr.isOperandGroup()) {
             String[] companies = groupNameToCompanyList(pr.getOperand());
@@ -578,8 +587,13 @@ public class Core extends Application {
         ui.displayResults(result, s);
     }
 
-
-    private void outputFTSE(ParseResult pr,Suggestion s){
+   /**
+    * Outputs FTSE data to the GUI
+    *
+    * @param pr the ParseResult to be outputted
+    * @param s the Suggestion to be outputted
+    */
+    private void outputFTSE(ParseResult pr, Suggestion s) {
         /*
         NOTE: may wish to branch for groups, using an overloaded/modified method
         of getFTSE(ParseResult,Boolean).
@@ -588,26 +602,33 @@ public class Core extends Application {
 
         String result;//NOTE: May convert to a different format for the UI
         Boolean wasSuggestion = (s!= null);
-        if(data == null){
+        if (data == null) {
             System.out.println("NULL DATA!");
-            if(wasSuggestion){
+            if (wasSuggestion) {
                 //ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
-            }else{
+            } else {
                 ui.displayMessage("Whoops, we don't seem to have the data you asked for!");
             }
             return;
         }
 
         if (pr.isOperandGroup()) {
-            result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,s);
+            result = formatOutput(data, pr, wasSuggestion);
+            ui.displayMessage(result, s);
         } else {
-            result = formatOutput(data,pr,wasSuggestion);
-            ui.displayMessage(result,s);
+            result = formatOutput(data, pr, wasSuggestion);
+            ui.displayMessage(result, s);
         }
     }
 
-    private String addExtraDataToOutput(String output,String[] data){
+   /**
+    * Adds data to an output String
+    *
+    * @param output the original String to be appended
+    * @param data the data to be added to the output String
+    * @return a String with the extra data appended
+    */
+    private String addExtraDataToOutput(String output, String[] data) {
         extraDataAddedToLastOutput = null;
         if (data.length > 1){
             output += "\n\n";
@@ -623,13 +644,25 @@ public class Core extends Application {
         return output;
     }
 
-    private Intent convertColumnNameToIntent(String s){
+   /**
+    * Converts a column name to an Intent
+    *
+    * @param s the column name to be converted
+    * @return the Intent representation of the column
+    */
+    private Intent convertColumnNameToIntent(String s) {
         //NOTE: probably highly inefficient, may not even work! Needs testing.
         Intent in = nlp.parse(s).getIntent();
         return in;
     }
 
-    private Boolean checkParseResultValid(ParseResult pr){
+   /**
+    * Checks to see if a ParseResult is valid
+    *
+    * @param pr the ParseResult to be checked
+    * @return true if the ParseResult is valid, otherwise false
+    */
+    private Boolean checkParseResultValid(ParseResult pr) {
         switch (pr.getIntent()){
             case SPOT_PRICE:
                 if(pr.isOperandGroup()){
@@ -705,11 +738,11 @@ public class Core extends Application {
         return true;
     }
 
-    /*
-    Must only be called asynchronously from the GUIcore.
-    Downloads new data to a local variable in the background.
+   /**
+    * Must only be called asynchronously from the GUIcore.
+    * Downloads new data to a local variable in the background.
     */
-    public void downloadNewData() throws InterruptedException{
+    public void downloadNewData() throws InterruptedException {
         System.out.println("Downloading new data");
         while(readingScrape){
             System.out.println("Waiting for data to be read");
@@ -780,7 +813,12 @@ public class Core extends Application {
         handleLargeChangeSuggestions(suggarr);
     }
 
-    private void handleLargeChangeSuggestions(Suggestion[] suggarr){
+   /**
+    * Outputs suggestions created when a large change is detected
+    *
+    * @param suggarr the suggestion to be outputted
+    */
+    private void handleLargeChangeSuggestions(Suggestion[] suggarr) {
         if(suggarr == null){
             return;
         }
@@ -794,7 +832,7 @@ public class Core extends Application {
     }
 
    /**
-    * 
+    * Performs the operations necessary when the daily summary is requested
     */
     public void onTradingHour() {
         System.out.println("It's time for your daily summary!");//DEBUG
@@ -825,7 +863,7 @@ public class Core extends Application {
     * @param code the code of the company
     * @return the summary for the company requested
     */
-    private String getSingleCompanySummary(String code){
+    private String getSingleCompanySummary(String code) {
         String output = "";
         String[] data = dbm.getFTSE(new ParseResult(Intent.SPOT_PRICE,"trading hour",code,false,TimeSpecifier.TODAY));
         if(data == null){
@@ -844,7 +882,7 @@ public class Core extends Application {
    /**
     * Outputs just the news part of what would have been the users Trading Hour summary.
     */
-    private void outputJustNewsSummary(){
+    private void outputJustNewsSummary() {
         Company[] companies = ic.onNewsTime();
         String[] companyCodes = new String[companies.length];
         if((companies == null) || (companies.length < 1)){
@@ -866,14 +904,18 @@ public class Core extends Application {
     *
     * @param s the irrelevant suggestion
     */
-    public void suggestionIrrelevant(Suggestion s){
+    public void suggestionIrrelevant(Suggestion s) {
         System.out.println("A suggestion was marked irrelevant");
         ic.onSuggestionIrrelevant(s);
         ui.displayMessage("Ok " + USER_NAME + ", I will take that into consideration. Thank you for the feedback.");
     }
 
-
-    private void handleUserNameChange(String name){
+   /**
+    * Handles changes to the username
+    *
+    * @param name the new username to be stored
+    */
+    private void handleUserNameChange(String name) {
         USER_NAME = name;
         nameless = false;
         writeSettings(TRADING_TIME,LARGE_CHANGE_THRESHOLD,USER_NAME);
@@ -917,7 +959,6 @@ public class Core extends Application {
         System.out.println("Updating the settings with a time of " + TRADING_TIME + " and a change of " + LARGE_CHANGE_THRESHOLD);
     }
 
-
    /**
     * Writes the settings to the config file
     *
@@ -925,7 +966,7 @@ public class Core extends Application {
     * @param change the change threshold to be stored
     * @param userName the username to be stored
     */
-    private void writeSettings(Long time, Double change, String userName){
+    private void writeSettings(Long time, Double change, String userName) {
         File fl = null;
         BufferedWriter bw = null;
         try{
@@ -988,7 +1029,7 @@ public class Core extends Application {
     *
     * @param c the object to close
     */
-    private static void tryClose(Closeable c){
+    private static void tryClose(Closeable c) {
         try{
             c.close();
         }catch(Exception ex){
