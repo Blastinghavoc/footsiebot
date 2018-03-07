@@ -145,16 +145,17 @@ public class Message extends FlowPane {
     * If the Message was sent by the AI, this method creates the required features
     */
     private void setupAI() {
+        String style = ui.getStyle();
         btnWrapper = new StackPane();
         Insets btnPadding = new Insets(3, 5, 2, 2);
         btnWrapper.setPadding(btnPadding);
-        ImageView close = new ImageView("file:src/img/msg-close.png");
+        ImageView close = new ImageView("file:src/img/" + style + "/msg-close.png");
         close.setPreserveRatio(true);
         close.setFitWidth(12);
         close.getStyleClass().add("remove-message");
         Tooltip.install(close, removeNote);
 
-        ImageView why = new ImageView("file:src/img/reason.png");
+        ImageView why = new ImageView("file:src/img/" + style + "/reason.png");
         why.setPreserveRatio(true);
         why.setFitWidth(15);
         Tooltip.install(why, aiNote);
@@ -184,19 +185,19 @@ public class Message extends FlowPane {
         });
 
         why.setOnMouseEntered(e -> {
-            why.setImage(new Image("file:src/img/reason-hover.png"));
+            why.setImage(new Image("file:src/img/" + style + "/reason-hover.png"));
         });
 
         why.setOnMouseExited(e -> {
-            why.setImage(new Image("file:src/img/reason.png"));
+            why.setImage(new Image("file:src/img/" + style + "/reason.png"));
         });
 
         close.setOnMouseEntered(e -> {
-            close.setImage(new Image("file:src/img/msg-close-hover.png"));
+            close.setImage(new Image("file:src/img/" + style + "/msg-close-hover.png"));
         });
 
         close.setOnMouseExited(e -> {
-            close.setImage(new Image("file:src/img/msg-close.png"));
+            close.setImage(new Image("file:src/img/" + style + "/msg-close.png"));
         });
 
         why.setOnMouseClicked(e -> {

@@ -504,6 +504,7 @@ public class GUIcore implements IGraphicalUserInterface {
 
         //resizes NewsBlocks on the news board to accomodate for the scroll bar
         newsBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
+            System.out.println(newsBoard.getHeight() + " // " + newsWrapper.getHeight());
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -757,6 +758,7 @@ public class GUIcore implements IGraphicalUserInterface {
     public void setStyle(String style) {
         this.style = style;
         scene.getStylesheets().setAll("file:src/gui/css/" + style + ".css");
+        updateNewsClose();
         stage.setScene(scene);
     }
 
@@ -854,6 +856,7 @@ public class GUIcore implements IGraphicalUserInterface {
                     newsBoard.getChildren().add(new NewsBlock(a, (sidePane.getWidth() - 15), core, this));
             }
         }
+        resizeNews(newsBoard.getMinWidth());
     }
 
    /**
@@ -877,10 +880,21 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param width the current width of the news pane
     */
     private void resizeNews(double width) {
+        // System.out.println(newsBoard.widthProperty());
+        // System.out.println(newsBoard.getWidth());
         for (int i = 0; i < newsBoard.getChildren().size(); i++) {
             if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
                 NewsBlock tmp = (NewsBlock) newsBoard.getChildren().get(i);
                 tmp.resize(width);
+            }
+        }
+    }
+
+    private void updateNewsClose() {
+        for (int i = 0; i < newsBoard.getChildren().size(); i++) {
+            if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
+                NewsBlock tmp = (NewsBlock) newsBoard.getChildren().get(i);
+                tmp.updateStyle(style);
             }
         }
     }
@@ -926,5 +940,14 @@ public class GUIcore implements IGraphicalUserInterface {
     */
     public Stage getStage() {
         return stage;
+    }
+
+   /**
+    * Accessor for style
+    *
+    * @return the String containing the current style
+    */
+    public String getStyle() {
+        return style;
     }
 }

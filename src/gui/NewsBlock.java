@@ -15,6 +15,8 @@ public class NewsBlock extends BorderPane {
     private Label headline;
     private Label digest;
     private Label url;
+    private ImageView close;
+    String style;
 
    /**
     * Constructor for a new news item
@@ -47,25 +49,27 @@ public class NewsBlock extends BorderPane {
         Insets padding = new Insets(5, 7, 7, 7);
         setPadding(padding);
 
-        ImageView close = new ImageView("file:src/img/close.png");
+        style = ui.getStyle();
+
+        close = new ImageView("file:src/img/" + style + "/close.png");
         close.getStyleClass().add("remove-news");
         close.setPreserveRatio(true);
         close.setFitWidth(12);
 
         setOnMouseEntered(e -> {
-            close.setImage(new Image("file:src/img/close-2.png"));
+            close.setImage(new Image("file:src/img/" + style + "/close-2.png"));
         });
 
         setOnMouseExited(e -> {
-            close.setImage(new Image("file:src/img/close.png"));
+            close.setImage(new Image("file:src/img/" + style + "/close.png"));
         });
 
         close.setOnMouseEntered(e -> {
-            close.setImage(new Image("file:src/img/close-hover.png"));
+            close.setImage(new Image("file:src/img/" + style + "/close-hover.png"));
         });
 
         close.setOnMouseExited(e -> {
-            close.setImage(new Image("file:src/img/close-2.png"));
+            close.setImage(new Image("file:src/img/" + style + "/close-2.png"));
         });
 
         close.setOnMouseClicked(e -> {
@@ -81,7 +85,7 @@ public class NewsBlock extends BorderPane {
         StackPane topPane = new StackPane();
         topPane.getChildren().addAll(headline, close);
         topPane.setAlignment(headline, Pos.TOP_LEFT);
-        Insets closeMargins = new Insets(2, 0, 0, 0);
+        Insets closeMargins = new Insets(2, -2, 0, 0);
         topPane.setMargin(close, closeMargins);
         topPane.setAlignment(close, Pos.TOP_RIGHT);
 
@@ -115,5 +119,10 @@ public class NewsBlock extends BorderPane {
         digest.setMaxWidth(width - 7);
         url.setMaxWidth(width - 7);
 
+    }
+
+    public void updateStyle(String style) {
+        this.style = style;
+        close.setImage(new Image("file:src/img/" + style + "/close.png"));
     }
 }
