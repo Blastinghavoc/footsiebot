@@ -7,7 +7,11 @@ import footsiebot.database.*;
 
 import java.util.*;
 import java.lang.*;
-
+/**
+ * Intelligence Core class. Global fields are the number of top companies (extendable to be set by the user)
+ * list of companies and groups, the database , the start up hour for the summary, and a one-element stack
+ * to keep track of the last suggestion given.
+ */
 public class IntelligenceCore implements IIntelligenceUnit {
 
    // To be possibly set by the user
@@ -17,13 +21,22 @@ public class IntelligenceCore implements IIntelligenceUnit {
    private double startupHour;
    private Suggestion lastSuggestion;
    private IDatabaseManager db;
-
+   /**
+    * Public constructor
+    * @param  IDatabaseManager db            the database
+    * @return                  an instance of this class
+    */
    public IntelligenceCore(IDatabaseManager db) {
      this.db = db;
      onStartUp();
    }
 
-
+   /**
+    * Main suggestion method. Decides whether it is appropriate to make a suggestion and , if so,
+    * returns it to the core.
+    * @param  ParseResult pr            data from the user
+    * @return             a suggestion object that contains the information for the user
+    */
    public Suggestion getSuggestion(ParseResult pr) {
      // Fetch operand and intent and increment intent priority
      // TODO needs converting to AIIntent
@@ -59,7 +72,6 @@ public class IntelligenceCore implements IIntelligenceUnit {
      String companyOrGroup = pr.getOperand();
      Group targetGroup = null;
      Company targetCompany = null;
-     // TODO: UPDATE TALLIES FOR THIS COMPANY LOCALLY
      // If operand is a GROUP
      if(pr.isOperandGroup()) {
          // DOES NOT MAKE SENSE TO SUGGEST FOR GROUPS
@@ -85,17 +97,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
        }
 
        if(doSuggestion) {
-         // This will need to be modified as
-         // it just suggests an intent now
-         // but could decide to suggest news
+
          // DECIDING WHETHER to suggest news
          float newsPriority =  targetCompany.getNewsPriority();
 
-         //System.out.println("Should not suggest " + notToSuggestIntent);
-
          AbstractMap.SimpleEntry<AIIntent,Float> topIntentData = targetCompany.getTopIntent(notToSuggestIntent);
          AIIntent topIntent = topIntentData.getKey();
-         //System.out.println("Top intent is : " + topIntent);
          Float topIntentPriority = topIntentData.getValue();
 
          if(topIntentPriority > newsPriority || doNotSuggestNews) {
@@ -113,7 +120,13 @@ public class IntelligenceCore implements IIntelligenceUnit {
      }
    }
 
-   //TODO return a suggestion object
+   /**
+    * Gets the updated companies and groups data. Also calls @detectedImportantChange
+    * to verify whether some companies had a significant change. If so, it returns a sugegstion
+    * array to core.
+    * @param  Float threshold
+    * @return       an array of suggestions
+    */
    public Suggestion[] onUpdatedDatabase(Float threshold) {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
@@ -143,15 +156,13 @@ public class IntelligenceCore implements IIntelligenceUnit {
 
      return res.toArray(new Suggestion[res.size()]);
    }
-
-   public void onShutdown() {
-     db.storeAICompanies(companies);
-     db.storeAIGroups(groups);
-   }
-
+   /**
+    * Fetches data from the database at startup of the program
+    * and sort companies and groups by priority
+    */
    public void onStartUp() {
      // Fetch from database
-     companies = db.getAICompanies();//NOTE: may not be necessary if onNewDataAvailable is called on startup
+     companies = db.getAICompanies();
      groups = db.getAIGroups();
      if(companies != null){
          Collections.sort(companies);
@@ -162,8 +173,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    /**
-    * User has reported that a suggestion has not been relevant
-    * ajust weights accordingly
+    * User has reported that a suggestion has not been relevant so
+    * adjusts weights accordingly
+    * Will decrement the priorities both locally and in the database by calling
+    * @onSuggestionIrrelevant in DatabaseCore
     * @param  String companyOrGroup
     * @return
     */
@@ -205,8 +218,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    /**
-    *
-    * @return [description]
+    * Returns an array of the most important companies for the full summary
+    * @return array of top companies
     */
    public Company[] onNewsTime() {
      // show report about 5 top companies
@@ -229,7 +242,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
     return result;
    }
 
-
+   /**
+    * Checks whether there is any company for which a significant percentage change occured.
+    * If so, returns the list of such companies to Core.
+    * @param  Float treshold      the threshold for the percentage change
+    * @return       list of companies
+    */
    private ArrayList<Company> detectedImportantChange(Float treshold) {
      ArrayList<String> names = db.detectedImportantChange(treshold);
      if((names == null)||(names.size() == 0)) return null;
@@ -248,9 +266,10 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
 
    /**
-    *
-    * @param  Company company       [description]
-    * @return         [description]
+    * Utility method to create the suggestion object in case the suggestion is for an intent
+    * (os opposed to news )
+    * @param  Company company       The company for which the suggestion will be made
+    * @return the suggestion object for core
     */
    private Suggestion suggestIntent(Company company ,AIIntent topIntent) {
      String reason = "Company is in top 5";
@@ -290,18 +309,15 @@ public class IntelligenceCore implements IIntelligenceUnit {
      Suggestion result = new Suggestion(reason, company, false, pr);
      return result;
    }
-
+   /**
+    * Utility method to create suggestion in case is news
+    * @param  Company company  the company for which the suggestion has to be made 
+    * @return         suggestion object for news
+    */
    private Suggestion suggestNews(Company company) {
      String reason = "You have asked for news on this company quite a lot recently.";
      ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", company.getCode(), false, footsiebot.nlp.TimeSpecifier.TODAY);
      Suggestion result = new Suggestion(reason, company, true, pr);
-     return result;
-   }
-
-   private Suggestion suggestNews(Group group) {
-     String reason = "Group is in top 5";
-     ParseResult pr = new ParseResult(footsiebot.nlp.Intent.NEWS, "", group.getGroupCode(), true,footsiebot.nlp.TimeSpecifier.TODAY );
-     Suggestion result = new Suggestion(reason, group, pr );
      return result;
    }
 

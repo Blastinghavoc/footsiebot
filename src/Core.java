@@ -247,7 +247,6 @@ public class Core extends Application {
     		}
         }
 
-        ic.onShutdown();
         System.out.println("Safely closed the program.");
     }
 

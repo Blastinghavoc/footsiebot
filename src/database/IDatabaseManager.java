@@ -5,7 +5,9 @@ import footsiebot.datagathering.ScrapeResult;
 import footsiebot.ai.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-
+/**
+ * Database inteface
+ */
 public interface IDatabaseManager {
 
   public boolean storeScraperResults(ScrapeResult sr);
@@ -17,10 +19,6 @@ public interface IDatabaseManager {
   public ArrayList<Company> getAICompanies();
 
   public ArrayList<Group> getAIGroups();
-
-  public void storeAICompanies(ArrayList<Company> companies);
-
-  public void storeAIGroups(ArrayList<Group> groups);
 
   public String[] getCompaniesInGroup(String groupName);
 
