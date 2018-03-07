@@ -506,10 +506,10 @@ public class DatabaseCore implements IDatabaseManager {
     * @param companyCode The company's code
     * @param date The date to get the opening price on
     * @param dateYesterday  The date the day before the date to get the
-    *                       opening price 
+    *                       opening price
     * @return query to get opening price of company on date given
     */
-    private String getOpeningPriceQuery(String companyCode, String date, 
+    private String getOpeningPriceQuery(String companyCode, String date,
                 String dateYesterday) {
         String query    = "SELECT (SpotPrice - AbsoluteChange) "
                         + "FROM FTSECompanySnapshots "
@@ -545,7 +545,7 @@ public class DatabaseCore implements IDatabaseManager {
         String date = timeSpecifierToDate(timeSpec);
         String dateYesterday = getDateYesterday(date);
 
-        String startTimeQuery = getOpeningPriceQuery(companyCode, date, 
+        String startTimeQuery = getOpeningPriceQuery(companyCode, date,
                     dateYesterday);
         String endTimeQuery = spotOrClosingPriceQuery(timeSpec, companyCode,
                 date, dateYesterday);
@@ -614,7 +614,7 @@ public class DatabaseCore implements IDatabaseManager {
         String dateYesterday = getDateYesterday(date);
         String spotPriceQuery   = "SELECT SpotPrice FROM FTSECompanySnapshots "
                                 + "WHERE CompanyCode = '" + companyCode + "'";
-        String openingPriceQuery = getOpeningPriceQuery(companyCode, date, 
+        String openingPriceQuery = getOpeningPriceQuery(companyCode, date,
                 dateYesterday);
         try {
             s1 = conn.createStatement();
@@ -1008,10 +1008,9 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    *
-    *
-    * @return
-    */
+     * Returns the full list of companies to pass to IntelligenceCore
+     * @return the list of all the companies
+     */
     public ArrayList<Company> getAICompanies() {
 
       ArrayList<Company> companies = new ArrayList<>();
@@ -1108,6 +1107,10 @@ public class DatabaseCore implements IDatabaseManager {
       }
     }
 
+    /**
+     * Returns the full list of company groups to IntelligenceCore
+     * @return list of groups
+     */
     public ArrayList<Group> getAIGroups() {
       ArrayList<Company> companies = this.getAICompanies();
       ArrayList<Group> result = new ArrayList<>();
@@ -1137,31 +1140,6 @@ public class DatabaseCore implements IDatabaseManager {
         }
         // entry set iterator
         Set<Map.Entry<String,Group>> entrySet = groupsMap.entrySet();
-
-        // retrieve all companies for each group
-        // for(Map.Entry<String,Group> g: entrySet) {
-        //   String query2 = "SELECT CompanyCode FROM FTSECompanies NATURAL JOIN FTSEGroupMappings WHERE GroupName = '" + g.getKey()+"'";
-        //   ResultSet rs0 = null;
-        //
-        //   try {
-        //     rs0 = stmt.executeQuery(query2);
-        //     ArrayList<Company> companiesForThisGroup = new ArrayList<>();
-        //     // put all the companies for this group in its list
-        //     while(rs0.next()) {
-        //       Company c = companiesMap.get(rs0.getString("CompanyCode"));
-        //       companiesForThisGroup.add(c);
-        //     }
-        //     g.getValue().addCompanies(companiesForThisGroup);
-        //
-        //     // add to final list
-        //     result.add(g.getValue());
-        //   } catch(SQLException e) {
-        //     printSQLException(e);
-        //   } finally {
-        //     if(rs0 != null) {tryClose(rs0); }
-        //   }
-        // }
-
 
         for (Map.Entry<String,Group> g: entrySet) {
             ArrayList<Company> list = new ArrayList<>();
@@ -1204,12 +1182,10 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    *
-    *
-    * @param threshold
-    * @return
-    */
-    //TODO
+     * Detects all the companies for which a significant percentage change has occured since the start of the trading day
+     * @param  Float treshhold     threshold for the change
+     * @return       list of company names that had a significant change
+     */
     public ArrayList<String> detectedImportantChange(Float treshhold) {
       String query =  "SELECT PercentageChange, CompanyCode FROM FTSECompanySnapshots ORDER BY TimeOfData DESC LIMIT 101";
 
@@ -1218,7 +1194,6 @@ public class DatabaseCore implements IDatabaseManager {
       ArrayList<String> result = new ArrayList<>();
 
       HashMap<String, Float> companiesPercChangeMap = new HashMap<>();
-      // TODO
 
       try {
         stmt = conn.createStatement();
@@ -1255,14 +1230,12 @@ public class DatabaseCore implements IDatabaseManager {
     }
 
     /**
-    *
-    *
-    * @param company
-    * @param intent
-    * @param isNews
-    * @return
-    */
-    //TODO
+     * Decrements the priority of the intent (or news) by incrementing its adjustment field
+     * as a result of the user marking a suggestion as irrelevant
+     * @param Company  company the company for which the suggestion was irrelevant
+     * @param AIIntent intent  the intent to decrement
+     * @param boolean  isNews whether the suggestion was for news
+     */
     public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
       String table = "";
       if(intent == null) {
@@ -1292,7 +1265,7 @@ public class DatabaseCore implements IDatabaseManager {
       }
 
       String column = table.replace("Company", "").replace("Count", "Adjustment");
-      // TODO exponentially
+      // exponential decrement
       String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ")";
       Statement stmt = null;
 
@@ -1307,20 +1280,11 @@ public class DatabaseCore implements IDatabaseManager {
       }
     }
 
-    // DO WE NEED THIS???
-    public void storeAIGroups(ArrayList<Group> groups) {
-
-    }
-
-    public void storeAICompanies(ArrayList<Company> companies) {
-
-    }
-
     /**
-    *
+    * Finds all the companies in a given group
     *
     * @param groupName
-    * @return
+    * @return a list of company names that belong to the given group
     */
     public String[] getCompaniesInGroup(String groupName){
         groupName.toLowerCase();

@@ -247,7 +247,6 @@ public class Core extends Application {
     		}
         }
 
-        ic.onShutdown();
         System.out.println("Safely closed the program.");
     }
 
@@ -481,7 +480,7 @@ public class Core extends Application {
                     output += "The opening price was "+ data[2] + " and the most recent price is "+ data[3] + ".";
                 }
                 else{
-                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
+                    output = pr.getTimeSpecifier().toString().substring(0, 1).toUpperCase() + pr.getTimeSpecifier().toString().substring(1).toLowerCase().replace("_"," ")+", "+ pr.getOperand().toUpperCase();
                     output += " "+data[1];
                     output += " with a net change of "+data[0].trim() + "%.\n";
                     output += "The opening price was "+ data[2] + " and the closing price was "+ data[3] + ".";
@@ -531,7 +530,7 @@ public class Core extends Application {
                     output += mostFalling[0].trim().toUpperCase() + " has the lowest percentage change at " + mostFalling[1].trim()+ "%.";
                 }
                 else{
-                    output = pr.getTimeSpecifier().toString().toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
+                    output = pr.getTimeSpecifier().toString().substring(0, 1).toUpperCase() + pr.getTimeSpecifier().toString().substring(1).toLowerCase().replace("_"," ")+", "+ pr.getOperand()+" ";
                     output += data[1] + " with a net change of "+data[0].trim() + "%.\n";
                     String[] high = data[2].split("\\|");
                     output += high[0].trim().toUpperCase() + " had the highest closing price at " + high[1].trim() + ".\n";
@@ -811,7 +810,7 @@ public class Core extends Application {
         for (int i = 0;i < suggarr.length ;i++ ) {
             ParseResult pr = suggarr[i].getParseResult();
             String[] data = dbm.getFTSE(pr);
-            output = "WARNING : "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +-"+ LARGE_CHANGE_THRESHOLD+"%";
+            output = "WARNING: "+pr.getOperand().toUpperCase()+" has a percentage change of " + data[0] +"% which is above the threshold of +-"+ LARGE_CHANGE_THRESHOLD+"%";
             ui.displayMessage(output);//NOT passing the suggestion, as this cannot be marked irrelevant.
         }
     }
@@ -852,7 +851,7 @@ public class Core extends Application {
             return null;
         }
         String[] temp;
-        output+= code.toUpperCase()+" :\n";
+        output+= code.toUpperCase()+":\n";
         output+= "    Spot price = "+data[0]+"\n";
         for(int j = 1; j< data.length; j++){
             temp = data[j].split("\\|");

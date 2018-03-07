@@ -4,7 +4,12 @@ import java.lang.Comparable;
 import java.util.*;
 
 public class Company implements Comparable<Company> {
-
+  /**
+   * Stores a unique company code
+   * a mapping from intents to their counters and adjustments
+   * stored in array of two floats
+   * Also has counter and adjustmet for news
+   */
   private String code;
   private HashMap<AIIntent,Float[]> mapping;
   private Float intentScale;
@@ -12,7 +17,16 @@ public class Company implements Comparable<Company> {
 
   private Float newsCount;
   private Float newsAdj;
-
+  /**
+   * Constructor for company object
+   * @param  String                    code          unique identifier
+   * @param  HashMap<AIIntent,Float[]> mapping       mapping from intents to their counters and adjustments
+   * @param  Float                     intentScale   scalar for intent priority
+   * @param  Float                     newsScale     scalar for news priority
+   * @param  Float                     newsCount     counter for news
+   * @param  Float                     newsAdj       counter for adjustments
+   * @return                           [description]
+   */
   public Company(String code, HashMap<AIIntent,Float[]> mapping, Float intentScale, Float newsScale, Float newsCount, Float newsAdj) {
     this.code = code;
     this.mapping = mapping;
@@ -21,7 +35,13 @@ public class Company implements Comparable<Company> {
     this.newsCount = newsCount;
     this.newsAdj = newsAdj;
   }
-
+  /**
+   * Decrements the priority of an intent
+   * as a result of a suggestion being marked irrelevant
+   * the decrement is exponential so that it is still effective
+   * after a high number of times the intent has been queried
+   * @param AIIntent i intent to be decremented
+   */
   public void decrementPriorityOfIntent(AIIntent i) {
 
     for(Map.Entry<AIIntent,Float[]> e: mapping.entrySet()) {
@@ -37,14 +57,19 @@ public class Company implements Comparable<Company> {
   public String getCode() {
 	return code;
   }
-
+  /**
+   * Gets the most important intent (currently) for this company
+   * this should not be equal to the same intent that comes from the user query
+   * @param  AIIntent notToSuggestIntent    intent that comes from the user query
+   * @return          the top intent and its data
+   */
   public AbstractMap.SimpleEntry<AIIntent,Float> getTopIntent(AIIntent notToSuggestIntent) {
     // get most requested intent
     Set<Map.Entry<AIIntent,Float[]>> entrySet = mapping.entrySet();
 
     AIIntent currMax = AIIntent.SPOT_PRICE;
     float startMaxValue = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1];
-  
+
     AbstractMap.SimpleEntry<AIIntent,Float> result = new AbstractMap.SimpleEntry<AIIntent, Float>(currMax, startMaxValue);
 
     for(Map.Entry<AIIntent,Float[]> e: entrySet) {
@@ -57,7 +82,10 @@ public class Company implements Comparable<Company> {
     }
     return result;
   }
-
+  /**
+   * The total value of how many times the intents have been queried
+   * @return
+   */
   public float getIntentsCount() {
     float spotPriority = mapping.get(AIIntent.SPOT_PRICE)[0] - mapping.get(AIIntent.SPOT_PRICE)[1] ;
     float openingPriority = mapping.get(AIIntent.OPENING_PRICE)[0] - mapping.get(AIIntent.OPENING_PRICE)[1] ;
@@ -79,7 +107,10 @@ public class Company implements Comparable<Company> {
   public Float getPriority() {
     return getIntentsPriority() + getNewsPriority();
   }
-
+  /**
+   * The total value of how many times the news have been queried
+   * @return [description]
+   */
   public Float getNewsCount() {
     float newsPriority = newsCount - newsAdj;
     return (newsPriority);
@@ -88,7 +119,11 @@ public class Company implements Comparable<Company> {
   public Float getNewsPriority() {
     return getNewsCount() * newsScale;
   }
-
+  /**
+   * Method used for sorting companies by priority.
+   * @param  Company c
+   * @return         
+   */
   @Override
   public int compareTo(Company c) {
     Float r = c.getPriority() - this.getPriority();

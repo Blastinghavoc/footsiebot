@@ -121,6 +121,24 @@
     -fx-arc-width: 15;
 }
 
+.warning-visual {
+    -fx-fill: #ffc2c2;
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
+.suggestion-visual {
+    -fx-fill: #c6f2c4;
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
+.summary-visual {
+    -fx-fill: derive(#6699CC, 60%);
+    -fx-arc-height: 15;
+    -fx-arc-width: 15;
+}
+
 .user-label {
     -fx-text-fill: white;
 }
@@ -130,30 +148,21 @@
     -fx-text-fill: black;
 }
 
-.options-button {
-    -fx-font-size: 8pt;
-    -fx-border-color: derive(#edecea, -20%);
-    -fx-border-width: 1;
-    -fx-border-radius: 10px;
-    -fx-text-fill: derive(#edecea, -20%);
-    -fx-cursor: hand;
+.warning-label {
+    -fx-text-fill: #7f1f1f;
 }
 
-.options-button:hover {
-    -fx-border-color: derive(#edecea, -40%);
-    -fx-text-fill: derive(#edecea, -40%);
+.suggestion-label {
+    -fx-text-fill: green;
+}
+
+.options-button {
+    -fx-cursor: hand;
 }
 
 .remove-message {
-    -fx-font-size: 12pt;
-    -fx-text-fill: derive(#edecea, -20%);
     -fx-cursor: hand;
 }
-
-.remove-message:hover {
-    -fx-text-fill: derive(#edecea, -40%);
-}
-
 .tooltip {
     -fx-font-size: 8.5pt;
     -fx-background-color: derive(white, -5%);

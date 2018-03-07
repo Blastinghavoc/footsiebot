@@ -10,8 +10,6 @@ public interface IIntelligenceUnit {
 
    public Suggestion[] onUpdatedDatabase(Float threshold);
 
-   public void onShutdown();
-
    public void onSuggestionIrrelevant(Suggestion suggestion);
 
    public Company[] onNewsTime();
