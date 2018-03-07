@@ -504,7 +504,6 @@ public class GUIcore implements IGraphicalUserInterface {
 
         //resizes NewsBlocks on the news board to accomodate for the scroll bar
         newsBoard.heightProperty().addListener((obs, oldVal, newVal) -> {
-            System.out.println(newsBoard.getHeight() + " // " + newsWrapper.getHeight());
             if (newsBoard.getHeight() > newsWrapper.getHeight()) {
                 newsBoard.setMinWidth(sidePane.getWidth() - 15);
                 newsBoard.setMaxWidth(sidePane.getWidth() - 15);
@@ -888,8 +887,6 @@ public class GUIcore implements IGraphicalUserInterface {
     * @param width the current width of the news pane
     */
     private void resizeNews(double width) {
-        // System.out.println(newsBoard.widthProperty());
-        // System.out.println(newsBoard.getWidth());
         for (int i = 0; i < newsBoard.getChildren().size(); i++) {
             if (newsBoard.getChildren().get(i) instanceof NewsBlock) {
                 NewsBlock tmp = (NewsBlock) newsBoard.getChildren().get(i);
