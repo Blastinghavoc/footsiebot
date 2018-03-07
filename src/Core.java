@@ -389,7 +389,7 @@ public class Core extends Application {
     * @return a formatted string, ready to be output to the user.
     */
     private String formatOutput(String[] data, ParseResult pr, Boolean wasSuggestion) {
-        String output = "Whoops, we don't seem to have the data you asked for!";
+        String output = "Whoops, I don't seem to have the data you asked for!";
         switch(pr.getIntent()){
             case SPOT_PRICE:
                 output = "The spot price of " + pr.getOperand().toUpperCase() + " is "+ data[0];
@@ -608,7 +608,7 @@ public class Core extends Application {
             if (wasSuggestion) {
                 //ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
             } else {
-                ui.displayMessage("Whoops, we don't seem to have the data you asked for!");
+                ui.displayMessage("Whoops, I don't seem to have the data you asked for!");
             }
             return;
         }
@@ -651,7 +651,7 @@ public class Core extends Application {
     * @param s the column name to be converted
     * @return the Intent representation of the column
     */
-    private Intent convertColumnNameToIntent(String s) {        
+    private Intent convertColumnNameToIntent(String s) {
         Intent in = nlp.parse(s).getIntent();
         return in;
     }

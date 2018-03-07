@@ -235,7 +235,7 @@ public class GUIcore implements IGraphicalUserInterface {
         newsBoard.setId("news-board");
         newsBoard.setVgap(10);
 
-        noNews = new Label("Oh no! It looks like we don't have any news for you right now!");
+        noNews = new Label("Oh no! It looks like I don't have any news for you right now!");
         noNews.setId("no-news");
         noNews.setWrapText(true);
         noNews.setTextAlignment(TextAlignment.CENTER);
