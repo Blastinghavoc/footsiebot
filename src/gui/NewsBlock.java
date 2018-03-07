@@ -85,7 +85,7 @@ public class NewsBlock extends BorderPane {
         StackPane topPane = new StackPane();
         topPane.getChildren().addAll(headline, close);
         topPane.setAlignment(headline, Pos.TOP_LEFT);
-        Insets closeMargins = new Insets(2, -2, 0, 0);
+        Insets closeMargins = new Insets(0, -2, 0, 0);
         topPane.setMargin(close, closeMargins);
         topPane.setAlignment(close, Pos.TOP_RIGHT);
 
