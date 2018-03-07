@@ -305,7 +305,7 @@ public class Core extends Application {
         ParseResult pr = nlp.parse(raw);
         //Checking the parse result.
         if(pr == null){
-            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't understand your input. Try asking 'help' to see what I can do.");
             return;
         }
         else if(pr.getOperand()== null){
@@ -313,7 +313,7 @@ public class Core extends Application {
                 outputJustNewsSummary();
                 return;
             }
-            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't understand your input. Try asking 'help' to see what I can do.");
             return;
         }
         else if (pr.getIntent() == null){
@@ -326,12 +326,13 @@ public class Core extends Application {
                     return;
                 }
             }
-            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't do that");
+            ui.displayMessage("I'm sorry "+USER_NAME+", but I'm afraid I can't understand your input. Try asking 'help' to see what I can do.");
             return;
         }
         System.out.println(pr); //DEBUG
-        if(!checkParseResultValid(pr)){
-            ui.displayMessage("Sorry, that was not a valid query.");
+        String errorMessage = checkParseResultValid(pr);
+        if(errorMessage != null){
+            ui.displayMessage(errorMessage);
             return;
         }
 
@@ -629,80 +630,81 @@ public class Core extends Application {
         return in;
     }
 
-    private Boolean checkParseResultValid(ParseResult pr){
+    private String checkParseResultValid(ParseResult pr){
+        String sorry = "Sorry "+USER_NAME + ", ";
         switch (pr.getIntent()){
             case SPOT_PRICE:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a spot price for a group.";
                 }
                 if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give a spot price for any day other than today.";
                 }
             break;
             case TRADING_VOLUME:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a trading volume for a group.";
                 }
                 if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give a trading volume for a day other than today.";
                 }
             break;
             case OPENING_PRICE:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give an opening price for a group.";
                 }
             break;
             case CLOSING_PRICE:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a closing price for a group.";
                 }
                 if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give a closing price for today. Ask for spot price instead.";
                 }
             break;
             case PERCENT_CHANGE:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a % change for a group.";
                 }
                 if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give a % change for a day other than today. Perhaps ask whether "+pr.getOperand()+ " rose "+ pr.getTimeSpecifier().toString().replace("_"," ").toLowerCase();
                 }
             break;
             case ABSOLUTE_CHANGE:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give an absolute change for a group.";
                 }
                 if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give an absolute change for a day other than today.";
                 }
             break;
             case TREND:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a trend for a group.";
                 }
             break;
             case TREND_SINCE:
                 if(pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a trend for a group.";
                 }
                 if(pr.getTimeSpecifier() == TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give a trend since today. Perhaps ask for just today's trend.";
                 }
             break;
             case NEWS:
                 if(pr.getTimeSpecifier() != TimeSpecifier.TODAY){
-                    return false;
+                    return sorry+"I can't give anything except the most up to date news.";
                 }
             break;
             case GROUP_FULL_SUMMARY:
                 if(!pr.isOperandGroup()){
-                    return false;
+                    return sorry+"I can't give a group summary for a single company. Maybe ask for the company trend.";
                 }
             break;
             default:
-            return false;
+            return sorry+"I could not understand your query.";
         }
-        return true;
+        return null;
     }
 
     /*
@@ -1011,7 +1013,7 @@ public class Core extends Application {
         for (Intent i : Intent.values()) {
             for (TimeSpecifier t : TimeSpecifier.values()) {
                 ParseResult pr = new ParseResult(i, "", operand, false, t);
-                if (checkParseResultValid(pr)) {
+                if (checkParseResultValid(pr)==null) {
                     System.out.println("Testing ParseResult: "+pr);
                     switch(i) {
                         case NEWS:
