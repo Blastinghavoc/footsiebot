@@ -93,11 +93,7 @@ public class Core extends Application {
         Boolean runTradingHourTest = false;
         Boolean runIntentTest = false;
         if (args.size() > 0) {
-            if (args.get(0).equals("nlp")) {
-                debugNLP();
-                System.exit(0);
-            }
-            else if (args.get(0).equals("tradinghour")){
+            if (args.get(0).equals("tradinghour")){
                 runTradingHourTest = true;
             } else if (args.get(0).equals("intenttest")){
                 runIntentTest = true;
@@ -248,24 +244,6 @@ public class Core extends Application {
         }
 
         System.out.println("Safely closed the program.");
-    }
-
-    //TODO: Remove! Will break the runNLPTest script.
-    private static String readEntry(String prompt) { //Nicked from Databases worksheets, can't be included in final submission DEBUG
-        try {
-            StringBuffer buffer = new StringBuffer();
-            System.out.print(prompt);
-            System.out.flush();
-            int c = System.in.read();
-            while(c != '\n' && c != -1) {
-                buffer.append((char)c);
-                c = System.in.read();
-            }
-            return buffer.toString().trim();
-        }
-        catch (IOException e) {
-            return "";
-        }
     }
 
     /**
@@ -613,9 +591,9 @@ public class Core extends Application {
         if(data == null){
             System.out.println("NULL DATA!");
             if(wasSuggestion){
-                ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
+                //ui.displayMessage("Sorry, something went wrong trying to give a suggestion for your query");
             }else{
-                ui.displayMessage("Sorry, something went wrong trying to fetch data for your query");
+                ui.displayMessage("Whoops, we don't seem to have the data you asked for!");
             }
             return;
         }
@@ -886,24 +864,6 @@ public class Core extends Application {
         System.out.println("A suggestion was marked irrelevant");
         ic.onSuggestionIrrelevant(s);
         ui.displayMessage("Ok " + USER_NAME + ", I will take that into consideration. Thank you for the feedback.");
-    }
-
-    private void debugNLP() {
-        Boolean cont = true;
-        while (cont) {
-            String input = readEntry("Enter a query:\n");
-
-            if (input.equals("exit")) {
-                cont = false;
-                continue;
-            }
-
-            ParseResult result = nlp.parse(input);
-            if (result == null) {
-                System.out.println("Sorry, I did not understand the query.");
-            }
-            System.out.println(result);
-        }
     }
 
 
