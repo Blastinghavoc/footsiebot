@@ -6,6 +6,7 @@ import javafx.animation.*;
 import javafx.event.*;
 import javafx.geometry.*;
 import javafx.scene.text.*;
+import javafx.scene.image.*;
 import javafx.scene.layout.*;
 import javafx.scene.control.*;
 import javafx.scene.shape.Rectangle;
@@ -144,21 +145,60 @@ public class Message extends FlowPane {
     * If the Message was sent by the AI, this method creates the required features
     */
     private void setupAI() {
+        String style = ui.getStyle();
         btnWrapper = new StackPane();
-        Insets btnPadding = new Insets(0, 5, 2, 5);
+        Insets btnPadding = new Insets(3, 5, 2, 2);
         btnWrapper.setPadding(btnPadding);
-        Label close = new Label("x");
+        ImageView close = new ImageView("file:src/img/" + style + "/msg-close.png");
+        close.setPreserveRatio(true);
+        close.setFitWidth(12);
         close.getStyleClass().add("remove-message");
-        close.setTooltip(removeNote);
-        Text lblSize = new Text("?");
-        Label why = new Label("?");
-        why.setTooltip(aiNote);
-        why.setAlignment(Pos.CENTER);
-        why.setMinWidth(lblSize.getLayoutBounds().getHeight());
+        Tooltip.install(close, removeNote);
+
+        ImageView why = new ImageView("file:src/img/" + style + "/reason.png");
+        why.setPreserveRatio(true);
+        why.setFitWidth(15);
+        Tooltip.install(why, aiNote);
         why.getStyleClass().add("options-button");
+
         btnWrapper.getChildren().addAll(why, close);
         btnWrapper.setAlignment(close, Pos.TOP_CENTER);
         btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
+
+        btnWrapper.heightProperty().addListener((obs, oldVal, newVal) -> {
+            double buttonsHeight = close.getLayoutBounds().getHeight() + why.getLayoutBounds().getHeight() + 10;
+            double buttonsWidth = close.getLayoutBounds().getWidth() + why.getLayoutBounds().getWidth() + 10;
+            if (newVal.doubleValue() < buttonsHeight) {
+                btnWrapper.setMinWidth(buttonsWidth);
+                btnWrapper.setMaxWidth(buttonsWidth);
+                btnWrapper.setAlignment(close, Pos.CENTER_RIGHT);
+                btnWrapper.setAlignment(why, Pos.CENTER_LEFT);
+            } else {
+                buttonsWidth = why.getLayoutBounds().getWidth();
+                if (close.getLayoutBounds().getWidth() > why.getLayoutBounds().getWidth())
+                    buttonsWidth = close.getLayoutBounds().getWidth();
+                btnWrapper.setMinWidth(buttonsWidth + 8);
+                btnWrapper.setMaxWidth(buttonsWidth + 8);
+                btnWrapper.setAlignment(close, Pos.TOP_CENTER);
+                btnWrapper.setAlignment(why, Pos.BOTTOM_CENTER);
+            }
+        });
+
+        why.setOnMouseEntered(e -> {
+            why.setImage(new Image("file:src/img/" + style + "/reason-hover.png"));
+        });
+
+        why.setOnMouseExited(e -> {
+            why.setImage(new Image("file:src/img/" + style + "/reason.png"));
+        });
+
+        close.setOnMouseEntered(e -> {
+            close.setImage(new Image("file:src/img/" + style + "/msg-close-hover.png"));
+        });
+
+        close.setOnMouseExited(e -> {
+            close.setImage(new Image("file:src/img/" + style + "/msg-close.png"));
+        });
 
         why.setOnMouseClicked(e -> {
             ui.displayMessage(sugg.getReason(), this);
@@ -184,8 +224,19 @@ public class Message extends FlowPane {
     * Finishes the construction of the Message
     */
     private void finishSetup(String sender) {
-        msg.getStyleClass().add(sender + "-label");
-        visual.getStyleClass().add(sender + "-visual");
+        if (msg.getText().contains("it's time for your daily summary")) {
+            msg.getStyleClass().add(sender + "-label");
+            visual.getStyleClass().add("summary-visual");
+        } else if (msg.getText().contains("WARNING")) {
+            msg.getStyleClass().add("warning-label");
+            visual.getStyleClass().add("warning-visual");
+        } else if ((sugg != null) || (parent != null)) {
+            msg.getStyleClass().add("suggestion-label");
+            visual.getStyleClass().add("suggestion-visual");
+        } else {
+            msg.getStyleClass().add(sender + "-label");
+            visual.getStyleClass().add(sender + "-visual");
+        }
         getStyleClass().add(sender + "-message");
         msg.setAlignment(Pos.CENTER_LEFT);
     }
