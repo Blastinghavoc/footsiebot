@@ -348,6 +348,10 @@ public class Core extends Application {
         if(!managedToStoreQuery){
             System.out.println("Failed to store query!");
         }
+        else{
+            ic.onUpdatedDatabase(LARGE_CHANGE_THRESHOLD.floatValue());//Updating the AI with the newly stored query.
+        }
+
         //Branch based on whether the intent is for news or data.
         if (pr.getIntent() == Intent.NEWS) {
             outputNews(pr,null);

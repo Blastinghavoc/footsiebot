@@ -14,8 +14,8 @@ import java.lang.*;
  */
 public class IntelligenceCore implements IIntelligenceUnit {
 
-   // To be possibly set by the user
-   private byte TOP = 5;
+
+   private byte TOP = 5;// To be possibly set by the user
    private ArrayList<Company> companies;
    private ArrayList<Group> groups;
    private double startupHour;
@@ -90,7 +90,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
         }
 
        boolean doSuggestion = false;
-       for(int i = 0; i < TOP; i++) {
+       for(int i = 0; i < companies.size(); i++) {
          if(targetCompany.equals(companies.get(i))) {
            doSuggestion = true;
          }
@@ -234,6 +234,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
 	   return result;
    }
 
+   //Unused in present version
    public Group[] onNewsTimeGroups() {
      Group[] result = new Group[TOP];
      for(int i = 0; i < TOP; i++) {
@@ -311,7 +312,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
    }
    /**
     * Utility method to create suggestion in case is news
-    * @param  Company company  the company for which the suggestion has to be made 
+    * @param  Company company  the company for which the suggestion has to be made
     * @return         suggestion object for news
     */
    private Suggestion suggestNews(Company company) {
