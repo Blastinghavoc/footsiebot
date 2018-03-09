@@ -130,13 +130,16 @@ public class Company implements Comparable<Company> {
    */
   @Override
   public int compareTo(Company c) {
-    Float r = c.getPriority() - this.getPriority();
-    if(r < 0) {
-      return -1;
-    } else if (r == 0) {
+    //System.out.println(c.getCode() + " has priority "+ c.getPriority() + " . this has priority " + this.getPriority());
+    if(c.getPriority() < this.getPriority()) {
+        //System.out.println("this is greater");
+      return 1;
+  } else if (c.getPriority().equals(this.getPriority())) {
+      //System.out.println("these are equal");
       return 0;
     } else {
-      return 1;
+        //System.out.println("this is less");
+      return -1;
     }
   }
 

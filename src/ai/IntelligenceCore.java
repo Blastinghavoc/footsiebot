@@ -135,13 +135,15 @@ public class IntelligenceCore implements IIntelligenceUnit {
          System.out.println("No companies to update.");
          return null;
      }
-     Collections.sort(companies);
+    //  Collections.sort(companies);
+     Collections.sort(companies, Collections.reverseOrder());
      if(groups == null) {
        // DEBUG
        System.out.println("GROUPS ARE NULL");
        return null;
      }
-     Collections.sort(groups);
+     //Collections.sort(groups);
+     Collections.sort(groups, Collections.reverseOrder());
 
      ArrayList<Company> changed = detectedImportantChange(threshold);
      if((changed == null ) || (changed.size() == 0)) return null;
@@ -165,10 +167,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      if(companies != null){
-         Collections.sort(companies);
+         //Collections.sort(companies);
+         Collections.sort(companies, Collections.reverseOrder());
      }
      if(groups  != null){
-         Collections.sort(groups);
+         //Collections.sort(groups);
+         Collections.sort(groups, Collections.reverseOrder());
      }
    }
 
@@ -204,7 +208,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
           case TREND : intent = AIIntent.TREND;
           break;
           case TRADING_VOLUME : intent = AIIntent.TRADING_VOLUME;
-          break;        
+          break;
           default : intent = null;
         }
         System.out.println("Priority is "+ c.getPriority());
