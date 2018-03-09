@@ -1238,11 +1238,11 @@ public class DatabaseCore implements IDatabaseManager {
      */
     public void onSuggestionIrrelevant(Company company, AIIntent intent, boolean isNews) {
       String table = "";
-      if(intent == null) {
-        System.out.println("Intent was null");
+      if(intent == null && !isNews) {
+        System.out.println("Intent was null, and not news");
         return;
       }
-      if(!isNews) {
+      if(!isNews && intent != null) {
         switch(intent) {
           case SPOT_PRICE: table+= "CompanySpotPriceCount";
           break;
@@ -1258,15 +1258,16 @@ public class DatabaseCore implements IDatabaseManager {
           break;
           case TRADING_VOLUME: table+= "CompanyTradingVolumeCount";
           break;
+         default: return;
         }
-      } else {
+     } else {
         // is news
         table+= "CompanyNewsCount";
       }
 
       String column = table.replace("Company", "").replace("Count", "Adjustment");
       // exponential decrement
-      String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ")";
+      String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ") where CompanyCode = '"+company.getCode()+"'";
       Statement stmt = null;
 
       try {

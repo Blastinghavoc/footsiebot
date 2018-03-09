@@ -135,13 +135,15 @@ public class IntelligenceCore implements IIntelligenceUnit {
          System.out.println("No companies to update.");
          return null;
      }
-     Collections.sort(companies);
+    //  Collections.sort(companies);
+     Collections.sort(companies, Collections.reverseOrder());
      if(groups == null) {
        // DEBUG
        System.out.println("GROUPS ARE NULL");
        return null;
      }
-     Collections.sort(groups);
+     //Collections.sort(groups);
+     Collections.sort(groups, Collections.reverseOrder());
 
      ArrayList<Company> changed = detectedImportantChange(threshold);
      if((changed == null ) || (changed.size() == 0)) return null;
@@ -165,10 +167,12 @@ public class IntelligenceCore implements IIntelligenceUnit {
      companies = db.getAICompanies();
      groups = db.getAIGroups();
      if(companies != null){
-         Collections.sort(companies);
+         //Collections.sort(companies);
+         Collections.sort(companies, Collections.reverseOrder());
      }
      if(groups  != null){
-         Collections.sort(groups);
+         //Collections.sort(groups);
+         Collections.sort(groups, Collections.reverseOrder());
      }
    }
 
@@ -208,7 +212,7 @@ public class IntelligenceCore implements IIntelligenceUnit {
           default : intent = null;
         }
         System.out.println("Priority is "+ c.getPriority());
-        c.decrementPriorityOfIntent(intent);
+        c.decrementPriorityOfIntent(intent,isNews);
         db.onSuggestionIrrelevant(c, intent, isNews);
         System.out.println("Priority is now "+ c.getPriority());
       }

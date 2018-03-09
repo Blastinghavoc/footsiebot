@@ -41,9 +41,13 @@ public class Company implements Comparable<Company> {
    * the decrement is exponential so that it is still effective
    * after a high number of times the intent has been queried
    * @param AIIntent i intent to be decremented
+   * @param Boolean isNews Whether or not to decrement news.
    */
-  public void decrementPriorityOfIntent(AIIntent i) {
-
+  public void decrementPriorityOfIntent(AIIntent i,Boolean isNews) {
+    // if(isNews){
+    //     newsAdj = 1.5f * newsAdj;
+    //     return;
+    // }
     for(Map.Entry<AIIntent,Float[]> e: mapping.entrySet()) {
       if(e.getKey().equals(i)) {
         Float[] current = mapping.get(i);
@@ -122,17 +126,20 @@ public class Company implements Comparable<Company> {
   /**
    * Method used for sorting companies by priority.
    * @param  Company c
-   * @return         
+   * @return
    */
   @Override
   public int compareTo(Company c) {
-    Float r = c.getPriority() - this.getPriority();
-    if(r < 0) {
-      return -1;
-    } else if (r == 0) {
+    //System.out.println(c.getCode() + " has priority "+ c.getPriority() + " . this has priority " + this.getPriority());
+    if(c.getPriority() < this.getPriority()) {
+        //System.out.println("this is greater");
+      return 1;
+  } else if (c.getPriority().equals(this.getPriority())) {
+      //System.out.println("these are equal");
       return 0;
     } else {
-      return 1;
+        //System.out.println("this is less");
+      return -1;
     }
   }
 
