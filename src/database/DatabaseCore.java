@@ -1257,7 +1257,7 @@ public class DatabaseCore implements IDatabaseManager {
           case TREND: table+= "CompanyTrendCount";
           break;
           case TRADING_VOLUME: table+= "CompanyTradingVolumeCount";
-          break;        
+          break;
          default: return;
         }
      } else {
@@ -1267,7 +1267,7 @@ public class DatabaseCore implements IDatabaseManager {
 
       String column = table.replace("Company", "").replace("Count", "Adjustment");
       // exponential decrement
-      String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ")";
+      String query = "UPDATE " + table + " SET " + column + " = "+column+" + 1 + (0.5 * " + column  + ") where CompanyCode = '"+company.getCode()+"'";
       Statement stmt = null;
 
       try {
