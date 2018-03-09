@@ -204,10 +204,8 @@ public class IntelligenceCore implements IIntelligenceUnit {
           case TREND : intent = AIIntent.TREND;
           break;
           case TRADING_VOLUME : intent = AIIntent.TRADING_VOLUME;
-          break;
-        //   case TREND_SINCE : intent = AIIntent.TREND_SINCE;
-        //   break;
-          default : intent = null;          
+          break;        
+          default : intent = null;
         }
         System.out.println("Priority is "+ c.getPriority());
         c.decrementPriorityOfIntent(intent,isNews);
